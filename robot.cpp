@@ -22,6 +22,8 @@ void Robot::update(robot_frame f){
     this->linear_speed = {f.linSpdx, f.linSpdy};
     this->item_carried = f.itemCarried;
     this->workshop_located = f.workshopLocated;
+
+    //TODO: 一些量还没更新
 }
 
 //初始化其他机器人列表
