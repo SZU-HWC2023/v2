@@ -97,7 +97,7 @@ bool Robot::isAble2Brake(float brake_dist){
     if(hdg_sign.x == wall_sign.x || hdg_sign.y == wall_sign.y){
         //而且距离墙壁距离小于刹车距离在该方向的分量
         vec2 dist = wallDist(this->coordinate);
-        if(dist.x < abs(brake.x) || dist.y < abs(brake.y))
+        if(abs(brake.x)<dist.x || abs(brake.y)<dist.y)
             return false;   //不能刹住
     }
     return true;    //能刹住
