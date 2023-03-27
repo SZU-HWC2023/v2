@@ -1,0 +1,8 @@
+.vscode
+build
+dev
+replay
+cmake-build-debug
+code
+.idea
+*.zip
