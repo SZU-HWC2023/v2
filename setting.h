@@ -19,7 +19,7 @@ using namespace std;
 #define FPS 50                      // 帧率
 #define FRAME_INTERVAL 1.0 / FPS    // 帧间隔
 #define INIT_MONEY 200000           // 初始资金
-#define ITEMS_NUM 7                 // 物品种类数量
+#define ITEMS_NUM 8                 // 物品种类数量 ，包括没有物品
 #define WS_TYPE_NUM 9               // 工作台种类数量
 #define ROBOT_WORK_DISTANCE 0.4     // 工作台交互距离 (m)
 #define ROBOT_NORM_RADIUS 0.45      // 机器人正常半径 (m)        
