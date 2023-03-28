@@ -1,5 +1,5 @@
 #include <iostream>
-#include "class.h"
+#include "manager.h"
 
 int main(){
 
