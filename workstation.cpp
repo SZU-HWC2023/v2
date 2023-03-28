@@ -186,6 +186,7 @@ Workstation::Workstation(int workstationID,int type, float x, float y){
     this->id = workstationID;
     this->coordinate = {x,y};
     this->type = type;
+    this->production_item = g_items[this->type];
 }
 
 

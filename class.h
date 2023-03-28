@@ -48,7 +48,7 @@ const set<int> WORKERSTATION_TO_RECYCLE[10] = {
 struct Item{
     int type;                   //物品类型
     bitset<ITEMS_NUM> formula;  //生产配方
-    bitset<WS_TYPE_NUM> need;   //需要的工作台
+//    bitset<WS_TYPE_NUM> need;   //需要的工作台
     float buy_price;            //买入价格
     float sell_price;           //卖出价格
     int priority;               //优先级
