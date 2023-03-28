@@ -108,6 +108,10 @@ class Robot{
     float crt_lin_acc;      //当前线加速度 (m/s^2)
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
 
+    // 需要维护的量 1
+    tuple<int, int> action = {-1, -1};         // 奔向的工作台编号(<50) 物品编号(1-7)
+    int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
+
     vector<Robot*> other_robots;    //其他机器人列表
 
 
@@ -124,6 +128,13 @@ class Robot{
 
     bool isAble2Brake(float brake_dist);
     void move2ws(Workstation* ws);
+
+
+    void resetAction();                     //重置机器人的动作
+    const tuple<int, int> getAction();
+    void setAction(tuple<int, int> action);
+    void setNextWorkerId(int id);
+    int getNextWorkerId();
 };
 
 

@@ -146,3 +146,32 @@ void Robot::move2ws(Workstation* ws){
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
 }
+/*对机器人的动作进行重置*/
+void Robot::resetAction(){
+    this->action = {-1,-1};
+}
+/*
+获得机器人当前的动作
+@return tuple<int,int> 元组的第一项为工作台id, 元组的第二项为物品的编号（1-7）
+*/
+const tuple<int, int> Robot::getAction(){
+    return this->action;
+}
+/*设置机器人的动作*/
+void Robot::setAction(tuple<int, int> action){
+    this->action = action;
+}
+/*
+设置机器人下一个要去的工作台
+@param id 下一个工作台的id
+ */
+void Robot::setNextWorkerId(int id){
+    this->next_worker_id = id;
+}
+/*
+获取机器人下一个工作台id
+@return 下一工作台的id
+ */
+int Robot::getNextWorkerId(){
+    return this->next_worker_id;
+}
