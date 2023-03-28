@@ -25,7 +25,12 @@ void Robot::update(robot_frame f){
     this->item_carried = f.itemCarried;
     this->workshop_located = f.workshopLocated;
 
-    //TODO: 一些量还没更新
+    this->crt_radius = this->item_carried? ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
+
+    this->crt_mass = M_PI * powf(this->crt_radius,2) * ROBOT_DENSITY;
+
+    this->crt_lin_acc = MAX_TRACTION / this->crt_mass;
+    this->crt_lin_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
 }
 
 //初始化其他机器人列表

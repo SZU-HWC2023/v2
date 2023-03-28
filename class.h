@@ -26,8 +26,8 @@ class RVO;
 extern map<int, Item> g_items;                       //物品类型->物品信息   全局变量
 
 extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
-extern map<int, Workstation*> g_item2seller;        //物品类型->卖出工作台    全局变量
-extern map<int, Workstation*> g_item2buyer;         //物品类型->买入工作台   全局变量
+extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
+extern multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 
 extern vector<Robot*> g_robots;                      //机器人列表            全局变量
 
