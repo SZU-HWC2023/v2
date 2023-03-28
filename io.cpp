@@ -50,6 +50,12 @@ bool read_map(){
                 Workstation *workstation = new Workstation(current_workstation_id, line[col] - '0', x, y);
                 g_workstations.emplace_back(workstation);
                 g_item_from_ws.insert({workstation->type, workstation});
+                bitset<ITEMS_NUM> formula = g_items[workstation->type].formula;
+                for(int i=1;i<ITEMS_NUM;i++){
+                    if(formula[i]==1){
+                        g_item_to_ws.insert({i,workstation});
+                    }
+                }
                 current_workstation_id++;
             }
         }
