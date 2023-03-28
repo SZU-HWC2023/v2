@@ -23,13 +23,13 @@ class Workstation;
 class Robot;
 class RVO;
 
-map<int, Item> items;                       //物品类型->物品信息
+extern map<int, Item> g_items;                       //物品类型->物品信息   全局变量
 
-vector<Workstation*> workstations;          //工作台列表
-map<int, Workstation*> item2seller;        //物品类型->卖出工作台
-map<int, Workstation*> item2buyer;         //物品类型->买入工作台
+extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
+extern map<int, Workstation*> g_item2seller;        //物品类型->卖出工作台    全局变量
+extern map<int, Workstation*> g_item2buyer;         //物品类型->买入工作台   全局变量
 
-vector<Robot*> robots;                      //机器人列表
+extern vector<Robot*> g_robots;                      //机器人列表            全局变量
 
 // 工作台需要的原材料材料
 const set<int> WORKERSTATION_TO_RECYCLE[10] = {
@@ -67,7 +67,7 @@ struct ws_frame{
     float x;                //坐标x        
     float y;                //坐标y
     int remaingFrames;      //剩余生产时间
-    int rawStatusCode;      //原始状态码
+    int rawStatusCode;      //原材料状态码
     int productStatus;      //产品状态
 };
 
@@ -103,7 +103,8 @@ class Workstation{
     int remaingFrames;      //-1:缺少材料  0:阻塞    >0:剩余帧数
     int productStatus;      //产品状态
     Item production_item;   //生产物品信息
-    bitset<ITEMS_NUM> accept_items; //接受物品类型
+    int rawStatusCode;      //原材料状态码    每一帧实时变化
+    bitset<ITEMS_NUM> accept_items; //接受物品类型    常量
 
     set<int> need;            // 还需要物品的类型
     // 动态维护的量
@@ -136,6 +137,9 @@ class Workstation{
     double getProfit();
     double getX();
     double getY();
+
+    Workstation(int workstationID, int type, float x, float y);
+    void update(ws_frame f);
 };
 
 //机器人
@@ -183,8 +187,6 @@ class Robot{
     int getNextWorkerId();
 };
 
-
-
-
-
-
+//读地图和读帧的相关函数
+bool read_map();
+bool readUntilOK();

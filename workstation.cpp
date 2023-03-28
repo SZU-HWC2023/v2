@@ -1,5 +1,7 @@
 //工作台相关函数
+
 #include "class.h"
+
 /*
 工作台是否需要该物品
 @param production_id 物品的类型
@@ -178,4 +180,19 @@ double Workstation::getX(){
 }
 double Workstation::getY(){
     return this->coordinate.y;
+}
+
+Workstation::Workstation(int workstationID,int type, float x, float y){
+    this->id = workstationID;
+    this->coordinate = {x,y};
+    this->type = type;
+}
+
+
+//更新工作台状态
+void Workstation::update(ws_frame f){
+    this->remaingFrames = f.remaingFrames;
+    this->rawStatusCode = f.rawStatusCode;
+    this->productStatus = f.productStatus;
+    //还有一些需要更新的东西
 }

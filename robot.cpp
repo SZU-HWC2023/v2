@@ -1,5 +1,7 @@
 //机器人相关函数
+
 #include "class.h"
+
 
 /*
 @param robotID 机器人ID
@@ -29,7 +31,7 @@ void Robot::update(robot_frame f){
 //初始化其他机器人列表
 void Robot::initOtherRobot(){
     this->other_robots.clear();
-    for(auto r:robots){
+    for(auto r:g_robots){
         if(r->id != this->id){
             this->other_robots.push_back(r);
         }

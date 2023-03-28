@@ -13,6 +13,7 @@
 #include <list>
 using namespace std;
 // 预定义参数 规范应该写在其余头文件中
+#define MAX 0x3f3f3f
 #define MAP_SIZE 50                 // 地图大小 (m)
 #define MAX_WORKER_NUM 50           // 最大工作台数量
 #define ROBOT_NUM 4                 // 机器人数量
