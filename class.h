@@ -31,7 +31,19 @@ map<int, Workstation*> item2buyer;         //物品类型->买入工作台
 
 vector<Robot*> robots;                      //机器人列表
 
-
+// 工作台需要的原材料材料
+const set<int> WORKERSTATION_TO_RECYCLE[10] = {
+        {},                   // 工作台0不回收
+        {},                   // 工作台1不回收
+        {},                   // 工作台2不回收
+        {},                   // 工作台3不回收
+        {1, 2},               // 工作台4回收1、2
+        {1, 3},               // 工作台5回收1、3
+        {2, 3},               // 工作台6回收2、3
+        {4, 5, 6},            // 工作台7回收4、5、6
+        {7},                  // 工作台8回收7
+        {1, 2, 3, 4, 5, 6, 7} // 工作台9回收1-7
+};
 //物品
 struct Item{
     int type;                   //物品类型
@@ -87,9 +99,43 @@ class Workstation{
     public:
     int id;                 //工作台ID
     vec2 coordinate;        //工作台坐标
-    int production_type;    //生产物品类型
+    int type;               //平台类型
+    int remaingFrames;      //-1:缺少材料  0:阻塞    >0:剩余帧数
+    int productStatus;      //产品状态
     Item production_item;   //生产物品信息
     bitset<ITEMS_NUM> accept_items; //接受物品类型
+
+    set<int> need;            // 还需要物品的类型
+    // 动态维护的量
+    map<int, int> locked;          // 已经被锁定的物品id(包括生产的物品)  被锁物品编号 锁定的机器人编号
+
+    bool production_needed(int production_type);
+    bool production_locked(int production_type);
+
+    bool can_production_recycle(int production_type);
+    bool can_production_sell();
+
+    void rel_locked_production(int production_type);
+    void add_locked_production(int production_type, int robot_id);
+
+    void putIn(int production_type);
+    map<int, int> getLocked();
+    bool haveRawLocked();
+    void changeLocked(int production_type, int robot_id);
+
+    int getMissingNum();
+    int getLeftTime();
+    int getCycleTime();
+    int getWeight();
+
+    int getProductStatus();
+    int getBuyPrice();
+    int getSellPrice();
+    int getType();
+    int getRank();
+    double getProfit();
+    double getX();
+    double getY();
 };
 
 //机器人
