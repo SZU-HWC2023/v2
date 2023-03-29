@@ -1,5 +1,20 @@
 
 #include "class.h"
+
+char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];
+//物品类型->物品信息   全局变量
+// key 为物品类型,value为Item
+map<int, Item> g_items = {
+        {1, {1, 0, 3000.0, 6000.0, 3, 50}}, //工作台类型、收购原材料编号、买入价格、卖出价格、等级、工作周期（帧数）
+        {2, {2, 0, 4400.0, 7600.0, 3, 50}},
+        {3, {3, 0, 5800.0, 9200.0, 3, 50}},
+        {4, {4, 6, 15400.0, 22500.0, 6, 500}},
+        {5, {5, 10, 17200.0, 25000.0, 6, 500}},
+        {6, {6, 12, 19200.0, 27500.0, 6, 500}},
+        {7, {7, 112, 76000.0, 105000.0,6, 1000}},
+        {8, {8, 128, -1, -1, 1, 1}},
+        {9, {9, 254, -1, -1, 1, 1}}
+};
 vector<Workstation*> g_workstations;          //工作台列表
 vector<Robot*> g_robots;
 multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -23,6 +38,7 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
+            g_map[row][col] = line[col];
             if (line[col] == '.')continue;
             float y = 50 - ((row+1)*0.5-0.25);
             float x = (col+1)*0.5 - 0.25;
