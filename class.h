@@ -22,15 +22,14 @@ struct Item;
 class Workstation;
 class Robot;
 class RVO;
-extern char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];    //地图的字符矩阵
-
+extern char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];    //地图的字符矩阵        全局变量
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
-extern map<int,Item> g_items;                       //物品类型->物品信息   全局变量
 
-extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 extern multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 
+extern map<int,Item> g_items;                       //物品类型->物品信息   全局变量
+extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
 extern vector<Robot*> g_robots;                      //机器人列表            全局变量
 
 // 工作台需要的原材料材料
@@ -152,7 +151,7 @@ class Robot{
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
 
     // 需要维护的量 1
-    tuple<int, int> action = {-1, -1};         // 奔向的工作台编号(<50) 物品编号(1-7)
+    tuple<Workstation*, int> action = {NULL, -1};         // 奔向的工作台指针 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
 
     vector<Robot*> other_robots;    //其他机器人列表
@@ -174,8 +173,9 @@ class Robot{
 
 
     void resetAction();                     //重置机器人的动作
-    const tuple<int, int> getAction();
-    void setAction(tuple<int, int> action);
+    const tuple<Workstation*, int> getAction();
+    void setAction(tuple<Workstation*, int> action);
+    
     void setNextWorkerId(int id);
     int getNextWorkerId();
 };

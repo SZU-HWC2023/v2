@@ -158,17 +158,17 @@ void Robot::move2ws(Workstation* ws){
 }
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
-    this->action = {-1,-1};
+    this->action = {NULL,-1};
 }
 /*
 获得机器人当前的动作
 @return tuple<int,int> 元组的第一项为工作台id, 元组的第二项为物品的编号（1-7）
 */
-const tuple<int, int> Robot::getAction(){
+const tuple<Workstation*, int> Robot::getAction(){
     return this->action;
 }
 /*设置机器人的动作*/
-void Robot::setAction(tuple<int, int> action){
+void Robot::setAction(tuple<Workstation*, int> action){
     this->action = action;
 }
 /*
