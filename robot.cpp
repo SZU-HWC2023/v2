@@ -104,7 +104,7 @@ bool Robot::isAble2Brake(float brake_dist){
     if(hdg_sign.x == wall_sign.x || hdg_sign.y == wall_sign.y){
         //而且距离墙壁距离小于刹车距离在该方向的分量
         vec2 dist = wallDist(this->coordinate);
-        if(abs(brake.x)<dist.x || abs(brake.y)<dist.y)
+        if(abs(brake.x)>dist.x || abs(brake.y)>dist.y)
             return false;   //不能刹住
     }
     return true;    //能刹住
@@ -129,7 +129,7 @@ void Robot::move2ws(Workstation* ws){
 
     // 转向问题
     if(abs(delta_hdg) > abs(this->angular_speed)*0.02)
-        tgt_ang_spd = MAX_ANGULAR_SPD;
+        tgt_ang_spd = sign(delta_hdg)*MAX_ANGULAR_SPD;
     else{
         float s_w;  //转向刹停距离
         if(abs(this->angular_speed)/this->crt_ang_acc >0.02)
@@ -146,7 +146,7 @@ void Robot::move2ws(Workstation* ws){
     if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
         tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
-    //刹车距离
+    //刹车距离 ----判断刹车
     float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
     brake_dist += 2*this->crt_radius + 0.05;
 

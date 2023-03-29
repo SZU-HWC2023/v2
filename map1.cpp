@@ -2,7 +2,6 @@
 
  // 买货物（取货物）的代价   是否可以优化？？？？
 tuple<double, Workstation*> getTimePriceForBuy(Robot* r, Workstation *w, int frame_id){
-    cerr<<11<<endl;
     // 判断是否有工作站接收
     double time02 = MAX;
     Workstation* res_nxt_w;
@@ -40,7 +39,6 @@ void Map1::assignSetTask(int frame_id, Robot* r){
         iter.first != iter.second; ++iter.first){
         Workstation *w = iter.first->second;
         double timePrice = 1;     // 帧代价         不需要考虑距离因素  放物品的时候
-
         if(w->can_production_recycle(item)){
             int left_frame = MAX_FRAME-frame_id;
             if(item < 7 && w->type == 9) continue;
@@ -94,8 +92,6 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
         }
     }
     if(pq.size()>0){
-        // 如果距离太远不能接受 优先选择下一个指令
-        priority_queue<tuple<double, Workstation*, Workstation*>, vector<tuple<double, Workstation*, Workstation*>>, greater<tuple<double, Workstation*, Workstation*>>> pq; // 总代价(时间表示 帧) 目标工作台 下一个工作台
         // 下达指令 朝向最小的工作站台
         tuple<double, Workstation*, Workstation*> minTimePriceWorker = pq.top();
         Workstation* w = get<1>(minTimePriceWorker);

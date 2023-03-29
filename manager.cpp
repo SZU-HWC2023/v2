@@ -41,7 +41,6 @@ void Manager::handleTask(Robot* r){
     // 先判断是否到达
     if(g_workstations[r->workshop_located] == get<0>(action)){
         if(item == 0 && w->product_status==1){
-            cerr<<111<<endl;
             handleGetTask(r);
         }
         else if(item>0&&w->production_needed(item)){
@@ -88,7 +87,8 @@ void Manager::handleFps(int frame_id){
         robot_ids.pop();
         Robot* r = g_robots[i];
         const tuple<Workstation*, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
-        if(get<0>(action) != NULL){                               // 机器人的工作台编号不为-1 说明有该机器有任务调度
+
+        if(get<0>(action) != nullptr){                               // 机器人的工作台编号不为-1 说明有该机器有任务调度
             Manager::handleTask(r);
         }else{                                                     // 没有任务调度 安排任务喽
             Manager::assignTask(frame_id, r, robot_ids);
