@@ -22,7 +22,9 @@ struct Item;
 class Workstation;
 class Robot;
 class RVO;
-extern char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];    //地图的字符矩阵        全局变量
+class AStar;
+extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
+
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -179,7 +181,35 @@ class Robot{
     void setNextWorkerId(int id);
     int getNextWorkerId();
 };
+typedef struct Point{
+    int x;
+    int y;
+    float cost;
+    struct Point *parent_node;
+    Point(int x,int y, float cost,Point* parent_node){
+        this->x = x;
+        this->y = y;
+        this->cost = cost;
+        this->parent_node = parent_node;
+    }
+}Point;
+class AStar{
+public:
+    vector<tuple<int,int, float >> motion;
+    AStar(){
+        this->motion = this->get_motion_model();
+    }
+    vector<Point*> planning(int sx,int sy,int gx,int gy);
 
+    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+    //判断下标是否合法
+    bool verify(Point* p);
+    tuple<int,int> getIndex(Point* p);
+    float calc_heuristic(Point* a, Point *b);
+    vector<tuple<int,int, float >> get_motion_model();
+
+};
+void test_astar();
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();
