@@ -1,9 +1,12 @@
 #include <iostream>
 #include "manager.h"
+// #include <unistd.h>
 
 int main(){
+    // sleep(10);
     init_items();
     read_map();
+    
     puts("OK");
     fflush(stdout);
 

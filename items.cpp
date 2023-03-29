@@ -26,6 +26,7 @@ void init_items(){
         Item item;
         item.type = i;
         item.formula = g_ws_requirement[i];
+        // fprintf(stderr, "formula: %s\n", item.formula.to_string().c_str());
         item.buy_price = buy_prices[i];
         item.sell_price = sell_prices[i];
         item.priority = item_priority[i];
