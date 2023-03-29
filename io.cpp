@@ -1,5 +1,7 @@
 
 #include "class.h"
+
+char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];
 //物品类型->物品信息   全局变量
 // key 为物品类型,value为Item
 map<int, Item> g_items = {
@@ -36,6 +38,7 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
+            g_map[row][col] = line[col];
             if (line[col] == '.')continue;
             float y = 50 - ((row+1)*0.5-0.25);
             float x = (col+1)*0.5 - 0.25;

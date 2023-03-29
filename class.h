@@ -22,6 +22,7 @@ struct Item;
 class Workstation;
 class Robot;
 class RVO;
+extern char g_map[MAP_TRUE_SIZE + 1][MAP_TRUE_SIZE + 1];    //地图的字符矩阵
 
 extern map<int, Item> g_items;                       //物品类型->物品信息   全局变量
 
