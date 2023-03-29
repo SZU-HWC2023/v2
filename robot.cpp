@@ -20,10 +20,10 @@ Robot::Robot(int robotID, float x, float y){
 void Robot::update(robot_frame f){
     this->coordinate = {f.x, f.y};
     this->heading = f.heading;
-    this->angular_speed = f.angSpd;
-    this->linear_speed = {f.linSpdx, f.linSpdy};
-    this->item_carried = f.itemCarried;
-    this->workshop_located = f.workshopLocated;
+    this->angular_speed = f.ang_spd;
+    this->linear_speed = {f.lin_spd_x, f.lin_spd_y};
+    this->item_carried = f.item_carried;
+    this->workshop_located = f.workshop_located;
 
     this->crt_radius = this->item_carried? ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
 
@@ -124,6 +124,9 @@ void Robot::move2ws(Workstation* ws){
     float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
     //夹角越大越需要减速
     tgt_lin_spd = 0.5+pow(M_PI-abs(delta_hdg), 3)/pow(M_PI, 3)*MAX_FORWARD_SPD;
+    //加速距离
+    float s_v = pow(MAX_FORWARD_SPD,2)/2/this->crt_lin_acc;
+
     // 转向问题
     if(abs(delta_hdg) > abs(this->angular_speed)*0.02)
         tgt_ang_spd = MAX_ANGULAR_SPD;
@@ -140,7 +143,7 @@ void Robot::move2ws(Workstation* ws){
             tgt_ang_spd = - sign(delta_hdg) * MAX_BACKWARD_SPD / 2;
     }
 
-    if(abs(abs(delta_hdg) - M_PI) < 0.1)
+    if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
         tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
     //刹车距离

@@ -2,6 +2,8 @@
 #include "class.h"
 vector<Workstation*> g_workstations;          //工作台列表
 vector<Robot*> g_robots;
+multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
+multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 
 #include <cstring>
 using namespace std;
@@ -34,6 +36,14 @@ bool read_map(){
                 //工作台
                 Workstation *workstation = new Workstation(current_workstation_id, line[col] - '0', x, y);
                 g_workstations.emplace_back(workstation);
+                if(workstation->type < 8)
+                    g_item_from_ws.insert(make_pair(workstation->type,workstation));
+
+                if(workstation->type > 3){
+
+                }
+                    
+
                 current_workstation_id++;
             }
         }
@@ -48,17 +58,16 @@ bool readUntilOK() {
     char line[1024];
     int K = 0;
     if(scanf("%d\n", &K) == EOF)return false;
-
     for(int i=0;i<K;i++){
         ws_frame wsFrame;
-        scanf("%d %f %f %d %d %d\n",&wsFrame.ws_type,&wsFrame.x,&wsFrame.y,&wsFrame.frameID,&wsFrame.rawStatusCode,&wsFrame.productStatus);
+        scanf("%d %f %f %d %d %d\n",&wsFrame.ws_type,&wsFrame.x,&wsFrame.y,&wsFrame.remaing_frames,&wsFrame.raw_status_code,&wsFrame.product_status);
         g_workstations[i]->update(wsFrame);
     }
     for (int i=0;i<4;i++){
         robot_frame robotFrame;
-        scanf("%d %d %f %f %f %f %f %f %f %f\n",&robotFrame.workshopLocated,&robotFrame.itemCarried,
-              &robotFrame.timeValue,&robotFrame.collisionValue,
-              &robotFrame.angSpd,&robotFrame.linSpdx,&robotFrame.linSpdy,
+        scanf("%d %d %f %f %f %f %f %f %f %f\n",&robotFrame.workshop_located,&robotFrame.item_carried,
+              &robotFrame.time_value,&robotFrame.collision_value,
+              &robotFrame.ang_spd,&robotFrame.lin_spd_x,&robotFrame.lin_spd_y,
               &robotFrame.heading,&robotFrame.x,&robotFrame.y);
         g_robots[i]->update(robotFrame);
     }

@@ -48,7 +48,7 @@ bool Workstation::can_production_recycle(int production_type){
 @return false   工作台生产的物品不能出售
  */
 bool Workstation::can_production_sell(){
-    return this->productStatus == 1 || this->remaingFrames != -1;
+    return this->product_status == 1 || this->remaing_frames != -1;
 }
 
 /*
@@ -114,7 +114,7 @@ int Workstation::getMissingNum(){
 
 //获取平台的剩余生产帧数
 int Workstation::getLeftTime(){
-    return remaingFrames;
+    return remaing_frames;
 }
 
 //获得平台生产该物品的整个工作周期（帧数）
@@ -130,7 +130,7 @@ int Workstation::getWeight(){
     if(type == 8) return 1;
     else if(type == 9) return MAX;
     if(type == 7){
-        if(remaingFrames <= 500){
+        if(remaing_frames <= 500){
             int n = getMissingNum();
             if(n == 1) return 1;
             if(n == 2) return 2;
@@ -143,15 +143,6 @@ int Workstation::getWeight(){
     }
 }
 
-/*
-返回产品格状态
-@return 1   有产品
-@return 0   没有产品
- */
-int Workstation::getProductStatus(){
-    return this->productStatus;
-}
-
 //机器人收购平台生产物品的价格 ||购买价
 int Workstation::getBuyPrice(){
     return this->production_item.buy_price;
@@ -162,10 +153,7 @@ int Workstation::getSellPrice(){
     return this->production_item.sell_price;
 }
 
-// 获得工作台的类型
-int Workstation::getType(){
-    return this->type;
-}
+
 //获得平台的等级
 int Workstation::getRank(){
     return this->production_item.priority;
@@ -175,24 +163,21 @@ double Workstation::getProfit(){
     return this->production_item.profit();
 }
 
-double Workstation::getX(){
-    return this->coordinate.x;
-}
-double Workstation::getY(){
-    return this->coordinate.y;
-}
-
 Workstation::Workstation(int workstationID,int type, float x, float y){
     this->id = workstationID;
     this->coordinate = {x,y};
     this->type = type;
+    this->production_item = g_items[type];
+    this->accept_items = g_ws_requirement[type];
+    
+
 }
 
 
 //更新工作台状态
 void Workstation::update(ws_frame f){
-    this->remaingFrames = f.remaingFrames;
-    this->rawStatusCode = f.rawStatusCode;
-    this->productStatus = f.productStatus;
+    this->remaing_frames = f.remaing_frames;
+    this->raw_status_code = f.raw_status_code;
+    this->product_status = f.product_status;
     //还有一些需要更新的东西
 }

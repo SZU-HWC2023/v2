@@ -2,7 +2,7 @@
 #include "manager.h"
 
 int main(){
-
+    init_items();
     read_map();
     puts("OK");
     fflush(stdout);

@@ -23,7 +23,8 @@ class Workstation;
 class Robot;
 class RVO;
 
-extern map<int, Item> g_items;                       //物品类型->物品信息   全局变量
+extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
+extern map<int,Item> g_items;                       //物品类型->物品信息   全局变量
 
 extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -44,11 +45,11 @@ const set<int> WORKERSTATION_TO_RECYCLE[10] = {
         {7},                  // 工作台8回收7
         {1, 2, 3, 4, 5, 6, 7} // 工作台9回收1-7
 };
+
 //物品
 struct Item{
     int type;                   //物品类型
     bitset<ITEMS_NUM> formula;  //生产配方
-    bitset<WS_TYPE_NUM> need;   //需要的工作台
     float buy_price;            //买入价格
     float sell_price;           //卖出价格
     int priority;               //优先级
@@ -60,39 +61,33 @@ struct Item{
     };
 };
 
+void init_items();
+
 //工作台帧信息
 struct ws_frame{
-    int frameID;            //帧ID
     int ws_type;            //工作台类型
     float x;                //坐标x        
     float y;                //坐标y
-    int remaingFrames;      //剩余生产时间
-    int rawStatusCode;      //原材料状态码
-    int productStatus;      //产品状态
+    int remaing_frames;      //剩余生产时间
+    int raw_status_code;      //原材料状态码
+    int product_status;      //产品状态
 };
 
 //机器人帧信息
 struct robot_frame{
-    int frameID;            //帧ID
-    int workshopLocated;    //所在工作台
-    int itemCarried;        //携带物品
-    float timeValue;        //时间价值
-    float collisionValue;   //碰撞价值
-    float angSpd;           //角速度 (rad/s)
-    float linSpdx;          //线速度x (m/s)
-    float linSpdy;          //线速度y (m/s)
+    int workshop_located;    //所在工作台
+    int item_carried;        //携带物品
+    float time_value;        //时间价值
+    float collision_value;   //碰撞价值
+    float ang_spd;           //角速度 (rad/s)
+    float lin_spd_x;          //线速度x (m/s)
+    float lin_spd_y;          //线速度y (m/s)
     float heading;          //方位角 (rad)
     float x;                //坐标x
     float y;                //坐标y
 };
 
-//帧信息
-struct frame{
-    int frameID;            //帧ID
-    int crtMoney;           //当前资金
-    vector<ws_frame> ws;    //工作台帧信息
-    vector<robot_frame> robot;  //机器人帧信息
-};
+
 
 //工作台
 class Workstation{
@@ -100,10 +95,10 @@ class Workstation{
     int id;                 //工作台ID
     vec2 coordinate;        //工作台坐标
     int type;               //平台类型
-    int remaingFrames;      //-1:缺少材料  0:阻塞    >0:剩余帧数
-    int productStatus;      //产品状态
+    int remaing_frames;      //-1:缺少材料  0:阻塞    >0:剩余帧数
+    int product_status;      //产品状态
     Item production_item;   //生产物品信息
-    int rawStatusCode;      //原材料状态码    每一帧实时变化
+    int raw_status_code;      //原材料状态码    每一帧实时变化
     bitset<ITEMS_NUM> accept_items; //接受物品类型    常量
 
     set<int> need;            // 还需要物品的类型
@@ -129,14 +124,11 @@ class Workstation{
     int getCycleTime();
     int getWeight();
 
-    int getProductStatus();
     int getBuyPrice();
     int getSellPrice();
-    int getType();
     int getRank();
     double getProfit();
-    double getX();
-    double getY();
+
 
     Workstation(int workstationID, int type, float x, float y);
     void update(ws_frame f);
