@@ -116,40 +116,35 @@ bool Robot::isAble2Brake(float brake_dist){
 */
 void Robot::move2ws(Workstation* ws){
     vec2 tgt_pos = ws->coordinate;  //目标位置
-    //目标线速度和角速度
-    float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;
+    float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
     float tgt_hdg = calcHeading(this->coordinate, tgt_pos);     //目标方位角
     float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
-    //夹角越大越需要减速
-    tgt_lin_spd = 0.5+pow(M_PI-abs(delta_hdg), 3)/pow(M_PI, 3)*MAX_FORWARD_SPD;
-    //加速距离
-    float s_v = pow(MAX_FORWARD_SPD,2)/2/this->crt_lin_acc;
 
-    // 转向问题
-    if(abs(delta_hdg) > abs(this->angular_speed)*0.02)
-        tgt_ang_spd = sign(delta_hdg)*MAX_ANGULAR_SPD;
-    else{
-        float s_w;  //转向刹停距离
-        if(abs(this->angular_speed)/this->crt_ang_acc >0.02)
-            s_w = abs(this->angular_speed)*0.02 - this->crt_ang_acc * powf(0.02,2)/2;
-        else
-            s_w = abs(this->angular_speed)*0.01;
-        
-        if(abs(delta_hdg) > s_w)
-            tgt_ang_spd = this->angular_speed / 2;
-        else
-            tgt_ang_spd = - sign(delta_hdg) * MAX_BACKWARD_SPD / 2;
+    // simple——demo中的速度角度控制方式
+    const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
+    if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
+        tgt_lin_spd = MAX_FORWARD_SPD;
+        tgt_ang_spd = 0.;
+    } else {
+        if (abs(delta_hdg) > M_PI / 2) {
+            // 角度太大，全速扭转
+            // 速度控制小一点，避免靠近不了工作台
+            tgt_lin_spd = MAX_FORWARD_SPD*0.5;
+            tgt_ang_spd = maxRotateSpeed;
+        } else {
+            tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大
+            tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
+        }
     }
-
-    if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
-        tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
+    
+    // if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
+    //     tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
     //刹车距离 ----判断刹车
     float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
     brake_dist += 2*this->crt_radius + 0.05;
-
     if(!isAble2Brake(brake_dist))
         tgt_lin_spd = 0;
 

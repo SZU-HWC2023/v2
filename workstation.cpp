@@ -183,7 +183,7 @@ void Workstation::update(ws_frame f){
     need.clear();
     int index = 0;
     for(auto iter:WORKERSTATION_TO_RECYCLE[this->type]){
-        if((int)pow(2, iter)^raw_status_code == 0){
+        if(((int)pow(2, iter)&raw_status_code) == 0){
             need.insert(iter);
         }
     }

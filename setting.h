@@ -33,7 +33,7 @@ using namespace std;
 #define MAX_TRACTION 250            // 机器人最大牵引力 (N)
 #define MAX_TORQUE 50               // 机器人最大扭矩 (N*m)
 #define MAX_FRAME 9000              // 最大帧数
-
+#define MIN_ANGLE 0.08              // 最小角速度
 // 调试输出
 #define DEBUG
 

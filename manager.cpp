@@ -52,7 +52,7 @@ void Manager::handleTask(Robot* r){
         if(item > 0) r->move2ws(w);
         else{
             // 取物品 判断可行与否
-            if(g_workstations[r->getNextWorkerId()]->can_production_recycle(get<1>(action))&&!w->haveRawLocked()){
+            if(g_workstations[r->getNextWorkerId()]->can_production_recycle(get<1>(action))){
                 // 可行 继续调整
                 r->move2ws(w);
             }else{

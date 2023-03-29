@@ -41,7 +41,6 @@ void Map1::assignSetTask(int frame_id, Robot* r){
         double timePrice = 1;     // 帧代价         不需要考虑距离因素  放物品的时候
         if(w->can_production_recycle(item)){
             int left_frame = MAX_FRAME-frame_id;
-            if(item < 7 && w->type == 9) continue;
             if(item == 7){
                 // 七号物品 仅仅考虑距离
                 pq.push({timePrice, w});
