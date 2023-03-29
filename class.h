@@ -22,7 +22,7 @@ struct Item;
 class Workstation;
 class Robot;
 class RVO;
-class AStart;
+class AStar;
 extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
 
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
@@ -192,10 +192,10 @@ typedef struct Point{
         this->parent_node = parent_node;
     }
 }Point;
-class AStart{
+class AStar{
 public:
     vector<tuple<int,int, float >> motion;
-    AStart(){
+    AStar(){
         this->motion = this->get_motion_model();
     }
     vector<Point*> planning(int sx,int sy,int gx,int gy);
@@ -208,7 +208,7 @@ public:
     vector<tuple<int,int, float >> get_motion_model();
 
 };
-void test_astart();
+void test_astar();
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();

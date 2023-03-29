@@ -1,6 +1,6 @@
 #include "class.h"
 
-vector<Point*> AStart::planning(int sx,int sy,int gx,int gy){
+vector<Point*> AStar::planning(int sx,int sy,int gx,int gy){
     Point* start_node = new Point(sx,sy,0.0, nullptr);
     Point* goal_node = new Point(gx,gy,0.0, nullptr);
     map<tuple<int,int>,Point*> open_map;    // 存储待检测节点
@@ -49,7 +49,7 @@ vector<Point*> AStart::planning(int sx,int sy,int gx,int gy){
     return this->calc_final_path(goal_node,closed_map);
 
 }
-vector<Point*> AStart::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map){
+vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map){
     if(goal_node->parent_node== nullptr)return {};
     vector<Point*> result;
     result.emplace_back(goal_node);
@@ -63,7 +63,7 @@ vector<Point*> AStart::calc_final_path(Point* goal_node,map<tuple<int,int>,Point
     return result;
 }
 //判断下标是否合法
-bool AStart::verify(Point* p){
+bool AStar::verify(Point* p){
     if(p->x<0 || p->y<0 ||p->x>=MAP_TRUE_SIZE||p->y>=MAP_TRUE_SIZE)return false;
     if(g_map[p->x][p->y] == '#')return false;
 //        if(p->x >0){
@@ -74,15 +74,15 @@ bool AStart::verify(Point* p){
 //        }
     return true;
 }
-tuple<int,int> AStart::getIndex(Point* p){
+tuple<int,int> AStar::getIndex(Point* p){
     return {p->x,p->y};
 }
-float AStart::calc_heuristic(Point* a, Point *b){
+float AStar::calc_heuristic(Point* a, Point *b){
     float x = a->x - b->x;
     float y = a->y - b->y;
     return sqrt(x*x + y*y);
 }
-vector<tuple<int,int, float >> AStart::get_motion_model(){
+vector<tuple<int,int, float >> AStar::get_motion_model(){
     vector<tuple<int,int, float >> motion = {
             {1, 0, 1.0},
             {0, 1,  1.0},
@@ -95,8 +95,8 @@ vector<tuple<int,int, float >> AStart::get_motion_model(){
     };
     return motion;
 }
-void test_astart(){
-    AStart* aStartPlannesr = new AStart();
+void test_astar(){
+    AStar* aStartPlannesr = new AStar();
     vector<Point*> result = aStartPlannesr->planning(89,4,71,35);
 
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];

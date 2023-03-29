@@ -9,7 +9,7 @@ int main(){
     
     puts("OK");
     fflush(stdout);
-    test_astart();  //测试A*算法
+    test_astar();  //测试A*算法
     int frameID;
     int currentMoney = 0;
 
