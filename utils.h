@@ -9,6 +9,29 @@
 
 using namespace std;
 
+struct vec2_int;
+struct vec2;
+
+//整型二维矢量（用于地图索引）
+struct vec2_int{
+    int x;
+    int y;
+
+    //返回到v的曼哈顿距离
+    int ManhattanDist(vec2_int v){
+        return abs(x-v.x) + abs(y-v.y);
+    }
+
+    //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
+    vec2 vertice(vec2_int quadrant) const{
+        return {
+            0.5 * x + 0.25 + quadrant.x * 0.25,
+            0.5 * y + 0.25 + quadrant.y * 0.25
+        };
+    }
+};
+
+
 //二维矢量
 struct vec2{
     float x;   //x坐标
@@ -97,11 +120,23 @@ struct vec2{
     float hdg() const{
         return atan2(y, x);
     }
+
+    //返回该坐标在地图上的索引
+    vec2_int toIndex() const{
+        return {int(x/0.5), int(y/0.5)};
+    }
+
+    //返回该坐标所在格的中心坐标
+    vec2 toCenter() const{
+        vec2_int idx = this->toIndex();
+        return {idx.x*0.5 + 0.25, idx.y*0.5 + 0.25};
+    }
+
 };
 
 
 
-float sign(float x);
+int sign(float x);
 float func_f(float x, float maxX, float minRate);
 float timeValue(float frames);
 float collisionValue(float impulse);
@@ -112,4 +147,4 @@ float calcTgtAngSpd(float deltaHDG);
 float clampHDG(float hdg);
 
 vec2 fromPolar(float len, float hdg);
-vec2 toQuadrant(vec2 pos, vec2 center={0., 0.});
+vec2_int toQuadrant(vec2 pos, vec2 center={0., 0.});

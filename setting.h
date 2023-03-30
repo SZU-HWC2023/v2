@@ -37,6 +37,8 @@ using namespace std;
 // 调试输出
 #define DEBUG
 
+#define PRED_T 0.9                  // 预测时间 (s)
+
 //需要多线程计算时，定义一下这个宏
 // #define MUTI_THREAD
 #define THREAD_NUM 2

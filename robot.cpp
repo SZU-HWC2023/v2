@@ -11,6 +11,7 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
+    this->trajectory.clear();
 }
 
 /*
@@ -31,6 +32,9 @@ void Robot::update(robot_frame f){
 
     this->crt_lin_acc = MAX_TRACTION / this->crt_mass;
     this->crt_lin_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+
+    DWA_state s(this);
+    this->trajectory = s.calcTrajectory({this->linear_speed.len(), this->angular_speed},PRED_T);
 }
 
 //初始化其他机器人列表
@@ -97,8 +101,8 @@ vec2 wallDist(vec2 pos){
 */
 bool Robot::isAble2Brake(float brake_dist){
     vec2 brake = fromPolar(brake_dist, this->heading);  //刹车距离向量
-    vec2 hdg_sign = toQuadrant(brake);                  //方位角象限
-    vec2 wall_sign = toQuadrant(this->coordinate, {MAP_SIZE/2, MAP_SIZE/2});  //墙壁象限
+    vec2_int hdg_sign = toQuadrant(brake);                  //方位角象限
+    vec2_int wall_sign = toQuadrant(this->coordinate, {MAP_SIZE/2, MAP_SIZE/2});  //墙壁象限
 
     //如果方位角存在朝向墙壁的分量
     if(hdg_sign.x == wall_sign.x || hdg_sign.y == wall_sign.y){
