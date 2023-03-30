@@ -17,18 +17,24 @@ struct vec2_int{
     int x;
     int y;
 
-    //返回到v的曼哈顿距离
-    int ManhattanDist(vec2_int v){
-        return abs(x-v.x) + abs(y-v.y);
+    vec2_int(int x_=0, int y_=0) : x(x_), y(y_){}
+
+    vec2_int& operator+=(vec2_int& v){
+        x += v.x;
+        y += v.y;
+        return *this;
+    }
+
+    //返回地图索引对应的中心坐标
+    vec2 toCenter();
+
+    //返回到p的切比雪夫距离
+    int chebyshevDist(vec2_int& p) {
+        return max(abs(x-p.x), abs(y-p.y));
     }
 
     //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
-    vec2 vertice(vec2_int quadrant) const{
-        return {
-            0.5 * x + 0.25 + quadrant.x * 0.25,
-            0.5 * y + 0.25 + quadrant.y * 0.25
-        };
-    }
+    vec2 vertice(vec2_int quadrant);
 };
 
 
@@ -129,7 +135,7 @@ struct vec2{
     //返回该坐标所在格的中心坐标
     vec2 toCenter() const{
         vec2_int idx = this->toIndex();
-        return {idx.x*0.5 + 0.25, idx.y*0.5 + 0.25};
+        return {idx.x*0.5f + 0.25f, idx.y*0.5f + 0.25f};
     }
 
 };

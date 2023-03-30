@@ -180,6 +180,7 @@ class Robot{
     vector<Robot*> other_robots;    //其他机器人列表
 
     vector<DWA_state> trajectory;   //轨迹
+    DWA* dwa;                       //DWA指针
 
 
     Robot(int robotID, float x, float y);
@@ -213,7 +214,7 @@ class Map{
     array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map;
 
 
-    Map(array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map_);
+    Map();
 
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
@@ -328,16 +329,16 @@ class DWA{
     public:
     Robot* robot;
     
-    static constexpr float alpha = 0.5;
-    static constexpr float beta = 1.0;
-    static constexpr float gamma = 2;
-    static constexpr float pred_t = 0.9;
+    static constexpr float alpha = 1;
+    static constexpr float beta = 6.0;
+    static constexpr float gamma = 1;
+    static constexpr float pred_t = PRED_T;
     // static constexpr float ang_spd_intv = 0.05;
     // static constexpr float lin_spd_intv = 0.1;
     static constexpr float v_samples = 5;
     static constexpr float ang_v_samples = 30;
 
-    DWA(Robot* robot, vector<Robot *> robots);
+    DWA(Robot* robot);
 
     float tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos);
     float obs_cost(vector<DWA_state> trajectory);

@@ -2,6 +2,17 @@
 
 using namespace std;
 
+vec2 vec2_int::toCenter(){
+    return {0.5f * x + 0.25f, 0.5f * y + 0.25f};
+}
+
+vec2 vec2_int::vertice(vec2_int quadrant) {
+    return {
+        0.5f * x + 0.25f + 0.25f * quadrant.x,
+        0.5f * y + 0.25f + 0.25f * quadrant.y
+    };
+}
+
 float func_f(float x, float maxX, float minRate){
     if(x < maxX)
         return (1-sqrtf(1-powf(1-x/maxX,2))) * (1-minRate) + minRate;

@@ -12,8 +12,7 @@ using namespace std;
 初始化：选手程序初始化时，将输入 100 行*100 列的字符组成的地图数据,然后紧接着一行 OK。
  * */
 bool read_map(){
-    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> g_map;        // 100*100的字符矩阵
-    g_map.fill({'.'});
+
     //读取地图
     char line[1024];
     int current_workstation_id = 0;
@@ -26,7 +25,7 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
-            g_map[row][col] = line[col];
+            g_Map.map[row][col] = line[col];
             if (line[col] == '.')continue;
             float y = 50 - ((row+1)*0.5-0.25);
             float x = (col+1)*0.5 - 0.25;
@@ -57,8 +56,6 @@ bool read_map(){
         }
         row++;
     }
-
-    g_Map = Map(g_map);
 
     for(auto r:g_robots){
         r->initOtherRobot();

@@ -65,7 +65,7 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
 //判断下标是否合法
 bool AStar::verify(Point* p){
     if(p->x<0 || p->y<0 ||p->x>=MAP_TRUE_SIZE||p->y>=MAP_TRUE_SIZE)return false;
-    if(g_map[p->x][p->y] == '#')return false;
+    if(g_Map.map[p->x][p->y] == '#')return false;
 //        if(p->x >0){
 //            if(g_map[p->x-1][p->y] == '#')return false;
 //            if(p->y<MAP_TRUE_SIZE-1){
@@ -102,7 +102,7 @@ void test_astar(){
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];
     for(int i=0;i<MAP_TRUE_SIZE;i++){
         for(int j=0;j<MAP_TRUE_SIZE;j++){
-            local_map[i][j] = g_map[i][j];
+            local_map[i][j] = g_Map.map[i][j];
         }
     }
     fprintf(stderr,"%d\n",result.size());

@@ -1,7 +1,7 @@
 #include "class.h"
 
 
-DWA::DWA(Robot *robot_, vector<Robot *> robots){
+DWA::DWA(Robot *robot_){
     // fprintf(stderr,"Other_robots %d\n", this->other_robots.size());
     // fprintf(stderr,"Other_robots %d\n", this->other_robots.size());
     this->robot = robot_;
@@ -34,11 +34,15 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
     float min_robot_dist = 10, min_wall_dist = 10;
     for(int i=0; i<trajectory.size(); i++){
         min_wall_dist = min(min_wall_dist, wall_dist(trajectory[i].pos));
+        float obs_dist = g_Map.dist2Obstacle(trajectory[i].pos);
+        min_wall_dist = min(min_wall_dist, obs_dist);
+
         for(auto r:this->robot->other_robots){
             float dist = calcDistance(trajectory[i].pos, r->trajectory[i].pos);
             if(dist < min_robot_dist)
                 min_robot_dist = dist;
         }
+
     }
     if(min_robot_dist<ROBOT_CARRY_RADIUS*2)
         return 9999999;
@@ -53,12 +57,12 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
 float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     float v_desire = MAX_FORWARD_SPD;
     float vel = trajectory.back().linSpd.len();
-    float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
-    float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
-    float s_v = pow(MAX_FORWARD_SPD, 2)/(2*this->robot->crt_lin_acc);
-    float s0 = 0.8+pow(M_PI-abs(deltaHDG), 3)/pow(M_PI, 3)*MAX_FORWARD_SPD;
-    float dist = calcDistance(trajectory.back().pos, tgt_pos);
-    if(dist > s_v) s0 = MAX_FORWARD_SPD;
+    // float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
+    // float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
+    // float s_v = pow(MAX_FORWARD_SPD, 2)/(2*this->robot->crt_lin_acc);
+    // float s0 = 0.8+pow(M_PI-abs(deltaHDG), 3)/pow(M_PI, 3)*MAX_FORWARD_SPD;
+    // float dist = calcDistance(trajectory.back().pos, tgt_pos);
+    // if(dist > s_v) s0 = MAX_FORWARD_SPD;
     
     return abs(MAX_FORWARD_SPD - vel);
 }
