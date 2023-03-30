@@ -46,9 +46,11 @@ bool read_map(){
                         if(workstation->accept_items[i])
                             g_item_to_ws.insert(make_pair(i,workstation));
                 }
-                    
-
                 current_workstation_id++;
+            }
+            if(line[col] == '#'){
+                // 对障碍物的预处理
+                
             }
         }
         row++;
@@ -64,15 +66,15 @@ bool readUntilOK() {
     if(scanf("%d\n", &K) == EOF)return false;
     for(int i=0;i<K;i++){
         ws_frame wsFrame;
-        scanf("%d %f %f %d %d %d\n",&wsFrame.ws_type,&wsFrame.x,&wsFrame.y,&wsFrame.remaing_frames,&wsFrame.raw_status_code,&wsFrame.product_status);
+        scanf("%d %f %f %d %d %d\n",&(wsFrame.ws_type),&(wsFrame.x),&(wsFrame.y),&(wsFrame.remaing_frames),&(wsFrame.raw_status_code),&(wsFrame.product_status));
         g_workstations[i]->update(wsFrame);
     }
     for (int i=0;i<4;i++){
         robot_frame robotFrame;
-        scanf("%d %d %f %f %f %f %f %f %f %f\n",&robotFrame.workshop_located,&robotFrame.item_carried,
-              &robotFrame.time_value,&robotFrame.collision_value,
-              &robotFrame.ang_spd,&robotFrame.lin_spd_x,&robotFrame.lin_spd_y,
-              &robotFrame.heading,&robotFrame.x,&robotFrame.y);
+        scanf("%d %d %f %f %f %f %f %f %f %f\n",&(robotFrame.workshop_located),&(robotFrame.item_carried),
+              &(robotFrame.time_value),&(robotFrame.collision_value),
+              &(robotFrame.ang_spd),&(robotFrame.lin_spd_x),&(robotFrame.lin_spd_y),
+              &(robotFrame.heading),&(robotFrame.x),&(robotFrame.y));
         g_robots[i]->update(robotFrame);
     }
 
