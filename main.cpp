@@ -1,6 +1,5 @@
 #include <iostream>
 #include "manager.h"
-// #include <unistd.h>
 
 void handleFps(int frame_id){
     Map1 map1;
@@ -11,10 +10,12 @@ int main(){
     // sleep(10);
     init_items();
     read_map();
-    
+    // robotPassMap();
+    // findConnectedAreas();
+    // test_astar();  //测试A*算法
+
     puts("OK");
     fflush(stdout);
-    // test_astar();  //测试A*算法
     int frameID;
     int currentMoney = 0;
 

@@ -1,5 +1,4 @@
 //定义各种类
-
 #include <iostream>
 #include <vector>
 #include <bitset>
@@ -24,6 +23,8 @@ class Robot;
 class RVO;
 class AStar;
 extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
+extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
+extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
 
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 
@@ -209,6 +210,11 @@ public:
     vector<tuple<int,int, float >> get_motion_model();
 
 };
+
+// 读入地图后判断阻塞的地方 ！表示机器人不携带物品都过不去 @表示物品携带物品过不去
+void robotPassMap();
+// 寻找连通域
+void findConnectedAreas();
 void test_astar();
 //读地图和读帧的相关函数
 bool read_map();
