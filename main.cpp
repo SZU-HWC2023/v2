@@ -2,6 +2,19 @@
 #include "manager.h"
 // #include <unistd.h>
 
+int check_map(Workstation *w){
+    if((int)w->coordinate.x == 23 && (int)w->coordinate.y == 47)
+        return 1;
+    if((int)w->coordinate.x == 25 && (int)w->coordinate.y == 37)
+        return 2;
+    if((int)w->coordinate.x == 21 && (int)w->coordinate.y == 30)
+        return 3;
+    if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
+        return 4;
+
+    return 0;
+}
+
 int main(){
     // sleep(10);
     init_items();
