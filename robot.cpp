@@ -109,12 +109,40 @@ bool Robot::isAble2Brake(float brake_dist){
     }
     return true;    //能刹住
 }
+/*
+根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
+@param i 字符矩阵的第i行，从上往下数
+@param j 字符矩阵的第j行，从左往右数
+ */
+inline vec2 getXY(int i, int j){
+    return {0.5f * j + 0.25f, 49.75f - 0.5f * i};
+}
+/*
+根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,0.25),地图的右下角为（49.75，0.25）
+@param x，实际坐标中的x轴的距离从上往下数
+@param y 实际坐标中的y轴的距离，从左往右数
+ */
+inline vec2 GetPoint(float x, float y){
+    return {2*(49.75f - y),2*(x-0.25f)};
+}
 
 /*
 向工作台前进
 @param ws 目标工作台
 */
 void Robot::move2ws(Workstation* ws){
+
+    AStar *aStar = new AStar();
+    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
+    vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
+    vector<Point*> result = aStar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
+//    test_astar(int(s.x),int(s.y),int(g.x),int(g.y));
+    vec2 w = ws->coordinate;
+    if(result.size()>=2){
+        vec2 v = getXY(result[1]->x,result[1]->y);
+        ws->coordinate.x = v.x;
+        ws->coordinate.y = v.y;
+    }
     vec2 tgt_pos = ws->coordinate;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
@@ -139,17 +167,19 @@ void Robot::move2ws(Workstation* ws){
         }
     }
     
-    // if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
-    //     tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
+     if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
+         tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
-    //刹车距离 ----判断刹车
-    float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
-    brake_dist += 2*this->crt_radius + 0.05;
-    if(!isAble2Brake(brake_dist))
-        tgt_lin_spd = 0;
+//    //刹车距离 ----判断刹车
+//    float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
+//    brake_dist += 2*this->crt_radius + 0.05;
+//    if(!isAble2Brake(brake_dist))
+//        tgt_lin_spd = 0;
 
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
+    ws->coordinate.x = w.x;
+    ws->coordinate.y = w.y;
 }
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){

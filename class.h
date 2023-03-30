@@ -210,7 +210,7 @@ public:
     vector<tuple<int,int, float >> get_motion_model();
 
 };
-void test_astar();
+void test_astar(int sx,int sy,int gx,int gy);
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();
