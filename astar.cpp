@@ -33,7 +33,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy){
         for(tuple<int,int, float> mot:this->motion){
             Point* point = new Point(current->x + get<0>(mot),current->y + get<1>(mot),current->cost+get<2>(mot),current);
             tuple<int,int> p_id = getIndex(point);
-            if(!verify(point))continue;
+            if(!verify(current,point))continue;
             if(closed_map.find(p_id)!=closed_map.end())continue;
             if(open_map.find(p_id)==open_map.end()){
                 open_map[p_id] = point;
@@ -60,18 +60,94 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
         parent = p->parent_node;
     }
     reverse(result.begin(),result.end());
+    return this-> simplify_path(result);
     return result;
 }
 //判断下标是否合法
-bool AStar::verify(Point* p){
+bool AStar::verify(Point* from,Point* p){
     if(p->x<0 || p->y<0 ||p->x>=MAP_TRUE_SIZE||p->y>=MAP_TRUE_SIZE)return false;
     if(g_map[p->x][p->y] == '#')return false;
+    int from_x = from->x;
+    int from_y = from->y;
+    int p_x = p->x;
+    int p_y = p->y;
+
+//    if(from_x == p_x && from_y == p_y-1){//往右
+//        if(p_x == 0){
+//            if(g_map[p_x+1][p_y] == '#')return false;
+//        }
+//        if(p_x == MAP_TRUE_SIZE-1){
+//            if(g_map[p_x-1][p_y] == '#')return false;
+//        }
+//        if(g_map[p_x-1][p_y] == '#' && g_map[p_x+1][p_y] == '#')return false;
+//
+//
+//    }
+//    if(from_x==p_x &&from_y == p_y+1){//往左
+//        if(p_x == 0){
+//            if(g_map[p_x+1][p_y] == '#')return false;
+//        }
+//        if(p_x == MAP_TRUE_SIZE-1){
+//            if(g_map[p_x-1][p_y] == '#')return false;
+//        }
+//        if(g_map[p_x-1][p_y] == '#' && g_map[p_x+1][p_y] == '#')return false;
+//    }
+//    if(from_y == p_y && from_x == p_x + 1){//往上
+//        if(p_y == 0){
+//            if(g_map[p_x][p_y+1] == '#')return false;
+//        }
+//        if(p_y == MAP_TRUE_SIZE-1){
+//            if(g_map[p_x][p_y -1 ] == '#')return false;
+//        }
+//        if(g_map[p_x][p_y-1] == '#' && g_map[p_x][p_y+1]== '#')return false;
+//
+//    }
+//    if(from_y == p_y && from_x== p_x - 1){//往下
+//        if(p_y == 0){
+//            if(g_map[p_x][p_y+1] == '#')return false;
+//        }
+//        if(p_y == MAP_TRUE_SIZE-1){
+//            if(g_map[p_x][p_y -1 ] == '#')return false;
+//        }
+//        if(g_map[p_x][p_y-1] == '#' && g_map[p_x][p_y+1]== '#')return false;
+//
+//    }
+//    if(from_x == p_x -1 && from_y == p_y -1){ //往右下
+//        if(g_map[from_x][from_y+1]!= '#' || g_map[from_x+1][from_y+1]=='#')return false;
+//        if(p_y+1<MAP_TRUE_SIZE&&p_x+1<MAP_TRUE_SIZE){
+//            if(g_map[p_x-1][p_y+1] == '#' && g_map[p_x+1][p_y-1]=='#')return false;
+//        }
+//
+//    }
+//    if(from_x == p_x +1 && from_y == p_y -1){ //往右上
+//        if(g_map[from_x-1][from_y]=='#' || g_map[from_x][from_y+1]=='#')return false;
+//
+//
+//
+//    }
+//    if(from_x == p_x +1 && from_y == p_y + 1){ //往左上
+//        if(g_map[from_x-1][from_y]=='#' || g_map[from_x][from_y-1]=='#')return false;
+//        if(p_x -1 >=0&&p_y-1>=0){
+//
+//        }
+//
+//    }
+//    if(from_x == p_x - 1 && from_y == p_y +1){ //往左下
+//        if(g_map[from_x+1][from_y]=='#' || g_map[from_x][from_y-1]=='#')return false;
+//
+//    }
 //        if(p->x >0){
 //            if(g_map[p->x-1][p->y] == '#')return false;
 //            if(p->y<MAP_TRUE_SIZE-1){
 //                if(g_map[p->x][p->y+1] =='#')return false;
 //            }
+//            if(g_map[p_x+1][p_y]=='#')return false;
 //        }
+//        if(p->y>0){
+//            if(g_map[p->x][p->y-1]=='#'||g_map[p_x][p_y]+1=='#')return false;
+//        }
+    if(g_map[p_x][p_y+1] == '#' || g_map[p_x][p_y-1] == '#' || g_map[p_x-1][p_y]=='#' ||g_map[p_x+1][p_y]=='#')return false;
+    if(g_map[p_x-1][p_y-1] == '#' || g_map[p_x+1][p_y+1]=='#' || g_map[p_x-1][p_y+1]=='#'||g_map[p_x+1][p_y-1]=='#')return false;
     return true;
 }
 tuple<int,int> AStar::getIndex(Point* p){
@@ -95,9 +171,9 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
     };
     return motion;
 }
-void test_astar(){
+void test_astar(int sx,int sy,int gx,int gy){
     AStar* aStartPlannesr = new AStar();
-    vector<Point*> result = aStartPlannesr->planning(89,4,71,35);
+    vector<Point*> result = aStartPlannesr->planning(sx,sy,gx,gy);
 
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];
     for(int i=0;i<MAP_TRUE_SIZE;i++){
@@ -117,4 +193,26 @@ void test_astar(){
         }
         fprintf(stderr,"\n");
     }
+}
+vector<Point *> AStar::simplify_path(vector<Point*> &vec_points){
+    if(vec_points.size()<=2)return vec_points;
+    vector<Point*> result{vec_points[0],vec_points[1]};
+    for(int i=2;i<vec_points.size();i++){
+        Point* pp = result[result.size()-2];
+        Point* p = result[result.size()-1];
+        Point * current = vec_points[i];
+        int p_pp_x = p->x - pp->x;
+        int p_pp_y = p->y - pp->y;
+        float k1 = atan2(p_pp_y,p_pp_x);
+        int current_p_x = current->x - p->x;
+        int current_p_y = current->y - p->y;
+        float k2 = atan2(current_p_y,current_p_x);
+        if(abs(k1-k2) < 1e-6){
+            result[result.size()-1] = current;
+        }else{
+            result.emplace_back(current);
+        }
+    }
+    return result;
+
 }

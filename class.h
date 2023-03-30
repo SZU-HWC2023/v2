@@ -203,8 +203,9 @@ public:
     vector<Point*> planning(int sx,int sy,int gx,int gy);
 
     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+    vector<Point *> simplify_path(vector<Point*> &vec_points);
     //判断下标是否合法
-    bool verify(Point* p);
+    bool verify(Point * from,Point* p);
     tuple<int,int> getIndex(Point* p);
     float calc_heuristic(Point* a, Point *b);
     vector<tuple<int,int, float >> get_motion_model();
@@ -216,6 +217,7 @@ void robotPassMap();
 // 寻找连通域
 void findConnectedAreas();
 void test_astar();
+void test_astar(int sx,int sy,int gx,int gy);
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();
