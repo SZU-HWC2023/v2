@@ -24,7 +24,9 @@ int main(){
     // sleep(10);
     init_items();
     read_map();
-    
+
+    int map_type = check_map(g_workstations[0]);    
+    fprintf(stderr, "map_type: %d\n", map_type);
     puts("OK");
     fflush(stdout);
     // test_astar();  //测试A*算法
