@@ -22,9 +22,11 @@ class Workstation;
 class Robot;
 class RVO;
 class AStar;
+class DoubleDirectionAstar;
 extern map<tuple<int,int>,Point*> g_point_map;
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的路径
 extern AStar *g_astar;
+extern DoubleDirectionAstar* g_directionAstar;
 extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
 extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
 extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
@@ -212,6 +214,24 @@ public:
     bool verify(Point * from,Point* p);
     tuple<int,int> getIndex(Point* p);
     float calc_heuristic(Point* a, Point *b);
+    vector<tuple<int,int, float >> get_motion_model();
+
+};
+class DoubleDirectionAstar{
+public:
+    vector<tuple<int,int, float >> motion;
+    DoubleDirectionAstar(){
+        this->motion = this->get_motion_model();
+    }
+    vector<Point*> planning(int sx,int sy,int gx,int gy);
+    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+    vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
+    vector<Point *> simplify_path(vector<Point*> &vec_points);
+    //判断下标是否合法
+    bool verify(Point * from,Point* p);
+    tuple<int,int> getIndex(Point* p);
+    float calc_heuristic(Point* a, Point *b);
+    float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
     vector<tuple<int,int, float >> get_motion_model();
 
 };

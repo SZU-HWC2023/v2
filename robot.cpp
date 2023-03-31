@@ -131,13 +131,13 @@ inline vec2 GetPoint(float x, float y){
 @param ws 目标工作台
 */
 void Robot::move2ws(Workstation* ws){
-
     vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
     vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
     vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
+//    vector<Point*> result = g_directionAstar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
 //    test_astar(int(s.x),int(s.y),int(g.x),int(g.y));
     vec2 w = ws->coordinate;
-    if(result.size()>=2){
+    if(result.size()>=5){
         vec2 v = getXY(result[1]->x,result[1]->y);
         ws->coordinate.x = v.x;
         ws->coordinate.y = v.y;

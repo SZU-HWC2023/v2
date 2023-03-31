@@ -37,8 +37,10 @@ void init_items(){
 map<tuple<int,int>,Point*> g_point_map;
 map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的路径
 AStar *g_astar;
+DoubleDirectionAstar* g_directionAstar;
 void init_points(){
     g_astar = new AStar();
+    g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<MAP_TRUE_SIZE;i++){
         for(int j=0;j<MAP_TRUE_SIZE;j++){
             tuple<int,int> key = {i,j};
