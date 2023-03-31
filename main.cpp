@@ -1,6 +1,6 @@
 #include <iostream>
 #include "manager.h"
-// #include <unistd.h>
+#include <unistd.h>
 
 int check_map(Workstation *w){
     if((int)w->coordinate.x == 23 && (int)w->coordinate.y == 47)

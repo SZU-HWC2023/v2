@@ -62,9 +62,9 @@ vec2_int directions[] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
 float Map::dist2Obstacle(vec2 pos){
     vec2_int start_idx = pos.toIndex();
     vec2_int p = start_idx;
-    int dir = initDirection(pos), steps = 1, step = steps, turns = 0;
+    int dir = 0, steps = 1, step = steps, turns = 0;
     // perform spiral search from center to chebyshevdist 2 
-    while(p.chebyshevDist(start_idx) <=2){
+    while(p.chebyshevDist(start_idx) <=4){
         if(this->isObstacle(p))
             return minDist2Obstacle(pos, p);
         p += directions[dir];

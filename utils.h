@@ -29,7 +29,7 @@ struct vec2_int{
     vec2 toCenter();
 
     //返回到p的切比雪夫距离
-    int chebyshevDist(vec2_int& p) {
+    int chebyshevDist(const vec2_int& p){
         return max(abs(x-p.x), abs(y-p.y));
     }
 
@@ -129,13 +129,13 @@ struct vec2{
 
     //返回该坐标在地图上的索引
     vec2_int toIndex() const{
-        return {int(x/0.5), int(y/0.5)};
+        return {int(x/0.5f), int((50.0f-y)/0.5f)};
     }
 
     //返回该坐标所在格的中心坐标
     vec2 toCenter() const{
         vec2_int idx = this->toIndex();
-        return {idx.x*0.5f + 0.25f, idx.y*0.5f + 0.25f};
+        return idx.toCenter();
     }
 
 };

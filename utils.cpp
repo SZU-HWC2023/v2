@@ -3,14 +3,12 @@
 using namespace std;
 
 vec2 vec2_int::toCenter(){
-    return {0.5f * x + 0.25f, 0.5f * y + 0.25f};
+    return {0.5f * x + 0.25f, 50.0f - (0.5f * y + 0.25f)};
 }
 
 vec2 vec2_int::vertice(vec2_int quadrant) {
-    return {
-        0.5f * x + 0.25f + 0.25f * quadrant.x,
-        0.5f * y + 0.25f + 0.25f * quadrant.y
-    };
+    vec2 center = toCenter();
+    return {center.x + 0.25f * quadrant.x, center.y + 0.25f * quadrant.y};
 }
 
 float func_f(float x, float maxX, float minRate){
