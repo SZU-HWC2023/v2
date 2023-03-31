@@ -24,15 +24,18 @@ int main(){
     // sleep(10);
     init_items();
     read_map();
+    robotPassMap();
+    findConnectedAreas();
+    int map_type = check_map(g_workstations[0]);
 
-    int map_type = check_map(g_workstations[0]);    
+    #ifdef DEBUG
     fprintf(stderr, "map_type: %d\n", map_type);
+    #endif
     puts("OK");
     fflush(stdout);
-    // test_astar();  //测试A*算法
+
     int frameID;
     int currentMoney = 0;
-
     while (scanf("%d %d", &frameID,&currentMoney) != EOF) {
         readUntilOK();
         printf("%d\n", frameID);

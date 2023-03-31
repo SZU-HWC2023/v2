@@ -216,7 +216,6 @@ public:
 void robotPassMap();
 // 寻找连通域
 void findConnectedAreas();
-void test_astar();
 void test_astar(int sx,int sy,int gx,int gy);
 //读地图和读帧的相关函数
 bool read_map();

@@ -54,7 +54,7 @@ void robotPassMap(){
 
 // 是不是障碍物，是障碍物返回true
 bool judgeObstacle(int x, int y){
-    if(g_map[x][y] == '#') return true;
+    if(g_map[x][y] == '#' || g_map[x][y] == '!' || g_map[x][y] == '@') return true;
     else return false;
 }
 
@@ -86,7 +86,7 @@ void findConnectedAreas(){
                 g_connected_areas[i][j] = area_cnt;
                 DFS(i, j, area_cnt);
             }
-            // fprintf(stderr,"%d",g_connected_areas[i][j]);
+            // fprintf(stderr,"%d",j);
         }
         // fprintf(stderr,"\n");
     }
