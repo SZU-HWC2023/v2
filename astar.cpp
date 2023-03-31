@@ -1,6 +1,6 @@
 #include "class.h"
 
-vector<Point*> AStar::planning(int sx,int sy,int gx,int gy){
+vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
     Point* start_node = new Point(sx,sy,0.0, nullptr);
     Point* goal_node = new Point(gx,gy,0.0, nullptr);
     map<tuple<int,int>,Point*> open_map;    // 存储待检测节点
@@ -33,7 +33,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy){
         for(tuple<int,int, float> mot:this->motion){
             Point* point = new Point(current->x + get<0>(mot),current->y + get<1>(mot),current->cost+get<2>(mot),current);
             tuple<int,int> p_id = getIndex(point);
-            if(!verify(current,point))continue;
+            if(!verify(current,point,has_product))continue;
             if(closed_map.find(p_id)!=closed_map.end())continue;
             if(open_map.find(p_id)==open_map.end()){
                 open_map[p_id] = point;
@@ -61,93 +61,32 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     }
     reverse(result.begin(),result.end());
     return this-> simplify_path(result);
-    return result;
 }
-//判断下标是否合法
-bool AStar::verify(Point* from,Point* p){
+//判断下标是否合法, has_product为true时表示机器人有东西
+
+bool AStar::verify(Point* from,Point* p,bool has_product){
+    //下标超出地图
     if(p->x<0 || p->y<0 ||p->x>=MAP_TRUE_SIZE||p->y>=MAP_TRUE_SIZE)return false;
+    //p所处位置为墙
     if(g_map[p->x][p->y] == '#')return false;
-    int from_x = from->x;
-    int from_y = from->y;
+    //不拿东西走不通
+    if(g_map[p->x][p->y] == '!')return false;
+    //墙角不访问
+    if(g_map[p->x][p->y] == '$')return false;
+    if(has_product){
+        //机器人有产品时
+        if(g_map[p->x][p->y] == '@')return false;
+    }
     int p_x = p->x;
     int p_y = p->y;
 
-//    if(from_x == p_x && from_y == p_y-1){//往右
-//        if(p_x == 0){
-//            if(g_map[p_x+1][p_y] == '#')return false;
-//        }
-//        if(p_x == MAP_TRUE_SIZE-1){
-//            if(g_map[p_x-1][p_y] == '#')return false;
-//        }
-//        if(g_map[p_x-1][p_y] == '#' && g_map[p_x+1][p_y] == '#')return false;
-//
-//
-//    }
-//    if(from_x==p_x &&from_y == p_y+1){//往左
-//        if(p_x == 0){
-//            if(g_map[p_x+1][p_y] == '#')return false;
-//        }
-//        if(p_x == MAP_TRUE_SIZE-1){
-//            if(g_map[p_x-1][p_y] == '#')return false;
-//        }
-//        if(g_map[p_x-1][p_y] == '#' && g_map[p_x+1][p_y] == '#')return false;
-//    }
-//    if(from_y == p_y && from_x == p_x + 1){//往上
-//        if(p_y == 0){
-//            if(g_map[p_x][p_y+1] == '#')return false;
-//        }
-//        if(p_y == MAP_TRUE_SIZE-1){
-//            if(g_map[p_x][p_y -1 ] == '#')return false;
-//        }
-//        if(g_map[p_x][p_y-1] == '#' && g_map[p_x][p_y+1]== '#')return false;
-//
-//    }
-//    if(from_y == p_y && from_x== p_x - 1){//往下
-//        if(p_y == 0){
-//            if(g_map[p_x][p_y+1] == '#')return false;
-//        }
-//        if(p_y == MAP_TRUE_SIZE-1){
-//            if(g_map[p_x][p_y -1 ] == '#')return false;
-//        }
-//        if(g_map[p_x][p_y-1] == '#' && g_map[p_x][p_y+1]== '#')return false;
-//
-//    }
-//    if(from_x == p_x -1 && from_y == p_y -1){ //往右下
-//        if(g_map[from_x][from_y+1]!= '#' || g_map[from_x+1][from_y+1]=='#')return false;
-//        if(p_y+1<MAP_TRUE_SIZE&&p_x+1<MAP_TRUE_SIZE){
-//            if(g_map[p_x-1][p_y+1] == '#' && g_map[p_x+1][p_y-1]=='#')return false;
-//        }
-//
-//    }
-//    if(from_x == p_x +1 && from_y == p_y -1){ //往右上
-//        if(g_map[from_x-1][from_y]=='#' || g_map[from_x][from_y+1]=='#')return false;
-//
-//
-//
-//    }
-//    if(from_x == p_x +1 && from_y == p_y + 1){ //往左上
-//        if(g_map[from_x-1][from_y]=='#' || g_map[from_x][from_y-1]=='#')return false;
-//        if(p_x -1 >=0&&p_y-1>=0){
-//
-//        }
-//
-//    }
-//    if(from_x == p_x - 1 && from_y == p_y +1){ //往左下
-//        if(g_map[from_x+1][from_y]=='#' || g_map[from_x][from_y-1]=='#')return false;
-//
-//    }
-//        if(p->x >0){
-//            if(g_map[p->x-1][p->y] == '#')return false;
-//            if(p->y<MAP_TRUE_SIZE-1){
-//                if(g_map[p->x][p->y+1] =='#')return false;
-//            }
-//            if(g_map[p_x+1][p_y]=='#')return false;
-//        }
-//        if(p->y>0){
-//            if(g_map[p->x][p->y-1]=='#'||g_map[p_x][p_y]+1=='#')return false;
-//        }
-    if(g_map[p_x][p_y+1] == '#' || g_map[p_x][p_y-1] == '#' || g_map[p_x-1][p_y]=='#' ||g_map[p_x+1][p_y]=='#')return false;
-    if(g_map[p_x-1][p_y-1] == '#' || g_map[p_x+1][p_y+1]=='#' || g_map[p_x-1][p_y+1]=='#'||g_map[p_x+1][p_y-1]=='#')return false;
+    for(tuple<int,int, float> mot:this->motion){
+        int dx = p_x + get<0>(mot);
+        int dy = p_y + get<1>(mot);
+        if(dx<0 || dy<0 || dx>=MAP_TRUE_SIZE || dy >= MAP_TRUE_SIZE)continue;
+        if(g_map[dx][dy] == '#')return false;
+    }
+
     return true;
 }
 tuple<int,int> AStar::getIndex(Point* p){
@@ -171,9 +110,8 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
     };
     return motion;
 }
-void test_astar(int sx,int sy,int gx,int gy){
-    AStar* aStartPlannesr = new AStar();
-    vector<Point*> result = aStartPlannesr->planning(sx,sy,gx,gy);
+void test_astar(vector<Point*> &result){
+
 
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];
     for(int i=0;i<MAP_TRUE_SIZE;i++){
@@ -195,24 +133,91 @@ void test_astar(int sx,int sy,int gx,int gy){
     }
 }
 vector<Point *> AStar::simplify_path(vector<Point*> &vec_points){
+//    fprintf(stderr,"LYW\n");
     if(vec_points.size()<=2)return vec_points;
-    vector<Point*> result{vec_points[0],vec_points[1]};
-    for(int i=2;i<vec_points.size();i++){
-        Point* pp = result[result.size()-2];
-        Point* p = result[result.size()-1];
-        Point * current = vec_points[i];
-        int p_pp_x = p->x - pp->x;
-        int p_pp_y = p->y - pp->y;
-        float k1 = atan2(p_pp_y,p_pp_x);
-        int current_p_x = current->x - p->x;
-        int current_p_y = current->y - p->y;
-        float k2 = atan2(current_p_y,current_p_x);
-        if(abs(k1-k2) < 1e-6){
-            result[result.size()-1] = current;
+    if(!obstacle_in_line(vec_points[0],vec_points.back()))return {vec_points[0],vec_points.back()};
+    vector<Point*> result;
+//    fprintf(stderr,"WLY\n");
+    divide_conquer(result,0,vec_points.size()-1,vec_points);
+//    fprintf(stderr,"WLY\n");
+    result.emplace_back(vec_points.back());
+//    fprintf(stderr,"WLY\n");
+    return result;
+}
+
+void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points){
+   if(left > right)return;
+   if(left == right)return;
+   if(left+1 == right){
+       result.emplace_back(vec_points[left]);
+       return;
+   }
+//   fprintf(stderr,"len:%d %d\n",left,right);
+   if(!obstacle_in_line(vec_points[left],vec_points[right])){
+       result.emplace_back(vec_points[left]);
+       return;
+   }
+   int mid = (right-left)/2 + left;
+   divide_conquer(result,left,mid,vec_points);
+   divide_conquer(result,mid,right,vec_points);
+}
+/*
+在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
+@param src_point 起点坐标
+@param des_point 终点坐标
+return true 连线有障碍物
+return false 连线没有障碍物
+ */
+bool AStar::obstacle_in_line(Point* src_point,Point* des_point) { //
+
+    int sx = src_point->x;
+    int sy = src_point->y;
+    int gx = des_point->x;
+    int gy = des_point->y;
+
+    //1. 判断两个坐标点的x轴是否相同
+    if(sx == gx || abs(sx-gx)==1){
+        if(sy<gy){
+            for(int j = sy+1;j<=gy;j++){
+                if(g_map[sx][j] == '#')return true;
+            }
         }else{
-            result.emplace_back(current);
+            for(int j = gy;j<=sy;j++){
+                if(g_map[sx][j] == '#')return true;
+            }
         }
     }
-    return result;
+    //2. 判断两个坐标点的y轴是否相同
+    if(sy == gy|| abs(sy-gy)==1){
+        if(sx < gx){
+            for(int i= sx+1;i<=gx;i++){
+                if(g_map[i][sy] == '#')return true;
+            }
+        }else{
+            for(int i= gx+1;i<=sx;i++){
+                if(g_map[i][sy] == '#')return true;
+            }
+        }
+    }
+    //3. 求两个点之间的直线方差
+    float k = (gy-sy)*1.0/(gx-sx)*1.0;
+    float b = sy*1.0 - k*sx;
+    if(sx < gx){
 
+        for(int dx = sx+1;dx <= gx;dx++){
+            int dy = int(k*dx + b);
+            if(g_map[dx][dy]=='#')return true;
+            if(dy>0&&g_map[dx][dy-1] == '#')return true;
+            if(dy<MAP_TRUE_SIZE-1 && g_map[dx][dy+1] == '#')return true;
+
+        }
+    }else{
+        for(int dx = gx+1;dx<=sx;dx++){
+            int dy = int(k*dx+b);
+            if(g_map[dx][dy] == '#')return true;
+            if(dy>0&&g_map[dx][dy-1] == '#')return true;
+            if(dy<MAP_TRUE_SIZE-1 && g_map[dx][dy+1] == '#')return true;
+        }
+    }
+    return false;
 }
