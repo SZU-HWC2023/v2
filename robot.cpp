@@ -131,17 +131,64 @@ inline vec2 GetPoint(float x, float y){
 @param ws 目标工作台
 */
 void Robot::move2ws(Workstation* ws){
-    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
-    vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
-    vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
-//    vector<Point*> result = g_directionAstar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
-//    test_astar(int(s.x),int(s.y),int(g.x),int(g.y));
+
     vec2 w = ws->coordinate;
-    if(result.size()>=5){
-        vec2 v = getXY(result[1]->x,result[1]->y);
-        ws->coordinate.x = v.x;
-        ws->coordinate.y = v.y;
+    vec2 w_index = GetPoint(w.x,w.y);
+    Point* p = nullptr;
+    if(this->des_workstation == nullptr){
+        vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
+        vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
+        vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y),this->item_carried!=0);
+//        fprintf(stderr,"result:%d\n",result.size());
+//        test_astar(result);
+        for(int i=1;i<result.size();i++){
+            paths.push(result[i]);
+        }
+        if(this->item_carried == 0){
+            this->prev_status = false;
+        }else{
+            this->prev_status = true;
+        }
+        this->des_workstation = ws;
+        p = result[1];
+    }else{
+        if(paths.empty()){
+            this->des_workstation = nullptr;
+            ws->coordinate.x = w.x;
+            ws->coordinate.y = w.y;
+            return;
+        }
+        Point* des_point = paths.front();
+        vec2 des = getXY(des_point->x,des_point->y);
+        if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
+            paths.pop();
+
+        }else if(paths.size()==1){
+            if(this->workshop_located!=-1){
+                if(this->prev_status==false&&this->item_carried!=0){
+                    paths.pop();
+                    this->des_workstation = nullptr;
+                    ws->coordinate.x = w.x;
+                    ws->coordinate.y = w.y;
+                    return;
+                }else if(this->prev_status==true && this->item_carried ==0){
+                    paths.pop();
+                    this->des_workstation = nullptr;
+                    ws->coordinate.x = w.x;
+                    ws->coordinate.y = w.y;
+                    return;
+                }
+
+            }
+
+        }
+        p = paths.front();
+
     }
+
+    vec2 v = getXY(p->x,p->y);
+    ws->coordinate.x = v.x;
+    ws->coordinate.y = v.y;
     vec2 tgt_pos = ws->coordinate;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
@@ -174,9 +221,13 @@ void Robot::move2ws(Workstation* ws){
 //    brake_dist += 2*this->crt_radius + 0.05;
 //    if(!isAble2Brake(brake_dist))
 //        tgt_lin_spd = 0;
+//    tgt_lin_spd = 1;
+//    tgt_ang_spd = 0;
+
 
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
+
     ws->coordinate.x = w.x;
     ws->coordinate.y = w.y;
 }

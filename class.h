@@ -179,6 +179,10 @@ class Robot{
     bool isAble2Brake(float brake_dist);
     void move2ws(Workstation* ws);
 
+    queue<Point*> paths;
+    Workstation* des_workstation = nullptr;
+    bool prev_status = false;
+
 
     void resetAction();                     //重置机器人的动作
     const tuple<Workstation*, int> getAction();
@@ -206,15 +210,18 @@ public:
     AStar(){
         this->motion = this->get_motion_model();
     }
-    vector<Point*> planning(int sx,int sy,int gx,int gy);
-    vector<Point*> find_path(int sx,int sy,int gx,int gy);
+    vector<Point*> planning(int sx,int sy,int gx,int gy,bool has_product);
     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
     vector<Point *> simplify_path(vector<Point*> &vec_points);
     //判断下标是否合法
-    bool verify(Point * from,Point* p);
+    bool verify(Point * from,Point* p,bool has_product);
     tuple<int,int> getIndex(Point* p);
     float calc_heuristic(Point* a, Point *b);
     vector<tuple<int,int, float >> get_motion_model();
+
+    bool obstacle_in_line(Point* src_point,Point* des_point); //在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
+
+    void divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points);
 
 };
 class DoubleDirectionAstar{
@@ -251,7 +258,7 @@ inline vec2 GetPoint(float x, float y);
 void robotPassMap();
 // 寻找连通域
 void findConnectedAreas();
-void test_astar(int sx,int sy,int gx,int gy);
+void test_astar(vector<Point*> &result);
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();

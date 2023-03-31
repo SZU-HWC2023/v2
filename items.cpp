@@ -41,24 +41,24 @@ DoubleDirectionAstar* g_directionAstar;
 void init_points(){
     g_astar = new AStar();
     g_directionAstar = new DoubleDirectionAstar();
-    for(int i=0;i<MAP_TRUE_SIZE;i++){
-        for(int j=0;j<MAP_TRUE_SIZE;j++){
-            tuple<int,int> key = {i,j};
-            Point* point = new Point(i,j,0.0, nullptr);
-            g_point_map[key] = point;
-        }
-    }
-    for(int i=0;i<g_workstations.size();i++){
-        for(int j = i+1; j < g_workstations.size();j++){
-            Workstation* src_workstation = g_workstations[i];
-            Workstation* des_workstation = g_workstations[j];
-            vec2 src = GetPoint(src_workstation->coordinate.x,src_workstation->coordinate.y);
-            vec2 des = GetPoint(des_workstation->coordinate.x,des_workstation->coordinate.y);
-            vector<Point*> result = g_astar->planning(int(src.x),int(src.y),int(des.x),int(des.y));
-            g_astar_path[{int(src.x),int(src.y),int(des.x),int(des.y)}] = result;
-            vector<Point*> result_inv = result;
-            reverse(result_inv.begin(),result_inv.end());
-            g_astar_path[{int(des.x),int(des.y),int(src.x),int(src.y)}] = result_inv;
-        }
-    }
+//    for(int i=0;i<MAP_TRUE_SIZE;i++){
+//        for(int j=0;j<MAP_TRUE_SIZE;j++){
+//            tuple<int,int> key = {i,j};
+//            Point* point = new Point(i,j,0.0, nullptr);
+//            g_point_map[key] = point;
+//        }
+//    }
+//    for(int i=0;i<g_workstations.size();i++){
+//        for(int j = i+1; j < g_workstations.size();j++){
+//            Workstation* src_workstation = g_workstations[i];
+//            Workstation* des_workstation = g_workstations[j];
+//            vec2 src = GetPoint(src_workstation->coordinate.x,src_workstation->coordinate.y);
+//            vec2 des = GetPoint(des_workstation->coordinate.x,des_workstation->coordinate.y);
+//            vector<Point*> result = g_astar->planning(int(src.x),int(src.y),int(des.x),int(des.y),false);
+//            g_astar_path[{int(src.x),int(src.y),int(des.x),int(des.y)}] = result;
+//            vector<Point*> result_inv = result;
+//            reverse(result_inv.begin(),result_inv.end());
+//            g_astar_path[{int(des.x),int(des.y),int(src.x),int(src.y)}] = result_inv;
+//        }
+//    }
 }
