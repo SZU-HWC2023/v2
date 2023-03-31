@@ -16,12 +16,15 @@
 #endif
 
 using namespace std;
-
+struct Point;
 struct Item;
 class Workstation;
 class Robot;
 class RVO;
 class AStar;
+extern map<tuple<int,int>,Point*> g_point_map;
+extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的路径
+extern AStar *g_astar;
 extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
 extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
 extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
@@ -65,7 +68,7 @@ struct Item{
 };
 
 void init_items();
-
+void init_points();
 //工作台帧信息
 struct ws_frame{
     int ws_type;            //工作台类型
@@ -185,7 +188,8 @@ class Robot{
 typedef struct Point{
     int x;
     int y;
-    float cost;
+    float cost; //记录从源节点到当前节点的代价
+    float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
     Point(int x,int y, float cost,Point* parent_node){
         this->x = x;
@@ -201,7 +205,7 @@ public:
         this->motion = this->get_motion_model();
     }
     vector<Point*> planning(int sx,int sy,int gx,int gy);
-
+    vector<Point*> find_path(int sx,int sy,int gx,int gy);
     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
     vector<Point *> simplify_path(vector<Point*> &vec_points);
     //判断下标是否合法
@@ -211,7 +215,18 @@ public:
     vector<tuple<int,int, float >> get_motion_model();
 
 };
-
+/*
+根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
+@param i 字符矩阵的第i行，从上往下数
+@param j 字符矩阵的第j行，从左往右数
+*/
+inline vec2 getXY(int i, int j);
+/*
+根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,0.25),地图的右下角为（49.75，0.25）
+@param x，实际坐标中的x轴的距离从上往下数
+@param y 实际坐标中的y轴的距离，从左往右数
+ */
+inline vec2 GetPoint(float x, float y);
 // 读入地图后判断阻塞的地方 ！表示机器人不携带物品都过不去 @表示物品携带物品过不去
 void robotPassMap();
 // 寻找连通域

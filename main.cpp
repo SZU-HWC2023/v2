@@ -26,6 +26,7 @@ int main(){
     read_map();
     robotPassMap();
     findConnectedAreas();
+    init_points();
     int map_type = check_map(g_workstations[0]);
 
     #ifdef DEBUG

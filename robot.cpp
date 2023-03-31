@@ -132,10 +132,9 @@ inline vec2 GetPoint(float x, float y){
 */
 void Robot::move2ws(Workstation* ws){
 
-    AStar *aStar = new AStar();
     vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
     vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
-    vector<Point*> result = aStar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
+    vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y));
 //    test_astar(int(s.x),int(s.y),int(g.x),int(g.y));
     vec2 w = ws->coordinate;
     if(result.size()>=2){
