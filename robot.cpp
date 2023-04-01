@@ -118,78 +118,58 @@ inline vec2 getXY(int i, int j){
     return {0.5f * j + 0.25f, 49.75f - 0.5f * i};
 }
 /*
-根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,0.25),地图的右下角为（49.75，0.25）
+根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,49.75),地图的右下角为（0.25，49.75）
 @param x，实际坐标中的x轴的距离从上往下数
 @param y 实际坐标中的y轴的距离，从左往右数
  */
 inline vec2 GetPoint(float x, float y){
     return {2*(49.75f - y),2*(x-0.25f)};
 }
-
+//为机器人规划一条路径
+void Robot::allocate_path(Workstation* w){
+    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
+    vec2 g = GetPoint(w->coordinate.x,w->coordinate.y);
+    vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y),this->item_carried!=0);
+    for(int i=1;i<result.size();i++){
+        paths.push(result[i]);
+    }
+}
 /*
 向工作台前进
 @param ws 目标工作台
 */
+//if(this->id == 2){
+//test_astar(result);
+//}
 void Robot::move2ws(Workstation* ws){
 
     vec2 w = ws->coordinate;
-    vec2 w_index = GetPoint(w.x,w.y);
     Point* p = nullptr;
-    if(this->des_workstation == nullptr){
-        vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
-        vec2 g = GetPoint(ws->coordinate.x,ws->coordinate.y);
-        vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y),this->item_carried!=0);
-//        fprintf(stderr,"result:%d\n",result.size());
-//        test_astar(result);
-        for(int i=1;i<result.size();i++){
-            paths.push(result[i]);
-        }
-        if(this->item_carried == 0){
-            this->prev_status = false;
-        }else{
-            this->prev_status = true;
-        }
-        this->des_workstation = ws;
-        p = result[1];
+    //路径为空，为机器人规划一条前往工作台ws的路径
+    if(this->paths.empty()){
+        this->allocate_path(ws);
+        if(this->paths.size()>=1) p = this->paths.front();
+        else return;
     }else{
-        if(paths.empty()){
-            this->des_workstation = nullptr;
-            ws->coordinate.x = w.x;
-            ws->coordinate.y = w.y;
-            return;
-        }
         Point* des_point = paths.front();
         vec2 des = getXY(des_point->x,des_point->y);
+        //判断机器人是否到达路径中的某个点
         if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
             paths.pop();
-
-        }else if(paths.size()==1){
-            if(this->workshop_located!=-1){
-                if(this->prev_status==false&&this->item_carried!=0){
-                    paths.pop();
-                    this->des_workstation = nullptr;
-                    ws->coordinate.x = w.x;
-                    ws->coordinate.y = w.y;
-                    return;
-                }else if(this->prev_status==true && this->item_carried ==0){
-                    paths.pop();
-                    this->des_workstation = nullptr;
-                    ws->coordinate.x = w.x;
-                    ws->coordinate.y = w.y;
-                    return;
-                }
+        }else if(paths.size()==1){//还剩下终点未到达
+            if(this->workshop_located!=-1){ //已经到达工作台附近
+                paths.pop();
+                return;
+            }else{  //尚未到达工作台附近
 
             }
 
         }
         p = paths.front();
-
     }
 
     vec2 v = getXY(p->x,p->y);
-    ws->coordinate.x = v.x;
-    ws->coordinate.y = v.y;
-    vec2 tgt_pos = ws->coordinate;  //目标位置
+    vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
@@ -200,7 +180,7 @@ void Robot::move2ws(Workstation* ws){
     const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
     if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
         tgt_lin_spd = MAX_FORWARD_SPD;
-        tgt_ang_spd = 0.;
+        tgt_ang_spd = 0.001;
     } else {
         if (abs(delta_hdg) > M_PI / 2) {
             // 角度太大，全速扭转
@@ -224,12 +204,9 @@ void Robot::move2ws(Workstation* ws){
 //    tgt_lin_spd = 1;
 //    tgt_ang_spd = 0;
 
-
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
 
-    ws->coordinate.x = w.x;
-    ws->coordinate.y = w.y;
 }
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
