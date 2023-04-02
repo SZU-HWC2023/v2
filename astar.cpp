@@ -4,6 +4,26 @@ map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的
 map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度，sx,sy,gx,gy 起点到终点的坐标
 AStar *g_astar;
 DoubleDirectionAstar* g_directionAstar;
+
+bool near_obstacle(int x,int y){
+    if(g_map[x][y] == '#')return true;
+    vector<tuple<int,int>> motion = {
+            {1,0},
+            {0,1},
+            {0,-1},
+            {-1,0},
+            {-1,-1},
+            {-1,1},
+            {1,-1},
+            {1,1}
+    };
+    for(tuple<int,int> mot:motion){
+        int dx = x + get<0>(mot);
+        int dy = y + get<1>(mot);
+        if(g_map[dx][dy]=='#')return true;
+    }
+    return false;
+}
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths){
     float distance = 0.0;
@@ -231,6 +251,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     return result;
 }
 
+// 暂时没有任何使用
 void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product){
    if(left > right)return;
    if(left == right)return;
@@ -338,7 +359,7 @@ bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product)
         int pre_dx = dx - 1;
         int pre_dy = int(k*pre_dx + bb);
 
-        if (row_obstacle({pre_dx,pre_dy},{pre_dx,dy}) || col_obstacle({pre_dx+1,pre_dy},{pre_dx,dy}) || near_obstacle(dx,dy)){
+        if (near_obstacle(dx,dy)){
             return true;
         }
         if(g_map[dx][dy] == '#')return true;

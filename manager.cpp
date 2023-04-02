@@ -1,8 +1,8 @@
 #include "manager.h"
 
 void Manager::handleGetTask(Robot* r){
-    const tuple<Workstation*, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
-    Workstation* w = get<0>(action);
+    const tuple<int, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
+    Workstation* w = g_workstations[get<0>(action)];
     // 取物品 判断可行与否
     if(g_workstations[r->getNextWorkerId()]->can_production_recycle(get<1>(action))){
         // 取
@@ -16,14 +16,14 @@ void Manager::handleGetTask(Robot* r){
         // 不可行 任务终止
         r->resetAction();
         r->setNextWorkerId(-1);
-        get<0>(action)->rel_locked_production(get<1>(action));
+        g_workstations[get<0>(action)]->rel_locked_production(get<1>(action));
     }
 }
 
 void Manager::handleSetTask(Robot* r){
     int item = r->item_carried;
-    const tuple<Workstation*, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
-    Workstation* w = get<0>(action);
+    const tuple<int, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
+    Workstation* w = g_workstations[get<0>(action)];
     // 放
     cout<<"sell "+to_string(r->id)<<endl;
     // 放之后
@@ -36,10 +36,10 @@ void Manager::handleSetTask(Robot* r){
 
 void Manager::handleTask(Robot* r){
     int item = r->item_carried;
-    const tuple<Workstation*, int> &action = r->getAction();         // 当前机器的指令规划  工作台指针  物品序号
-    Workstation* w = get<0>(action);
+    const tuple<int, int> &action = r->getAction();         // 当前机器的指令规划  工作台指针  物品序号
+    Workstation* w = g_workstations[get<0>(action)];
     // 先判断是否到达
-    if(g_workstations[r->workshop_located] == get<0>(action)){
+    if(r->workshop_located == get<0>(action)){
         if(item == 0 && w->product_status==1){
             handleGetTask(r);
         }
@@ -59,7 +59,7 @@ void Manager::handleTask(Robot* r){
                 // 不可行 任务终止
                 r->resetAction();
                 r->setNextWorkerId(-1);
-                get<0>(action)->rel_locked_production(get<1>(action));
+                g_workstations[get<0>(action)]->rel_locked_production(get<1>(action));
             }
         }
     }
@@ -69,6 +69,7 @@ void Manager::assignTask(int frame_id, Robot* r, queue<int> robot_ids){
     int item = r->item_carried;
     // 没有物品要去取
     // 取到的物品必须要有地方放
+    
     if(item == 0){
         // 分配取货物的任务
         assignGetTask(frame_id, r, robot_ids);
@@ -86,9 +87,8 @@ void Manager::handleFps(int frame_id){
         int i = robot_ids.front();
         robot_ids.pop();
         Robot* r = g_robots[i];
-        const tuple<Workstation*, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
-
-        if(get<0>(action) != nullptr){                               // 机器人的工作台编号不为-1 说明有该机器有任务调度
+        const tuple<int, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
+        if(get<0>(action) != -1){                               // 机器人的工作台编号不为-1 说明有该机器有任务调度
             Manager::handleTask(r);
         }else{                                                     // 没有任务调度 安排任务喽
             Manager::assignTask(frame_id, r, robot_ids);

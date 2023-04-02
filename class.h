@@ -35,9 +35,6 @@ extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
 extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
 extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
 
-// 一些调度有关的全局变量
-extern map<int, int> historyGetMap;       // 存储历史取货信息--------要去哪个工作台取东西根据这个设置权重(平衡历史买卖)
-extern map<tuple<int, int>, int> historyRawFill;   // 历史填入次数  {工作台编号 原材料编号} 次数------卖东西的时候卖给哪个平台根据这个设置权重(平衡历史买卖)
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 extern multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
@@ -115,37 +112,33 @@ class Workstation{
     int raw_status_code;      //原材料状态码    每一帧实时变化
     bitset<ITEMS_NUM> accept_items; //接受物品类型    常量
 
+    // 实时更行的量
     set<int> need;            // 还需要物品的类型
     // 动态维护的量
     map<int, int> locked;          // 已经被锁定的物品id(包括生产的物品)  被锁物品编号 锁定的机器人编号
 
+    // 构造函数
+    Workstation(int workstationID, int type, float x, float y);
+    void update(ws_frame f);
+
     bool production_needed(int production_type);
     bool production_locked(int production_type);
-
     bool can_production_recycle(int production_type);
     bool can_production_sell();
-
     void rel_locked_production(int production_type);
     void add_locked_production(int production_type, int robot_id);
-
     void putIn(int production_type);
     map<int, int> getLocked();
     bool haveRawLocked();
     void changeLocked(int production_type, int robot_id);
-
     int getMissingNum();
     int getLeftTime();
     int getCycleTime();
     int getWeight();
-
     int getBuyPrice();
     int getSellPrice();
     int getRank();
     double getProfit();
-
-
-    Workstation(int workstationID, int type, float x, float y);
-    void update(ws_frame f);
 };
 
 //机器人
@@ -158,22 +151,20 @@ class Robot{
     vec2 linear_speed;      //机器人线速度
     int item_carried;       //机器人携带物品
     int workshop_located;   //机器人所在工作台
-
     float crt_radius;       //当前半径 (m)
     float crt_mass;         //当前质量 (kg)
     float crt_lin_acc;      //当前线加速度 (m/s^2)
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
 
-    // 需要维护的量 1
-    tuple<Workstation*, int> action = {NULL, -1};         // 奔向的工作台指针 物品编号(1-7)
+    // 需要维护的量
+    tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
 
     vector<Robot*> other_robots;    //其他机器人列表
 
-
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
-
+    Workstation* pre_workstation=nullptr;
     void initOtherRobot();
 
     void forward(float tgtSpd);
@@ -187,32 +178,29 @@ class Robot{
 
     queue<Point*> paths;
     void allocate_path(Workstation* w);
-    Workstation* pre_workstation = nullptr;
-
 
     void resetAction();                     //重置机器人的动作
-    const tuple<Workstation*, int> getAction();
-    void setAction(tuple<Workstation*, int> action);
+    const tuple<int, int> getAction();
+    void setAction(tuple<int, int> action);
     
     void setNextWorkerId(int id);
     int getNextWorkerId();
 };
+
 //实现于map.cpp
 //地图类
 class Map{
 public:
     //地图数组，'.'为可通行区域，'#'为障碍物
     array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map;
-
-
     Map();
-
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
 
 
 };
+
 typedef struct Point{
     vec2_int coordinate; // 坐标
     float cost; //记录从源节点到当前节点的代价
@@ -225,6 +213,8 @@ typedef struct Point{
         this->parent_node = parent_node;
     }
 }Point;
+
+
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths);
 class AStar{
@@ -247,6 +237,8 @@ public:
     void divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product);
 
 };
+
+
 class DoubleDirectionAstar{
 public:
     vector<tuple<int,int, float >> motion;

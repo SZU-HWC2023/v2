@@ -125,6 +125,7 @@ inline vec2 getXY(int i, int j){
 inline vec2 GetPoint(float x, float y){
     return {2*(49.75f - y),2*(x-0.25f)};
 }
+
 //为机器人规划一条路径
 void Robot::allocate_path(Workstation* w){
 //    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
@@ -136,13 +137,7 @@ void Robot::allocate_path(Workstation* w){
         paths.push(result[i]);
     }
 }
-/*
-向工作台前进
-@param ws 目标工作台
-*/
-//if(this->id == 2){
-//test_astar(result);
-//}
+
 void Robot::move2ws(Workstation* ws){
 
     vec2 w = ws->coordinate;
@@ -158,7 +153,7 @@ void Robot::move2ws(Workstation* ws){
         Point* des_point = paths.front();
         vec2 des = des_point->coordinate.toCenter();
         //判断机器人是否到达路径中的某个点
-        if(paths.size()>1&&calcDistance(des,this->coordinate) < 1){
+        if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
             paths.pop();
         }else if(paths.size()==1){//还剩下终点未到达
             if(this->workshop_located!=-1){ //已经到达工作台附近
@@ -226,17 +221,17 @@ void Robot::move2ws(Workstation* ws){
 }
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
-    this->action = {NULL,-1};
+    this->action = {-1,-1};
 }
 /*
 获得机器人当前的动作
 @return tuple<int,int> 元组的第一项为工作台id, 元组的第二项为物品的编号（1-7）
 */
-const tuple<Workstation*, int> Robot::getAction(){
+const tuple<int, int> Robot::getAction(){
     return this->action;
 }
 /*设置机器人的动作*/
-void Robot::setAction(tuple<Workstation*, int> action){
+void Robot::setAction(tuple<int, int> action){
     this->action = action;
 }
 /*
