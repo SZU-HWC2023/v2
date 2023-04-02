@@ -45,7 +45,7 @@ vector<Point*> DoubleDirectionAstar::planning(int sx,int sy,int gx,int gy){
         current_B = open_map_B[c_id_B];
 
         // 已经找到目标节点，退出循环
-        if(current_A->x == current_B->x && current_A->y == current_B->y){
+        if(current_A->coordinate.x == current_B->coordinate.x && current_A->coordinate.y == current_B->coordinate.y){
             meet_point_A = current_A;
             meet_point_B = current_B;
             break;
@@ -56,8 +56,8 @@ vector<Point*> DoubleDirectionAstar::planning(int sx,int sy,int gx,int gy){
         closed_map_B[c_id_B] = current_B;
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
-            Point* point_A = new Point(current_A->x + get<0>(mot),current_A->y + get<1>(mot),current_A->cost+get<2>(mot),current_A);
-            Point* point_B = new Point(current_B->x + get<0>(mot),current_B->y + get<1>(mot),current_B->cost+get<2>(mot),current_B);
+            Point* point_A = new Point(current_A->coordinate.x + get<0>(mot),current_A->coordinate.y + get<1>(mot),current_A->cost+get<2>(mot),current_A);
+            Point* point_B = new Point(current_B->coordinate.x + get<0>(mot),current_B->coordinate.y + get<1>(mot),current_B->cost+get<2>(mot),current_B);
             tuple<int,int> p_id_A = getIndex(point_A);
             tuple<int,int> p_id_B = getIndex(point_B);
 
@@ -120,12 +120,12 @@ vector<Point*> DoubleDirectionAstar::calc_final_doubledirectional_path(Point* me
 }
 //判断下标是否合法
 bool DoubleDirectionAstar::verify(Point* from,Point* p){
-    if(p->x<0 || p->y<0 ||p->x>=MAP_TRUE_SIZE||p->y>=MAP_TRUE_SIZE)return false;
-    if(g_map[p->x][p->y] == '#')return false;
-    int from_x = from->x;
-    int from_y = from->y;
-    int p_x = p->x;
-    int p_y = p->y;
+    if(p->coordinate.x<0 || p->coordinate.y<0 ||p->coordinate.x>=MAP_TRUE_SIZE||p->coordinate.y>=MAP_TRUE_SIZE)return false;
+    if(g_map[p->coordinate.x][p->coordinate.y] == '#')return false;
+    int from_x = from->coordinate.x;
+    int from_y = from->coordinate.y;
+    int p_x = p->coordinate.x;
+    int p_y = p->coordinate.y;
 
 //    if(from_x == p_x && from_y == p_y-1){//往右
 //        if(p_x == 0){
@@ -206,11 +206,11 @@ bool DoubleDirectionAstar::verify(Point* from,Point* p){
     return true;
 }
 tuple<int,int> DoubleDirectionAstar::getIndex(Point* p){
-    return {p->x,p->y};
+    return {p->coordinate.x,p->coordinate.y};
 }
 float DoubleDirectionAstar::calc_heuristic(Point* a, Point *b){
-    float x = a->x - b->x;
-    float y = a->y - b->y;
+    float x = a->coordinate.x - b->coordinate.x;
+    float y = a->coordinate.y - b->coordinate.y;
     return sqrt(x*x + y*y);
 }
 float DoubleDirectionAstar::calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current){
@@ -239,11 +239,11 @@ vector<Point *> DoubleDirectionAstar::simplify_path(vector<Point*> &vec_points){
         Point* pp = result[result.size()-2];
         Point* p = result[result.size()-1];
         Point * current = vec_points[i];
-        int p_pp_x = p->x - pp->x;
-        int p_pp_y = p->y - pp->y;
+        int p_pp_x = p->coordinate.x - pp->coordinate.x;
+        int p_pp_y = p->coordinate.y - pp->coordinate.y;
         float k1 = atan2(p_pp_y,p_pp_x);
-        int current_p_x = current->x - p->x;
-        int current_p_y = current->y - p->y;
+        int current_p_x = current->coordinate.x - p->coordinate.x;
+        int current_p_y = current->coordinate.y - p->coordinate.y;
         float k2 = atan2(current_p_y,current_p_x);
         if(abs(k1-k2) < 1e-6){
             result[result.size()-1] = current;
