@@ -127,8 +127,10 @@ inline vec2 GetPoint(float x, float y){
 }
 //为机器人规划一条路径
 void Robot::allocate_path(Workstation* w){
-    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
-    vec2 g = GetPoint(w->coordinate.x,w->coordinate.y);
+//    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
+    vec2_int s = this->coordinate.toIndex();
+//    vec2 g = GetPoint(w->coordinate.x,w->coordinate.y);
+    vec2_int g = w->coordinate.toIndex();
     vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y),this->item_carried!=0);
     for(int i=1;i<result.size();i++){
         paths.push(result[i]);
@@ -147,28 +149,42 @@ void Robot::move2ws(Workstation* ws){
     Point* p = nullptr;
     //路径为空，为机器人规划一条前往工作台ws的路径
     if(this->paths.empty()){
+        this->pre_workstation = ws;
         this->allocate_path(ws);
+
         if(this->paths.size()>=1) p = this->paths.front();
         else return;
     }else{
         Point* des_point = paths.front();
-        vec2 des = getXY(des_point->x,des_point->y);
+        vec2 des = des_point->coordinate.toCenter();
         //判断机器人是否到达路径中的某个点
         if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
             paths.pop();
         }else if(paths.size()==1){//还剩下终点未到达
             if(this->workshop_located!=-1){ //已经到达工作台附近
                 paths.pop();
-                return;
+                // 到达工作附近，并被分配新的要前往的工作台，直接从全局变量g_astar_path取出一条关键路径
+                if(ws != this->pre_workstation){
+                    vec2_int src = this->pre_workstation->coordinate.toIndex();
+                    vec2_int des = ws->coordinate.toIndex();
+                    vector<Point*> result = g_astar_path[{src.x,src.y,des.x,des.y}];
+                    fprintf(stderr,"result.size():%d\n",result.size());
+                    for(int i=1;i<result.size();i++){
+                        paths.push(result[i]);
+                    }
+                    this->pre_workstation = ws;
+                }else{
+                    //到达工作附近，但未被分配新的要前往的工作台，暂时可能未被调度到
+                    return;
+                }
             }else{  //尚未到达工作台附近
 
             }
-
         }
         p = paths.front();
     }
 
-    vec2 v = getXY(p->x,p->y);
+    vec2 v = p->coordinate.toCenter();
     vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 

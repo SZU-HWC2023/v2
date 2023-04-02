@@ -21,10 +21,14 @@ struct Item;
 class Workstation;
 class Robot;
 class RVO;
+class Map;
 class AStar;
 class DoubleDirectionAstar;
-extern map<tuple<int,int>,Point*> g_point_map;
-extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的路径
+extern Map g_Map;                                   //地图类
+
+
+extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
 extern AStar *g_astar;
 extern DoubleDirectionAstar* g_directionAstar;
 extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
@@ -181,6 +185,7 @@ class Robot{
 
     queue<Point*> paths;
     void allocate_path(Workstation* w);
+    Workstation* pre_workstation = nullptr;
 
 
     void resetAction();                     //重置机器人的动作
@@ -190,19 +195,36 @@ class Robot{
     void setNextWorkerId(int id);
     int getNextWorkerId();
 };
+//实现于map.cpp
+//地图类
+class Map{
+public:
+    //地图数组，'.'为可通行区域，'#'为障碍物
+    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map;
+
+
+    Map();
+
+    bool isObstacle(vec2 pos);
+    bool isObstacle(vec2_int pos);
+    float dist2Obstacle(vec2 pos);
+
+
+};
 typedef struct Point{
-    int x;
-    int y;
+    vec2_int coordinate; // 坐标
     float cost; //记录从源节点到当前节点的代价
     float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
     Point(int x,int y, float cost,Point* parent_node){
-        this->x = x;
-        this->y = y;
+        this->coordinate.x = x;
+        this->coordinate.y = y;
         this->cost = cost;
         this->parent_node = parent_node;
     }
 }Point;
+//计算路径的长度
+float calc_distance_path(vector<Point*> &vec_paths);
 class AStar{
 public:
     vector<tuple<int,int, float >> motion;

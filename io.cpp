@@ -24,7 +24,7 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
-            g_map[row][col] = line[col];
+            g_map[row][col ] = line[col];
             if (line[col] == '.')continue;
             float y = 50 - ((row+1)*0.5-0.25);
             float x = (col+1)*0.5 - 0.25;
