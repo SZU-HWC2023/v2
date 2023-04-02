@@ -36,33 +36,6 @@ struct vec2_int{
     vec2 vertice(vec2_int quadrant);
 };
 
-struct vec2_int;
-struct vec2;
-
-//整型二维矢量（用于地图索引）
-struct vec2_int{
-    int x;
-    int y;
-
-    vec2_int(int x_=0, int y_=0) : x(x_), y(y_){}
-
-    vec2_int& operator+=(vec2_int& v){
-        x += v.x;
-        y += v.y;
-        return *this;
-    }
-
-    //返回地图索引对应的中心坐标
-    vec2 toCenter();
-
-    //返回到p的切比雪夫距离
-    int chebyshevDist(const vec2_int& p){
-        return max(abs(x-p.x), abs(y-p.y));
-    }
-
-    //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
-    vec2 vertice(vec2_int quadrant);
-};
 
 
 //二维矢量

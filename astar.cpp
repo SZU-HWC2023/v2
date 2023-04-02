@@ -186,7 +186,7 @@ void test_astar(vector<Point*> &result){
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];
     for(int i=0;i<MAP_TRUE_SIZE;i++){
         for(int j=0;j<MAP_TRUE_SIZE;j++){
-            local_map[i][j] = g_Map.map[i][j];
+            local_map[i][j] = g_map[i][j];
         }
     }
     fprintf(stderr,"%d\n",result.size());

@@ -34,7 +34,7 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
     float min_robot_dist = 10, min_wall_dist = 10;
     for(int i=0; i<trajectory.size(); i++){
         min_wall_dist = min(min_wall_dist, wall_dist(trajectory[i].pos));
-        float obs_dist = g_Map.dist2Obstacle(trajectory[i].pos);
+        float obs_dist = g_map.dist2Obstacle(trajectory[i].pos);
         min_wall_dist = min(min_wall_dist, obs_dist);
 
         for(auto r:this->robot->other_robots){
