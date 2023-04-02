@@ -6,3 +6,6 @@ cmake-build-debug
 code
 .idea
 *.zip
+*.svg
+*.data
+*.old
