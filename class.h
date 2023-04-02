@@ -293,7 +293,7 @@ struct DWA_state{
         this->robot = robot;
     };
 
-    DW calcDW(float dt = FRAME_INTERVAL*5){
+    DW calcDW(float dt = FRAME_INTERVAL){
         DW vs = {0, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
         float linAcc = this->robot->crt_lin_acc, angAcc = this->robot->crt_ang_acc;
         DW vd = {this->linSpd.len() - linAcc * dt,
@@ -314,7 +314,7 @@ struct DWA_state{
         this->angSpd = vw.w;
     }
 
-    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL*5){
+    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL){
         vector<DWA_state> trajectory;
         trajectory.push_back(*this);
         for(float t = dt; t < pred_t; t += dt){
@@ -330,8 +330,8 @@ class DWA{
     Robot* robot;
     
     static constexpr float alpha = 1;
-    static constexpr float beta = 6.0;
-    static constexpr float gamma = 1;
+    static constexpr float beta = 10.0;
+    static constexpr float gamma = 0.5;
     static constexpr float pred_t = PRED_T;
     // static constexpr float ang_spd_intv = 0.05;
     // static constexpr float lin_spd_intv = 0.1;

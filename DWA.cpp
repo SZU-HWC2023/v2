@@ -19,7 +19,7 @@ float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     }
     float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
     float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
-    return abs(atan2(sinf(deltaHDG), cosf(deltaHDG))) + min_dist;
+    return (abs(atan2(sinf(deltaHDG), cosf(deltaHDG))) + min_dist)/(M_PI+2.0f);
 }
 
 float wall_dist(vec2 pos){
@@ -45,13 +45,13 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
 
     }
     if(min_robot_dist<ROBOT_CARRY_RADIUS*2)
-        return 9999999;
+        return 1e6f;
     if(min_wall_dist<this->robot->crt_radius-0.01)
-        return 9999999;
+        return 1e6f;
     else if(min_wall_dist>1)
         min_wall_dist = 1;
         
-    return 1.0/min_robot_dist + 1.0/min_wall_dist * 0.5;
+    return (1.0/min_robot_dist + 1.0/min_wall_dist)/3.16562f;
 }
 
 float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
@@ -64,7 +64,7 @@ float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     // float dist = calcDistance(trajectory.back().pos, tgt_pos);
     // if(dist > s_v) s0 = MAX_FORWARD_SPD;
     
-    return abs(MAX_FORWARD_SPD - vel);
+    return (abs(MAX_FORWARD_SPD - vel))/MAX_FORWARD_SPD;
 }
 
 float DWA::calc_cost(VW vw, vec2 tgt_pos, bool log){
@@ -86,11 +86,11 @@ VW DWA::find_vw(vec2 tgt_pos){
     DWA_state crt_state(this->robot);
     DW dw = crt_state.calcDW();
     float lin_spd_intv = dw.v_step(this->v_samples), ang_spd_intv = dw.ang_v_step(this->ang_v_samples);
-    float min_cost = INFINITY;
+    float min_cost = 1e5f;
     VW vw;
     for(float angle = dw.ang_v_min; angle < dw.ang_v_max; angle += ang_spd_intv){
         for(float spd = dw.v_min; spd < dw.v_max; spd += lin_spd_intv){
-            if(abs(spd)<(0.1))
+            if(abs(spd)<(0.01))
                 continue;
             VW vw_tmp = {spd, angle};
             float cost = calc_cost(vw_tmp, tgt_pos);
