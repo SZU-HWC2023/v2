@@ -81,10 +81,3 @@ float Map::dist2Obstacle(vec2 pos){
     }
     return 1000.0f;
 }
-
-bool Map::isCollide2Obstacle(Robot* robot){
-    vec2 pos = robot->coordinate;
-    float d = this->dist2Obstacle(pos);
-    if(d < robot->crt_radius)
-        return true;
-}

@@ -219,7 +219,7 @@ class Map{
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
-    bool isCollide2Obstacle(Robot* robot);
+
 
 };
 
