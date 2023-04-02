@@ -97,11 +97,11 @@ vec2 wallDist(vec2 pos){
 */
 bool Robot::isAble2Brake(float brake_dist){
     vec2 brake = fromPolar(brake_dist, this->heading);  //刹车距离向量
-    vec2 hdg_sign = toQuadrant(brake);                  //方位角象限
-    vec2 wall_sign = toQuadrant(this->coordinate, {MAP_SIZE/2, MAP_SIZE/2});  //墙壁象限
+    vec2_int hdg_sign = toQuadrant(brake);                  //方位角象限
+    vec2_int wall_sign = toQuadrant(this->coordinate, {MAP_SIZE/2, MAP_SIZE/2});  //墙壁象限
 
     //如果方位角存在朝向墙壁的分量
-    if(hdg_sign.x == wall_sign.x || hdg_sign.y == wall_sign.y){
+    if(hdg_sign.row == wall_sign.row || hdg_sign.col == wall_sign.col){
         //而且距离墙壁距离小于刹车距离在该方向的分量
         vec2 dist = wallDist(this->coordinate);
         if(abs(brake.x)>dist.x || abs(brake.y)>dist.y)

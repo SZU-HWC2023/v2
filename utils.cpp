@@ -31,15 +31,13 @@ float collisionValue(float impulse){
 /*
 符号函数
 @param x 输入值
-@return 符号值，正数返回1，负数返回-1，0返回0
+@return 符号值，正数或0返回1，负数返回-1
 */
-float sign(float x){
-    if(x>0)
+int sign(float x){
+    if(x>=0)
         return 1;
-    else if(x<0)
-        return -1;
     else
-        return 0;
+        return -1;
 };
 
 /*
@@ -115,7 +113,7 @@ vec2 fromPolar(float len, float hdg){
 @param center 原点
 @return 坐标pos在以center为原点的坐标系中的象限符号
 */
-vec2 toQuadrant(vec2 pos, vec2 center){
-    vec2 quadrant = {sign(pos.x-center.x), sign(pos.y-center.y)};
+vec2_int toQuadrant(vec2 pos, vec2 center){
+    vec2_int quadrant = {sign(pos.x-center.x), sign(pos.y-center.y)};
     return quadrant;
 }

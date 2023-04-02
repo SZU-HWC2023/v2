@@ -20,8 +20,9 @@ struct Point;
 struct Item;
 class Workstation;
 class Robot;
-class RVO;
 class Map;
+class RawMap;
+class RVO;
 class AStar;
 class DoubleDirectionAstar;
 extern Map g_Map;                                   //地图类
@@ -31,9 +32,9 @@ extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台�
 extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
 extern AStar *g_astar;
 extern DoubleDirectionAstar* g_directionAstar;
-extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
-extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
-extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
+extern RawMap g_map;    //原始地图
+extern Map g_connected_areas_c;    // 携带物品全局连通区域
+extern Map g_connected_areas_uc;   // 未携带物品全局连通区域
 
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -196,17 +197,26 @@ class Robot{
 };
 
 //实现于map.cpp
-//地图类
+//地图相关类，适用于任何类似地图的数据结构
 class Map{
-public:
-    //地图数组，'.'为可通行区域，'#'为障碍物
-    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map;
+    public:
+    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map; //地图底层数组
     Map();
+
+    //取指
+    char operator[](vec2_int pos);
+    char operator[](vec2 pos);
+    array<char,MAP_TRUE_SIZE> operator[](int row);
+};
+
+//原始地图
+class RawMap:public Map{
+    public:
+    RawMap();
+
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
-
-
 };
 
 typedef struct Point{
