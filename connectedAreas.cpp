@@ -46,9 +46,9 @@ void robotPassMap(){
                 else if(hinderWithoutPro(r, c)) g_map[r][c] = '!';
                 else if(hinderWithPro(r, c)) g_map[r][c] = '@';
             }
-            fprintf(stderr,"%c", g_map[r][c]);
+            // fprintf(stderr,"%c", g_map[r][c]);
         }
-        fprintf(stderr,"\n");
+        // fprintf(stderr,"\n");
     }
 }
 
@@ -88,8 +88,8 @@ void findConnectedAreas(){
                 g_connected_areas[i][j] = area_cnt;
                 DFS(i, j, area_cnt);
             }
-            fprintf(stderr,"%d",j);
+            // fprintf(stderr,"%d",j);
         }
-        fprintf(stderr,"\n");
+        // fprintf(stderr,"\n");
     }
 }

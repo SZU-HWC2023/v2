@@ -1,5 +1,11 @@
 #include "class.h"
 
+bool judgeAroundObstacle(int x, int y){
+    if(g_map[x+1][y] == '#' || g_map[x][y+1] == '#' || g_map[x-1][y] == '#' || g_map[x][y-1] == '#') return true;
+    if(g_map[x+1][y+1] == '#' || g_map[x-1][y-1] == '#' || g_map[x-1][y+1] == '#' || g_map[x+1][y-1] == '#') return true;
+    return false;
+}
+
 vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
     Point* start_node = new Point(sx,sy,0.0, nullptr);
     Point* goal_node = new Point(gx,gy,0.0, nullptr);
@@ -14,7 +20,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         // 从待检测节点中，找到一个到目标节点代价最小的节点
         for(auto iter = open_map.begin();iter!=open_map.end();iter++){
             Point* p = iter->second;
-            float tmp_cost = this->calc_heuristic(p,goal_node) +p->cost;
+            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
             if(tmp_cost < cost){
                 cost = tmp_cost;
                 c_id = iter->first;
@@ -30,8 +36,11 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         open_map.erase(c_id);   //将已经访问过的节点从开放列表移除
         closed_map[c_id] = current;
         //从当前节点往各个方向探索
-        for(tuple<int,int, float> mot:this->motion){
-            Point* point = new Point(current->x + get<0>(mot),current->y + get<1>(mot),current->cost+get<2>(mot),current);
+        for(tuple<int,int,float> mot:this->motion){
+            int baseCost = get<2>(mot);
+            // 路径节点靠墙 代价翻倍
+            if(judgeAroundObstacle(current->x + get<0>(mot), current->y + get<1>(mot))) baseCost*=4;
+            Point* point = new Point(current->x + get<0>(mot),current->y + get<1>(mot),current->cost+baseCost, current);
             tuple<int,int> p_id = getIndex(point);
             if(!verify(current,point,has_product))continue;
             if(closed_map.find(p_id)!=closed_map.end())continue;
@@ -135,7 +144,8 @@ void test_astar(vector<Point*> &result){
 vector<Point *> AStar::simplify_path(vector<Point*> &vec_points){
 //    fprintf(stderr,"LYW\n");
     if(vec_points.size()<=2)return vec_points;
-    if(!obstacle_in_line(vec_points[0],vec_points.back()))return {vec_points[0],vec_points.back()};
+    if(!obstacle_in_line(vec_points[0], vec_points.back())) return {vec_points[0],vec_points.back()};
+
     vector<Point*> result;
 //    fprintf(stderr,"WLY\n");
     divide_conquer(result,0,vec_points.size()-1,vec_points);
@@ -153,7 +163,7 @@ void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Poin
        return;
    }
 //   fprintf(stderr,"len:%d %d\n",left,right);
-   if(!obstacle_in_line(vec_points[left],vec_points[right])){
+   if(!obstacle_in_line(vec_points[left], vec_points[right])){
        result.emplace_back(vec_points[left]);
        return;
    }

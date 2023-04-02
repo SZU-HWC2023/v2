@@ -202,10 +202,10 @@ void Robot::move2ws(Workstation* ws){
         tgt_lin_spd = MAX_FORWARD_SPD;
         tgt_ang_spd = 0.;
     } else {
-        if (abs(delta_hdg) > M_PI / 2) {
+        if (abs(delta_hdg) > M_PI/2) {
             // 角度太大，全速扭转
             // 速度控制小一点，避免靠近不了工作台
-            tgt_lin_spd = MAX_FORWARD_SPD*0.5;
+            tgt_lin_spd = MAX_FORWARD_SPD*0.0001;
             tgt_ang_spd = maxRotateSpeed;
         } else {
             tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大

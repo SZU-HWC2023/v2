@@ -206,7 +206,7 @@ typedef struct Point{
 }Point;
 class AStar{
 public:
-    vector<tuple<int,int, float >> motion;
+    vector<tuple<int,int,float>> motion;
     AStar(){
         this->motion = this->get_motion_model();
     }
