@@ -58,7 +58,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         // 从待检测节点中，找到一个到目标节点代价最小的节点
         for(auto iter = open_map.begin();iter!=open_map.end();iter++){
             Point* p = iter->second;
-            float tmp_cost = this->calc_heuristic(p,goal_node) +p->cost;
+            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
             if(tmp_cost < cost){
                 cost = tmp_cost;
                 c_id = iter->first;

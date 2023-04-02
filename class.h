@@ -227,7 +227,7 @@ typedef struct Point{
 float calc_distance_path(vector<Point*> &vec_paths);
 class AStar{
 public:
-    vector<tuple<int,int, float >> motion;
+    vector<tuple<int,int,float>> motion;
     AStar(){
         this->motion = this->get_motion_model();
     }
