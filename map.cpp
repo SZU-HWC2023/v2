@@ -7,6 +7,7 @@ Map::Map(){
 }
 
 
+
 char Map::operator[](vec2_int pos){
     return this->map[pos.row][pos.col];
 }
@@ -24,12 +25,14 @@ RawMap::RawMap(){
     Map();
 }
 
+
 /*
 判断pos是否位于障碍物内
 @param pos: 坐标
 @return true 为位于障碍物内
 @return false 为不位于障碍物内
 */
+
 bool RawMap::isObstacle(vec2 pos){
     vec2_int pos_idx = pos.toIndex();
     return this->isObstacle(pos_idx);
@@ -41,6 +44,7 @@ bool RawMap::isObstacle(vec2 pos){
 @return true 为位于障碍物内
 @return false 为不位于障碍物内
 */
+
 bool RawMap::isObstacle(vec2_int pos_idx){
     return this->operator[](pos_idx) == '#';
 }
@@ -76,6 +80,7 @@ float minDist2Obstacle(vec2 pos, vec2_int obstacle){
 }
 
 vec2_int directions[] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+
 
 float RawMap::dist2Obstacle(vec2 pos){
     vec2_int start_idx = pos.toIndex();

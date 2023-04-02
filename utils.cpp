@@ -11,6 +11,7 @@ vec2 vec2_int::vertice(vec2_int quadrant) {
     return {this_vec2.x + quadrant_vec2.x, this_vec2.y + quadrant_vec2.y};
 }
 
+
 // 计算代价系数
 float func_f(float x, float maxX, float minRate){
     if(x < maxX)
@@ -110,7 +111,7 @@ vec2 fromPolar(float len, float hdg){
 /*
 求坐标pos在以center为原点的坐标系中的象限符号
 @param pos 坐标
-@param center 原点
+@param center 原点，默认为(0,0)
 @return 坐标pos在以center为原点的坐标系中的象限符号
 */
 vec2_int toQuadrant(vec2 pos, vec2 center){

@@ -12,6 +12,8 @@ Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
     this->path->index = -1;     // 初始时路径下标为-1 代表当前没有路径
+    this->trajectory.clear();
+    this->dwa = new DWA(this);
 }
 /*
 更新机器人帧状态
@@ -30,7 +32,10 @@ void Robot::update(robot_frame f){
     this->crt_mass = M_PI * powf(this->crt_radius,2) * ROBOT_DENSITY;
 
     this->crt_lin_acc = MAX_TRACTION / this->crt_mass;
-    this->crt_lin_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+    this->crt_ang_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+
+    DWA_state s(this);
+    this->trajectory = s.calcTrajectory({this->linear_speed.len(), this->angular_speed},PRED_T);
 }
 
 //初始化其他机器人列表
@@ -239,6 +244,7 @@ void Robot::move2ws(Workstation* ws){
     this->rotate(tgt_ang_spd);
 
 }
+
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
     this->action = {-1,-1};

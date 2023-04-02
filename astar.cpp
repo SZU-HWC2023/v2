@@ -131,6 +131,7 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     // return this-> simplify_path(result,has_product); //路径简化
     return result;
 }
+
 //判断下标是否合法, has_product为true时表示机器人有东西
 
 bool AStar::verify(Point* from,Point* p,bool has_product){
@@ -185,7 +186,7 @@ void test_astar(vector<Point*> &result){
     char local_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];
     for(int i=0;i<MAP_TRUE_SIZE;i++){
         for(int j=0;j<MAP_TRUE_SIZE;j++){
-            local_map[i][j] = g_map[i][j];
+            local_map[i][j] = g_Map.map[i][j];
         }
     }
     fprintf(stderr,"%d\n",result.size());
