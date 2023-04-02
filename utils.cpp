@@ -1,16 +1,18 @@
 #include "utils.h"
 
 using namespace std;
-
 vec2 vec2_int::toCenter(){
-    return {0.5f * x + 0.25f, 50.0f - (0.5f * y + 0.25f)};
+    return {0.5f * col + 0.25f, 0.5f * row + 0.25f};
 }
 
 vec2 vec2_int::vertice(vec2_int quadrant) {
-    vec2 center = toCenter();
-    return {center.x + 0.25f * quadrant.x, center.y + 0.25f * quadrant.y};
+    vec2 this_vec2 = toCenter();
+    vec2 quadrant_vec2 = quadrant_vec2.toCenter();
+    return {this_vec2.x + quadrant_vec2.x, this_vec2.y + quadrant_vec2.y};
 }
 
+
+// 计算代价系数
 float func_f(float x, float maxX, float minRate){
     if(x < maxX)
         return (1-sqrtf(1-powf(1-x/maxX,2))) * (1-minRate) + minRate;
@@ -30,7 +32,7 @@ float collisionValue(float impulse){
 /*
 符号函数
 @param x 输入值
-@return 符号值，正数返回1，负数返回-1
+@return 符号值，正数或0返回1，负数返回-1
 */
 int sign(float x){
     if(x>=0)
@@ -113,5 +115,6 @@ vec2 fromPolar(float len, float hdg){
 @return 坐标pos在以center为原点的坐标系中的象限符号
 */
 vec2_int toQuadrant(vec2 pos, vec2 center){
-    return {sign(pos.x-center.x), sign(pos.y-center.y)};
+    vec2_int quadrant = {sign(pos.x-center.x), sign(pos.y-center.y)};
+    return quadrant;
 }

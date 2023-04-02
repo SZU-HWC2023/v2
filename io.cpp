@@ -4,7 +4,9 @@ vector<Workstation*> g_workstations;          //工作台列表
 vector<Robot*> g_robots;
 multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
-Map g_Map;  //地图类
+
+RawMap g_map;    //原始地图
+
 
 #include <cstring>
 using namespace std;
@@ -17,7 +19,7 @@ bool read_map(){
     char line[1024];
     int current_workstation_id = 0;
     int current_robot_id = 0;
-    int row = 0;
+    int row = 99;
     while (fgets(line, sizeof line, stdin)) {
         if (line[0] == 'O' && line[1] == 'K') {
             return true;
@@ -25,10 +27,12 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
-            g_Map.map[row][col] = line[col];
+
+            g_map.map[row][col] = line[col];
+
             if (line[col] == '.')continue;
-            float y = 50 - ((row+1)*0.5-0.25);
-            float x = (col+1)*0.5 - 0.25;
+            float y = (row+1)*0.5-0.25;
+            float x = (col+1)*0.5-0.25;
             if (line[col] == 'A'){
                 //机器人
                 Robot *robot = new Robot(current_robot_id,x,y);
@@ -49,12 +53,8 @@ bool read_map(){
                 }
                 current_workstation_id++;
             }
-            if(line[col] == '#'){
-                // 对障碍物的预处理
-                
-            }
         }
-        row++;
+        row--;
     }
 
     for(auto r:g_robots){

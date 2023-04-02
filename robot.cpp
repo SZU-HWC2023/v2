@@ -11,10 +11,10 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
+    this->path->index = -1;     // 初始时路径下标为-1 代表当前没有路径
     this->trajectory.clear();
     this->dwa = new DWA(this);
 }
-
 /*
 更新机器人帧状态
 @param f 机器人帧信息
@@ -106,7 +106,7 @@ bool Robot::isAble2Brake(float brake_dist){
     vec2_int wall_sign = toQuadrant(this->coordinate, {MAP_SIZE/2, MAP_SIZE/2});  //墙壁象限
 
     //如果方位角存在朝向墙壁的分量
-    if(hdg_sign.x == wall_sign.x || hdg_sign.y == wall_sign.y){
+    if(hdg_sign.row == wall_sign.row || hdg_sign.col == wall_sign.col){
         //而且距离墙壁距离小于刹车距离在该方向的分量
         vec2 dist = wallDist(this->coordinate);
         if(abs(brake.x)>dist.x || abs(brake.y)>dist.y)
@@ -114,71 +114,153 @@ bool Robot::isAble2Brake(float brake_dist){
     }
     return true;    //能刹住
 }
-
 /*
-向工作台前进
-@param ws 目标工作台
-*/
-void Robot::move2ws(Workstation* ws){
-    vec2 tgt_pos = ws->coordinate;  //目标位置
-    VW vw = this->dwa->find_vw(tgt_pos);  //计算速度和角速度
-    this->forward(vw.v);
-    this->rotate(vw.w);
+根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
+@param i 字符矩阵的第i行，从上往下数
+@param j 字符矩阵的第j行，从左往右数
+ */
+inline vec2 getXY(int i, int j){
+    return {0.5f * j + 0.25f, 49.75f - 0.5f * i};
+}
+/*
+根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,49.75),地图的右下角为（0.25，49.75）
+@param x，实际坐标中的x轴的距离从上往下数
+@param y 实际坐标中的y轴的距离，从左往右数
+ */
+inline vec2 GetPoint(float x, float y){
+    return {2*(49.75f - y),2*(x-0.25f)};
 }
 
+/*
+初始化机器人路径导航
+@path 路径 Vector
+@size 
+ */
+void Robot::initPath(vector<Point*> points){
+//    for(auto iter:points){
+//        this->path->points.push_back(iter);
+//    }
+    for(int i=1;i<points.size();i++){
+        this->path->points.push_back(points[i]);
+    }
+    this->path->index = 0;
+}
+/*
+没有路时开辟一条道路
+@w 目标工作站
+ */
+void Robot::allocate_path(Workstation* w){
+    vec2_int s = this->coordinate.toIndex();
+    vec2_int g = w->coordinate.toIndex();
+    vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
+    // 初始化路径
+    initPath(result);
+}
+/*
+获得机器人行动的导航点
+@ws 目标工作站
+ */
+Point* Robot::getNaviPoint(Workstation* w){
 
+    //路径为空，为机器人规划一条前往工作台ws的路径
+    if(this->path->index == -1){
+        this->pre_workstation = w;
+        this->allocate_path(w);
+        if(this->path->points.size() ==0)return nullptr;
+    }
+    else{
 
+        int &index = this->path->index;
+        deque<Point*> &dq = this->path->points;
+        Point* p = dq[index];                 // 导航点
+        vec2 des = p->coordinate.toCenter();
+        //判断机器人是否到达路径中的某个点,不包括终点
+        if(this->path->index < this->path->points.size()-1 &&calcDistance(des,this->coordinate) < crt_radius){
+            index++;
+        }else if(this->path->index == this->path->points.size() -1){    //还剩终点未到达
+            if(this->workshop_located != -1){   //到达工作台附近
+                this->path->index = -1; // 清空为机器人规划的路径
+                this->path->points.clear();
 
-// void Robot::move2ws(Workstation* ws){
-//     vec2 tgt_pos = ws->coordinate;  //目标位置
-//     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
+                if(w != this->pre_workstation){ // 到达工作附近，并被分配新的要前往的工作台，直接从全局变量g_astar_path取出一条关键路径
+                    vec2_int src = this->pre_workstation->coordinate.toIndex();
+                    vec2_int des = w->coordinate.toIndex();
+                    vector<Point*> result = g_astar_path[{src.row,src.col,des.row,des.col}];
+                    initPath(result);
+                    this->pre_workstation = w;
+                }else{
+                    //到达工作附近，但未被分配新的要前往的工作台，暂时可能未被调度到
+                    return nullptr;
+                }
+            }else{ //尚未到达工作台附近
 
-//     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
-//     float tgt_hdg = calcHeading(this->coordinate, tgt_pos);     //目标方位角
-//     float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
+            }
+        }
+    }
+    Point* des_point = this->path->points[this->path->index]; //取出一个关键路径点
+    return des_point;
+}
 
-//     // simple——demo中的速度角度控制方式
-//     const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
-//     if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
-//         tgt_lin_spd = MAX_FORWARD_SPD;
-//         tgt_ang_spd = 0.;
-//     } else {
-//         if (abs(delta_hdg) > M_PI / 2) {
-//             // 角度太大，全速扭转
-//             // 速度控制小一点，避免靠近不了工作台
-//             tgt_lin_spd = MAX_FORWARD_SPD*0.5;
-//             tgt_ang_spd = maxRotateSpeed;
-//         } else {
-//             tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大
-//             tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
-//         }
-//     }
+void Robot::move2ws(Workstation* ws){
+    Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
+    if(p == nullptr)return;
+    vec2 v = p->coordinate.toCenter();
+    vec2 tgt_pos = v;  //目标位置
+    float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
+
+    float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
+    float tgt_hdg = calcHeading(this->coordinate, tgt_pos);     //目标方位角
+    float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
+
+    // simple——demo中的速度角度控制方式
+    const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
+    if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
+        tgt_lin_spd = MAX_FORWARD_SPD;
+        tgt_ang_spd = 0.01;
+    } else {
+        if (abs(delta_hdg) > M_PI/2) {
+            // 角度太大，全速扭转
+            // 速度控制小一点，避免靠近不了工作台
+            tgt_lin_spd = 0;
+            tgt_ang_spd = maxRotateSpeed;
+        } else {
+            tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大
+            tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
+        }
+    }
     
-//     // if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
-//     //     tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
+     if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
+         tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
-//     //刹车距离 ----判断刹车
-//     float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
-//     brake_dist += 2*this->crt_radius + 0.05;
-//     if(!isAble2Brake(brake_dist))
-//         tgt_lin_spd = 0;
+//    //刹车距离 ----判断刹车
+//    float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
+//    brake_dist += 2*this->crt_radius + 0.05;
+//    if(!isAble2Brake(brake_dist))
+//        tgt_lin_spd = 0;
+//    tgt_lin_spd = 1;
+//    tgt_ang_spd = 0;
 
-//     this->forward(tgt_lin_spd);
-//     this->rotate(tgt_ang_spd);
-// }
+    this->forward(tgt_lin_spd);
+    this->rotate(tgt_ang_spd);
+
+}
+
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
-    this->action = {NULL,-1};
+    this->action = {-1,-1};
+    this->next_worker_id = -1;
+    this->path->index = -1;
+    this->path->points.clear();
 }
 /*
 获得机器人当前的动作
 @return tuple<int,int> 元组的第一项为工作台id, 元组的第二项为物品的编号（1-7）
 */
-const tuple<Workstation*, int> Robot::getAction(){
+const tuple<int, int> Robot::getAction(){
     return this->action;
 }
 /*设置机器人的动作*/
-void Robot::setAction(tuple<Workstation*, int> action){
+void Robot::setAction(tuple<int, int> action){
     this->action = action;
 }
 /*

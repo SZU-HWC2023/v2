@@ -1,6 +1,6 @@
 #include <iostream>
 #include "manager.h"
-#include <unistd.h>
+// #include <unistd.h>
 
 int check_map(Workstation *w){
     if((int)w->coordinate.x == 23 && (int)w->coordinate.y == 47)
@@ -24,15 +24,20 @@ int main(){
     // sleep(10);
     init_items();
     read_map();
+    robotPassMap();
+    findConnectedAreas();
+    init_points();
+    
+    int map_type = check_map(g_workstations[0]);
 
-    int map_type = check_map(g_workstations[0]);    
+    #ifdef DEBUG
     fprintf(stderr, "map_type: %d\n", map_type);
+    #endif
     puts("OK");
     fflush(stdout);
-    // test_astar();  //测试A*算法
+
     int frameID;
     int currentMoney = 0;
-
     while (scanf("%d %d", &frameID,&currentMoney) != EOF) {
         readUntilOK();
         printf("%d\n", frameID);
@@ -44,4 +49,5 @@ int main(){
         fflush(stdout);
     }
     return 0;
+
 }

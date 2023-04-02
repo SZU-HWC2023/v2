@@ -8,6 +8,33 @@
 #define UTILS_H
 
 using namespace std;
+struct vec2_int;
+struct vec2;
+
+//整型二维矢量（用于地图索引）
+struct vec2_int{
+    int row;        // 对应的y
+    int col;        // 对应的x
+
+    vec2_int(int row_=0, int col_=0) : row(row_), col(col_){}
+
+    vec2_int& operator+=(vec2_int& v){
+        row += v.row;
+        col += v.col;
+        return *this;
+    }
+
+    //返回地图索引对应的中心坐标
+    vec2 toCenter();
+
+    //返回到p的切比雪夫距离
+    int chebyshevDist(const vec2_int& p){
+        return max(abs(row-p.row), abs(col-p.col));
+    }
+
+    //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
+    vec2 vertice(vec2_int quadrant);
+};
 
 struct vec2_int;
 struct vec2;
@@ -129,7 +156,7 @@ struct vec2{
 
     //返回该坐标在地图上的索引
     vec2_int toIndex() const{
-        return {int(x/0.5f), int((50.0f-y)/0.5f)};
+       return {int(y/0.5f), int(x/0.5f)};
     }
 
     //返回该坐标所在格的中心坐标

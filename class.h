@@ -1,5 +1,4 @@
 //定义各种类
-
 #include <iostream>
 #include <vector>
 #include <bitset>
@@ -17,26 +16,34 @@
 #endif
 
 using namespace std;
-
+struct Point;
 struct Item;
 class Workstation;
 class Robot;
 
 class Map;
-
+class RawMap;
 class RVO;
 class AStar;
+class DoubleDirectionAstar;
 
 struct VW;
 struct DW;
 struct DWA_state;
 class DWA;
 
-
 extern Map g_Map;                                   //地图类
 
-extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 
+extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
+extern AStar *g_astar;
+extern DoubleDirectionAstar* g_directionAstar;
+extern RawMap g_map;    //原始地图
+extern Map g_connected_areas_c;    // 携带物品全局连通区域
+extern Map g_connected_areas_uc;   // 未携带物品全局连通区域
+
+extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 extern multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 
@@ -80,7 +87,7 @@ struct Item{
 };
 
 void init_items();
-
+void init_points();
 //工作台帧信息
 struct ws_frame{
     int ws_type;            //工作台类型
@@ -123,37 +130,39 @@ class Workstation{
     int raw_status_code;      //原材料状态码    每一帧实时变化
     bitset<ITEMS_NUM> accept_items; //接受物品类型    常量
 
+    // 实时更行的量
     set<int> need;            // 还需要物品的类型
     // 动态维护的量
     map<int, int> locked;          // 已经被锁定的物品id(包括生产的物品)  被锁物品编号 锁定的机器人编号
 
+    // 构造函数
+    Workstation(int workstationID, int type, float x, float y);
+    void update(ws_frame f);
+
     bool production_needed(int production_type);
     bool production_locked(int production_type);
-
     bool can_production_recycle(int production_type);
     bool can_production_sell();
-
     void rel_locked_production(int production_type);
     void add_locked_production(int production_type, int robot_id);
-
     void putIn(int production_type);
     map<int, int> getLocked();
     bool haveRawLocked();
     void changeLocked(int production_type, int robot_id);
-
     int getMissingNum();
     int getLeftTime();
     int getCycleTime();
     int getWeight();
-
     int getBuyPrice();
     int getSellPrice();
     int getRank();
     double getProfit();
+};
 
 
-    Workstation(int workstationID, int type, float x, float y);
-    void update(ws_frame f);
+struct Path{
+    deque<Point*> points;
+    int index = -1;
 };
 
 // 实现于robot.cpp
@@ -167,93 +176,158 @@ class Robot{
     vec2 linear_speed;      //机器人线速度
     int item_carried;       //机器人携带物品
     int workshop_located;   //机器人所在工作台
-
     float crt_radius;       //当前半径 (m)
     float crt_mass;         //当前质量 (kg)
     float crt_lin_acc;      //当前线加速度 (m/s^2)
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
 
-    // 需要维护的量 1
-    tuple<Workstation*, int> action = {NULL, -1};         // 奔向的工作台指针 物品编号(1-7)
+    // 需要维护的量
+    tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
+    Path* path = new Path();        // 路径规划
+    Workstation* pre_workstation = nullptr; //存储机器人访问过的前一个节点
 
     vector<Robot*> other_robots;    //其他机器人列表
 
     vector<DWA_state> trajectory;   //轨迹
     DWA* dwa;                       //DWA指针
 
-
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
-
     void initOtherRobot();
 
+    // 指令函数
     void forward(float tgtSpd);
     void rotate(float tgtAngSpd);
     void buy();
     void sell();
     void destory();
 
+    // 操控函数
     bool isAble2Brake(float brake_dist);
     void move2ws(Workstation* ws);
 
-
-    void resetAction();                     //重置机器人的动作
-    const tuple<Workstation*, int> getAction();
-    void setAction(tuple<Workstation*, int> action);
-    
+    // 路径函数
+    void allocate_path(Workstation* w);
+    void initPath(vector<Point*> path);
+    Point* getNaviPoint(Workstation* ws);              
+    // 维护操作
+    void resetAction();                     
+    const tuple<int, int> getAction();
+    void setAction(tuple<int, int> action);
     void setNextWorkerId(int id);
+
+    // 其他
     int getNextWorkerId();
 };
 
 //实现于map.cpp
-//地图类
+
+//地图相关类，适用于任何类似地图的数据结构
 class Map{
     public:
-    //地图数组，'.'为可通行区域，'#'为障碍物
-    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map;
-
-
+    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map; //地图底层数组
     Map();
+
+    //取指
+    char operator[](vec2_int pos);
+    char operator[](vec2 pos);
+    array<char,MAP_TRUE_SIZE> operator[](int row);
+};
+
+//原始地图
+class RawMap:public Map{
+    public:
+    RawMap();
+
 
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
-
-
 };
+
 
 
 // 实现于astar.cpp
 typedef struct Point{
-    int x;
-    int y;
-    float cost;
+    vec2_int coordinate; // 坐标
+    float cost; //记录从源节点到当前节点的代价
+    float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
-    Point(int x,int y, float cost,Point* parent_node){
-        this->x = x;
-        this->y = y;
+    Point(int row,int col, float cost,Point* parent_node){
+        this->coordinate.row = row;
+        this->coordinate.col = col;
         this->cost = cost;
         this->parent_node = parent_node;
     }
 }Point;
 
+
+
+//计算路径的长度
+float calc_distance_path(vector<Point*> &vec_paths);
+
 class AStar{
 public:
-    vector<tuple<int,int, float >> motion;
+    vector<tuple<int,int,float>> motion;
     AStar(){
         this->motion = this->get_motion_model();
     }
-    vector<Point*> planning(int sx,int sy,int gx,int gy);
-
-    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+    vector<Point*> planning(int srow,int scol,int grow,int gcol,bool has_product);
+    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map,bool has_product);
+    vector<Point *> simplify_path(vector<Point*> &vec_points,bool has_product);
     //判断下标是否合法
-    bool verify(Point* p);
+    bool verify(Point * from,Point* p,bool has_product);
     tuple<int,int> getIndex(Point* p);
     float calc_heuristic(Point* a, Point *b);
     vector<tuple<int,int, float >> get_motion_model();
 
+    bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product); //在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
+
+    void divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product);
+
 };
+
+
+
+// class DoubleDirectionAstar{
+// public:
+//     vector<tuple<int,int, float >> motion;
+//     DoubleDirectionAstar(){
+//         this->motion = this->get_motion_model();
+//     }
+//     vector<Point*> planning(int sx,int sy,int gx,int gy);
+//     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+//     vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
+//     vector<Point *> simplify_path(vector<Point*> &vec_points);
+//     //判断下标是否合法
+//     bool verify(Point * from,Point* p);
+//     tuple<int,int> getIndex(Point* p);
+//     float calc_heuristic(Point* a, Point *b);
+//     float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
+//     vector<tuple<int,int, float >> get_motion_model();
+
+// };
+/*
+根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
+@param i 字符矩阵的第i行，从上往下数
+@param j 字符矩阵的第j行，从左往右数
+*/
+inline vec2 getXY(int i, int j);
+/*
+根据实际坐标，计算在字符矩阵的坐标, 地图的左上角为(0.25,0.25),地图的右下角为（49.75，0.25）
+@param x，实际坐标中的x轴的距离从上往下数
+@param y 实际坐标中的y轴的距离，从左往右数
+ */
+inline vec2 GetPoint(float x, float y);
+// 读入地图后判断阻塞的地方 ！表示机器人不携带物品都过不去 @表示物品携带物品过不去
+void robotPassMap();
+// 寻找连通域
+void findConnectedAreas();
+void test_astar(vector<Point*> &result);
+//读地图和读帧的相关函数
+bool read_map();
+bool readUntilOK();
 
 void test_astar();
 
@@ -348,4 +422,5 @@ class DWA{
 
     VW find_vw(vec2 tgt_pos);
 };
+
 
