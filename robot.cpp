@@ -132,8 +132,11 @@ inline vec2 GetPoint(float x, float y){
 @size 
  */
 void Robot::initPath(vector<Point*> points){
-    for(auto iter:points){
-        this->path->points.push_back(iter);
+//    for(auto iter:points){
+//        this->path->points.push_back(iter);
+//    }
+    for(int i=1;i<points.size();i++){
+        this->path->points.push_back(points[i]);
     }
     this->path->index = 0;
 }
@@ -153,34 +156,49 @@ void Robot::allocate_path(Workstation* w){
 @ws 目标工作站
  */
 Point* Robot::getNaviPoint(Workstation* w){
-    vec2_int g = w->coordinate.toIndex();
 
     //路径为空，为机器人规划一条前往工作台ws的路径
     if(this->path->index == -1){
-        // 判断数据结构中有没有 没有再取
-        vec2_int s = {-1, -1};
-        if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
-        if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
-            initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
-        }else{
-            // 数据结构中没有路径 规划路径
-            this->allocate_path(w);
+        this->pre_workstation = w;
+        this->allocate_path(w);
+        if(this->path->points.size() ==0)return nullptr;
+    }
+    else{
+
+        int &index = this->path->index;
+        deque<Point*> &dq = this->path->points;
+        Point* p = dq[index];                 // 导航点
+        vec2 des = p->coordinate.toCenter();
+        //判断机器人是否到达路径中的某个点,不包括终点
+        if(this->path->index < this->path->points.size()-1 &&calcDistance(des,this->coordinate) < crt_radius){
+            index++;
+        }else if(this->path->index == this->path->points.size() -1){    //还剩终点未到达
+            if(this->workshop_located != -1){   //到达工作台附近
+                this->path->index = -1; // 清空为机器人规划的路径
+                this->path->points.clear();
+
+                if(w != this->pre_workstation){ // 到达工作附近，并被分配新的要前往的工作台，直接从全局变量g_astar_path取出一条关键路径
+                    vec2_int src = this->pre_workstation->coordinate.toIndex();
+                    vec2_int des = w->coordinate.toIndex();
+                    vector<Point*> result = g_astar_path[{src.row,src.col,des.row,des.col}];
+                    initPath(result);
+                    this->pre_workstation = w;
+                }else{
+                    //到达工作附近，但未被分配新的要前往的工作台，暂时可能未被调度到
+                    return nullptr;
+                }
+            }else{ //尚未到达工作台附近
+
+            }
         }
     }
-    vec2 w_coor = w->coordinate;       // 目标工作台的坐标
-    int &index = this->path->index;
-    deque<Point*> &dq = this->path->points;
-    Point* p = dq[index];                 // 导航点
-    vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
-    // 没到工作台且到了导航点附近 index++
-    if(index<dq.size()-1&&calcDistance(des,this->coordinate) < crt_radius){
-        index++;
-    }
-    return p;
+    Point* des_point = this->path->points[this->path->index]; //取出一个关键路径点
+    return des_point;
 }
 
 void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
+    if(p == nullptr)return;
     vec2 v = p->coordinate.toCenter();
     vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
