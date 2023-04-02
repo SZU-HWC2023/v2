@@ -1,9 +1,32 @@
 #include "class.h"
-bool judgeAroundObstacle(int x, int y){
-    if(g_map[x+1][y] == '#' || g_map[x][y+1] == '#' || g_map[x-1][y] == '#' || g_map[x][y-1] == '#') return true;
-    if(g_map[x+1][y+1] == '#' || g_map[x-1][y-1] == '#' || g_map[x-1][y+1] == '#' || g_map[x+1][y-1] == '#') return true;
+
+/*
+ 点周围是否有障碍物 上、下、左、右、左上、左下、右上、右下
+ @param x 字符矩阵的行索引
+ @param y 字符矩阵的列索引
+ @return true （x,y）附近有障碍物
+
+ */
+bool near_obstacle(int x,int y){
+    if(g_map[x][y] == '#')return true;
+    vector<tuple<int,int>> motion = {
+            {1,0},
+            {0,1},
+            {0,-1},
+            {-1,0},
+            {-1,-1},
+            {-1,1},
+            {1,-1},
+            {1,1}
+    };
+    for(tuple<int,int> mot:motion){
+        int dx = x + get<0>(mot);
+        int dy = y + get<1>(mot);
+        if(g_map[dx][dy]=='#')return true;
+    }
     return false;
 }
+
 vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
     Point* start_node = new Point(sx,sy,0.0, nullptr);
     Point* goal_node = new Point(gx,gy,0.0, nullptr);
@@ -18,7 +41,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         // 从待检测节点中，找到一个到目标节点代价最小的节点
         for(auto iter = open_map.begin();iter!=open_map.end();iter++){
             Point* p = iter->second;
-            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
+            float tmp_cost = p->cost;
             if(tmp_cost < cost){
                 cost = tmp_cost;
                 c_id = iter->first;
@@ -36,7 +59,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
             float baseCost = get<2>(mot);
-            if(judgeAroundObstacle(current->x + get<0>(mot),current->y + get<1>(mot)))baseCost *=8;
+            if(near_obstacle(current->x + get<0>(mot),current->y + get<1>(mot)))baseCost *= 2;
             Point* point = new Point(current->x + get<0>(mot),current->y + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
             if(!verify(current,point,has_product))continue;
@@ -169,16 +192,21 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     //路径的点的数小于等于2,不用简化，直接返回
     if(vec_points.size()<=2)return vec_points;
     //起点和终点之间没有障碍物,说明这条路径可以直接由起点和终点表示
-    if(!obstacle_in_line(vec_points[0],vec_points.back(),has_product))return {vec_points[0],vec_points.back()};
+    if(!obstacle_in_line(vec_points[0],vec_points.back(),has_product)) return {vec_points[0],vec_points.back()};
     vector<Point*> result;
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
-        if(g_map[vec_points[i]->x][vec_points[i]->y]=='@' ||help(vec_points[i])){
+        if(g_map[vec_points[i]->x][vec_points[i]->y]=='@' || help(vec_points[i])){
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(obstacle_in_line(result.back(),vec_points[i],has_product)){
+            // 上一个没有障碍物 这一个就有障碍物了 选上一个
+            result.emplace_back(vec_points[i-2]);
+            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
+            result.emplace_back(vec_points[i+1]);
+            result.emplace_back(vec_points[i+2]);
         }
     }
     result.emplace_back(vec_points.back());
@@ -188,6 +216,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
 void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product){
    if(left > right)return;
    if(left == right)return;
+   // left和right没有障碍物 
    if(!obstacle_in_line(vec_points[left],vec_points[right],has_product)){
        result.emplace_back(vec_points[left]);
        return;
@@ -218,32 +247,7 @@ bool is_closed(tuple<int,int> a,tuple<int,int> b){
 
 }
 
-/*
- 点周围是否有障碍物 上、下、左、右、左上、左下、右上、右下
- @param x 字符矩阵的行索引
- @param y 字符矩阵的列索引
- @return true （x,y）附近有障碍物
 
- */
-bool near_obstacle(int x,int y){
-    if(g_map[x][y] == '#')return true;
-    vector<tuple<int,int>> motion = {
-            {1,0},
-            {0,1},
-            {0,-1},
-            {-1,0},
-            {-1,-1},
-            {-1,1},
-            {1,-1},
-            {1,1}
-    };
-    for(tuple<int,int> mot:motion){
-        int dx = x + get<0>(mot);
-        int dy = y + get<1>(mot);
-        if(g_map[dx][dy]=='#')return true;
-    }
-    return false;
-}
 //节点交换
 vector<tuple<int,int>> swap_point(tuple<int,int> a,tuple<int,int> b){
     int sx = get<0>(a), sy = get<1>(a);

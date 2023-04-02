@@ -2,6 +2,10 @@
 #include <map>
 #include "class.h"
 
+// 一些调度有关的全局变量
+map<int, int> historyGetMap;       // 存储历史取货信息--------要去哪个工作台取东西根据这个设置权重(平衡历史买卖)
+map<tuple<int, int>, int> historyRawFill;   // 历史填入次数  {工作台编号 原材料编号} 次数------卖东西的时候卖给哪个平台根据这个设置权重(平衡历史买卖)
+
 class Manager{
 public:
     Manager()=default;

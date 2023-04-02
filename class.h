@@ -31,8 +31,10 @@ extern char g_map[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    //地图的字符矩阵
 extern int g_connected_areas_c[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 携带物品全局连通区域
 extern int g_connected_areas_uc[MAP_TRUE_SIZE][MAP_TRUE_SIZE];   // 未携带物品全局连通区域
 
+// 一些调度有关的全局变量
+extern map<int, int> historyGetMap;       // 存储历史取货信息--------要去哪个工作台取东西根据这个设置权重(平衡历史买卖)
+extern map<tuple<int, int>, int> historyRawFill;   // 历史填入次数  {工作台编号 原材料编号} 次数------卖东西的时候卖给哪个平台根据这个设置权重(平衡历史买卖)
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
-
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 extern multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 

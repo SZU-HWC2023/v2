@@ -154,7 +154,7 @@ void Robot::move2ws(Workstation* ws){
         Point* des_point = paths.front();
         vec2 des = getXY(des_point->x,des_point->y);
         //判断机器人是否到达路径中的某个点
-        if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
+        if(paths.size()>1&&calcDistance(des,this->coordinate) < 1){
             paths.pop();
         }else if(paths.size()==1){//还剩下终点未到达
             if(this->workshop_located!=-1){ //已经到达工作台附近
@@ -180,12 +180,12 @@ void Robot::move2ws(Workstation* ws){
     const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
     if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
         tgt_lin_spd = MAX_FORWARD_SPD;
-        tgt_ang_spd = 0.001;
+        tgt_ang_spd = 0.01;
     } else {
         if (abs(delta_hdg) > M_PI/2) {
             // 角度太大，全速扭转
             // 速度控制小一点，避免靠近不了工作台
-            tgt_lin_spd = MAX_FORWARD_SPD*0.0001;
+            tgt_lin_spd = 0;
             tgt_ang_spd = maxRotateSpeed;
         } else {
             tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大

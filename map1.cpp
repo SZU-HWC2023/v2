@@ -1,5 +1,7 @@
 #include "manager.h"
 
+// 这个应该是去读取
+
  // 买货物（取货物）的代价   是否可以优化？？？？
 tuple<double, Workstation*> getTimePriceForBuy(Robot* r, Workstation *w, int frame_id){
     // 判断是否有工作站接收
