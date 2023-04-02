@@ -13,14 +13,14 @@ struct vec2;
 
 //整型二维矢量（用于地图索引）
 struct vec2_int{
-    int x;
-    int y;
+    int row;        // 对应的y
+    int col;        // 对应的x
 
-    vec2_int(int x_=0, int y_=0) : x(x_), y(y_){}
+    vec2_int(int row_=0, int col_=0) : row(row_), col(col_){}
 
     vec2_int& operator+=(vec2_int& v){
-        x += v.x;
-        y += v.y;
+        row += v.row;
+        col += v.col;
         return *this;
     }
 
@@ -29,7 +29,7 @@ struct vec2_int{
 
     //返回到p的切比雪夫距离
     int chebyshevDist(const vec2_int& p){
-        return max(abs(x-p.x), abs(y-p.y));
+        return max(abs(row-p.row), abs(col-p.col));
     }
 
     //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
@@ -127,8 +127,7 @@ struct vec2{
 
     //返回该坐标在地图上的索引
     vec2_int toIndex() const{
-//        return {int(x/0.5f), int(y/0.5f)};
-        return {int(2*(49.75f - y)),int(2*(x-0.25f))};
+       return {int((y+0.25)/0.5f)-1, int((x+0.25)/0.5f)-1};
     }
 
     //返回该坐标所在格的中心坐标

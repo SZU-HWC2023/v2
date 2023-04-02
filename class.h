@@ -141,6 +141,10 @@ class Workstation{
     double getProfit();
 };
 
+struct Path{
+    deque<Point*> points;
+    int index;
+};
 //机器人
 class Robot{
     public:
@@ -159,31 +163,35 @@ class Robot{
     // 需要维护的量
     tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
-
+    Path* path = new Path();        // 路径规划
     vector<Robot*> other_robots;    //其他机器人列表
 
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
-    Workstation* pre_workstation=nullptr;
     void initOtherRobot();
 
+    // 指令函数
     void forward(float tgtSpd);
     void rotate(float tgtAngSpd);
     void buy();
     void sell();
     void destory();
 
+    // 操控函数
     bool isAble2Brake(float brake_dist);
     void move2ws(Workstation* ws);
 
-    queue<Point*> paths;
+    // 路径函数
     void allocate_path(Workstation* w);
-
-    void resetAction();                     //重置机器人的动作
+    void initPath(vector<Point*> path);
+    Point* getNaviPoint(Workstation* ws);              
+    // 维护操作
+    void resetAction();                     
     const tuple<int, int> getAction();
     void setAction(tuple<int, int> action);
-    
     void setNextWorkerId(int id);
+
+    // 其他
     int getNextWorkerId();
 };
 
@@ -206,9 +214,9 @@ typedef struct Point{
     float cost; //记录从源节点到当前节点的代价
     float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
-    Point(int x,int y, float cost,Point* parent_node){
-        this->coordinate.x = x;
-        this->coordinate.y = y;
+    Point(int row,int col, float cost,Point* parent_node){
+        this->coordinate.row = row;
+        this->coordinate.col = col;
         this->cost = cost;
         this->parent_node = parent_node;
     }
@@ -223,7 +231,7 @@ public:
     AStar(){
         this->motion = this->get_motion_model();
     }
-    vector<Point*> planning(int sx,int sy,int gx,int gy,bool has_product);
+    vector<Point*> planning(int srow,int scol,int grow,int gcol,bool has_product);
     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map,bool has_product);
     vector<Point *> simplify_path(vector<Point*> &vec_points,bool has_product);
     //判断下标是否合法
@@ -239,24 +247,24 @@ public:
 };
 
 
-class DoubleDirectionAstar{
-public:
-    vector<tuple<int,int, float >> motion;
-    DoubleDirectionAstar(){
-        this->motion = this->get_motion_model();
-    }
-    vector<Point*> planning(int sx,int sy,int gx,int gy);
-    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
-    vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
-    vector<Point *> simplify_path(vector<Point*> &vec_points);
-    //判断下标是否合法
-    bool verify(Point * from,Point* p);
-    tuple<int,int> getIndex(Point* p);
-    float calc_heuristic(Point* a, Point *b);
-    float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
-    vector<tuple<int,int, float >> get_motion_model();
+// class DoubleDirectionAstar{
+// public:
+//     vector<tuple<int,int, float >> motion;
+//     DoubleDirectionAstar(){
+//         this->motion = this->get_motion_model();
+//     }
+//     vector<Point*> planning(int sx,int sy,int gx,int gy);
+//     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+//     vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
+//     vector<Point *> simplify_path(vector<Point*> &vec_points);
+//     //判断下标是否合法
+//     bool verify(Point * from,Point* p);
+//     tuple<int,int> getIndex(Point* p);
+//     float calc_heuristic(Point* a, Point *b);
+//     float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
+//     vector<tuple<int,int, float >> get_motion_model();
 
-};
+// };
 /*
 根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
 @param i 字符矩阵的第i行，从上往下数

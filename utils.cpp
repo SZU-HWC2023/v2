@@ -2,15 +2,16 @@
 
 using namespace std;
 vec2 vec2_int::toCenter(){
-//    return {0.5f * x + 0.25f, (0.5f * y + 0.25f)};
-    return {0.5f * y + 0.25f, 49.75f - 0.5f * x};
+    return {0.5f * col + 0.25f, 0.5f * row + 0.25f};
 }
 
 vec2 vec2_int::vertice(vec2_int quadrant) {
-    vec2 center = toCenter();
-    return {center.x + 0.25f * quadrant.x, center.y + 0.25f * quadrant.y};
+    vec2 this_vec2 = toCenter();
+    vec2 quadrant_vec2 = quadrant_vec2.toCenter();
+    return {this_vec2.x + quadrant_vec2.x, this_vec2.y + quadrant_vec2.y};
 }
 
+// 计算代价系数
 float func_f(float x, float maxX, float minRate){
     if(x < maxX)
         return (1-sqrtf(1-powf(1-x/maxX,2))) * (1-minRate) + minRate;

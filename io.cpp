@@ -16,7 +16,7 @@ bool read_map(){
     char line[1024];
     int current_workstation_id = 0;
     int current_robot_id = 0;
-    int row = 0;
+    int row = 99;
     while (fgets(line, sizeof line, stdin)) {
         if (line[0] == 'O' && line[1] == 'K') {
             return true;
@@ -24,10 +24,10 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
-            g_map[row][col ] = line[col];
+            g_map[row][col] = line[col];
             if (line[col] == '.')continue;
-            float y = 50 - ((row+1)*0.5-0.25);
-            float x = (col+1)*0.5 - 0.25;
+            float y = (row+1)*0.5-0.25;
+            float x = (col+1)*0.5-0.25;
             if (line[col] == 'A'){
                 //机器人
                 Robot *robot = new Robot(current_robot_id,x,y);
@@ -48,12 +48,8 @@ bool read_map(){
                 }
                 current_workstation_id++;
             }
-            if(line[col] == '#'){
-                // 对障碍物的预处理
-                
-            }
         }
-        row++;
+        row--;
     }
     return false;
 }

@@ -1,12 +1,12 @@
 #include "class.h"
 
-map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
-map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度，sx,sy,gx,gy 起点到终点的坐标
+map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，srow,scol,grow,gcol 起点到终点的坐标
+map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度，srow,scol,grow,gcol 起点到终点的坐标
 AStar *g_astar;
 DoubleDirectionAstar* g_directionAstar;
 
-bool near_obstacle(int x,int y){
-    if(g_map[x][y] == '#')return true;
+bool near_obstacle(int row,int col){
+    if(g_map[row][col] == '#')return true;
     vector<tuple<int,int>> motion = {
             {1,0},
             {0,1},
@@ -18,9 +18,9 @@ bool near_obstacle(int x,int y){
             {1,1}
     };
     for(tuple<int,int> mot:motion){
-        int dx = x + get<0>(mot);
-        int dy = y + get<1>(mot);
-        if(g_map[dx][dy]=='#')return true;
+        int drow = drow + get<0>(mot);
+        int dcol = dcol + get<1>(mot);
+        if(g_map[drow][dcol]=='#')return true;
     }
     return false;
 }
@@ -38,7 +38,7 @@ float calc_distance_path(vector<Point*> &vec_paths){
 void init_points(){
     // 初始化A*算法相关的类
     g_astar = new AStar();
-    g_directionAstar = new DoubleDirectionAstar();
+    // g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
         for(int j = i+1; j < g_workstations.size();j++){
             Workstation* src_workstation = g_workstations[i];
@@ -46,28 +46,28 @@ void init_points(){
             vec2_int src = src_workstation->coordinate.toIndex();
             vec2_int des = des_workstation->coordinate.toIndex();
             //为起点工作台和终点工作台规划一条路径
-            vector<Point*> result = g_astar->planning(src.x,src.y,des.x,des.y,false);
+            vector<Point*> result = g_astar->planning(src.row,src.col,des.row,des.col,false);
             //计算该路径的长度
             float distance = calc_distance_path(result);
             //将结果存储到map中
-            g_astar_path_distance[{src.x,src.y,des.x,des.y}] = distance;
-            g_astar_path[{src.x,src.y,des.x,des.y}] = result;
+            g_astar_path_distance[{src.row,src.col,des.row,des.col}] = distance;
+            g_astar_path[{src.row,src.col,des.row,des.col}] = result;
             vector<Point*> result_inv = result;
             reverse(result_inv.begin(),result_inv.end());
-            g_astar_path[{des.x,des.y,src.x,src.y}] = result_inv;
-            g_astar_path_distance[{des.x,des.y,src.x,src.y}] = distance;
+            g_astar_path[{src.row,src.col,des.row,des.col}] = result_inv;
+            g_astar_path_distance[{src.row,src.col,des.row,des.col}] = distance;
         }
     }
 }
-bool judgeAroundObstacle(int x, int y){
-    if(g_map[x+1][y] == '#' || g_map[x][y+1] == '#' || g_map[x-1][y] == '#' || g_map[x][y-1] == '#') return true;
-    if(g_map[x+1][y+1] == '#' || g_map[x-1][y-1] == '#' || g_map[x-1][y+1] == '#' || g_map[x+1][y-1] == '#') return true;
+bool judgeAroundObstacle(int row, int col){
+    if(g_map[row+1][col] == '#' || g_map[row][col+1] == '#' || g_map[row-1][col] == '#' || g_map[row][col-1] == '#') return true;
+    if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
     return false;
 }
 
-vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
-    Point* start_node = new Point(sx,sy,0.0, nullptr);
-    Point* goal_node = new Point(gx,gy,0.0, nullptr);
+vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_product){
+    Point* start_node = new Point(srow,scol,0.0, nullptr);
+    Point* goal_node = new Point(grow,gcol,0.0, nullptr);
     map<tuple<int,int>,Point*> open_map;    // 存储待检测节点
     map<tuple<int,int>,Point*> closed_map;  // 存储已经检测过的节点
     open_map[getIndex(start_node)] = start_node;
@@ -87,7 +87,7 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         }
         Point* current = open_map[c_id];
         // 已经找到目标节点，退出循环
-        if(current->coordinate.x == goal_node->coordinate.x && current->coordinate.y == goal_node->coordinate.y){
+        if(current->coordinate.col == goal_node->coordinate.col && current->coordinate.row == goal_node->coordinate.row){
             goal_node->cost = current->cost;
             goal_node->parent_node = current->parent_node;
             break;
@@ -97,8 +97,8 @@ vector<Point*> AStar::planning(int sx,int sy,int gx,int gy, bool has_product){
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
             float baseCost = get<2>(mot);
-            if(judgeAroundObstacle(current->coordinate.x + get<0>(mot),current->coordinate.y + get<1>(mot)))baseCost *=8;
-            Point* point = new Point(current->coordinate.x + get<0>(mot),current->coordinate.y + get<1>(mot),current->cost+baseCost,current);
+            if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=8;
+            Point* point = new Point(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
             if(!verify(current,point,has_product))continue;
             if(closed_map.find(p_id)!=closed_map.end())continue;
@@ -128,43 +128,43 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     }
     reverse(result.begin(),result.end());
 
-    return this-> simplify_path(result,has_product); //路径简化
-//    return result;
+    // return this-> simplify_path(result,has_product); //路径简化
+    return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 
 bool AStar::verify(Point* from,Point* p,bool has_product){
     //下标超出地图
-    if(p->coordinate.x<0 || p->coordinate.y<0 ||p->coordinate.x>=MAP_TRUE_SIZE||p->coordinate.y>=MAP_TRUE_SIZE)return false;
+    if(p->coordinate.col<0 || p->coordinate.row<0 ||p->coordinate.col>=MAP_TRUE_SIZE||p->coordinate.row>=MAP_TRUE_SIZE)return false;
     //p所处位置为墙
-    if(g_map[p->coordinate.x][p->coordinate.y] == '#')return false;
+    if(g_map[p->coordinate.row][p->coordinate.col] == '#')return false;
     //不拿东西走不通
-    if(g_map[p->coordinate.x][p->coordinate.y] == '!')return false;
+    if(g_map[p->coordinate.row][p->coordinate.col] == '!')return false;
     //墙角不访问
-    if(g_map[p->coordinate.x][p->coordinate.y] == '$')return false;
+    if(g_map[p->coordinate.row][p->coordinate.col] == '$')return false;
     if(has_product){
         //机器人有产品时
-        if(g_map[p->coordinate.x][p->coordinate.y] == '@')return false;
+        if(g_map[p->coordinate.row][p->coordinate.col] == '@')return false;
     }
-    int p_x = p->coordinate.x;
-    int p_y = p->coordinate.y;
+    int p_col = p->coordinate.col;
+    int p_row = p->coordinate.row;
 
     for(tuple<int,int, float> mot:this->motion){
-        int dx = p_x + get<0>(mot);
-        int dy = p_y + get<1>(mot);
-        if(dx<0 || dy<0 || dx>=MAP_TRUE_SIZE || dy >= MAP_TRUE_SIZE)continue;
-        if(g_map[dx][dy] == '#')return false;
+        int drow = p_row + get<0>(mot);
+        int dcol = p_col + get<1>(mot);
+        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE)continue;
+        if(g_map[drow][dcol] == '#')return false;
     }
 
     return true;
 }
 tuple<int,int> AStar::getIndex(Point* p){
-    return {p->coordinate.x,p->coordinate.y};
+    return {p->coordinate.row, p->coordinate.col};
 }
 float AStar::calc_heuristic(Point* a, Point *b){
-    float x = a->coordinate.x - b->coordinate.x;
-    float y = a->coordinate.y - b->coordinate.y;
-    return sqrt(x*x + y*y);
+    float row = a->coordinate.row - b->coordinate.row;
+    float col = a->coordinate.col - b->coordinate.col;
+    return sqrt(row*row + col*col);
 }
 //机器人移动的方向
 vector<tuple<int,int, float >> AStar::get_motion_model(){
@@ -190,9 +190,9 @@ void test_astar(vector<Point*> &result){
     }
     fprintf(stderr,"%d\n",result.size());
     for(Point* point:result){
-        int x = point->coordinate.x;
-        int y = point->coordinate.y;
-        local_map[x][y] = 'O';
+        int row = point->coordinate.row;
+        int col = point->coordinate.col;
+        local_map[row][col] = 'O';
     }
     for(int i=0;i<MAP_TRUE_SIZE;i++){
         for(int j=0;j<MAP_TRUE_SIZE;j++){
@@ -203,17 +203,17 @@ void test_astar(vector<Point*> &result){
 }
 
 bool help(Point* p){
-    int x = p->coordinate.x;
-    int y = p->coordinate.y;
+    int row = p->coordinate.row;
+    int col = p->coordinate.col;
     int sum = 0;
-    for(int j=y-1;j>=0;j--){
-        if(g_map[x][j]!='#')sum++;
+    for(int j=col-1;j>=0;j--){
+        if(g_map[row][j]!='#')sum++;
         else{
             break;
         }
     }
-    for(int j = y+1;j<MAP_TRUE_SIZE;j++){
-        if(g_map[x][j]!='#')sum++;
+    for(int j = col+1;j<MAP_TRUE_SIZE;j++){
+        if(g_map[row][col]!='#')sum++;
         else break;
     }
     sum ++;
@@ -234,7 +234,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     vector<Point*> result;
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
-        if(g_map[vec_points[i]->coordinate.x][vec_points[i]->coordinate.y]=='@' ||help(vec_points[i])){
+        if(g_map[vec_points[i]->coordinate.row][vec_points[i]->coordinate.col]=='@' ||help(vec_points[i])){
             result.emplace_back(vec_points[i]);
             continue;
         }
@@ -334,8 +334,8 @@ return true 连线有障碍物
 return false 连线没有障碍物
  */
 bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product) { //
-    tuple<int,int> src = {src_point->coordinate.x,src_point->coordinate.y};
-    tuple<int,int> des = {des_point->coordinate.x,des_point->coordinate.y};
+    tuple<int,int> src = {src_point->coordinate.row,src_point->coordinate.col};
+    tuple<int,int> des = {des_point->coordinate.row,des_point->coordinate.col};
     vector<tuple<int,int>> vec = swap_point(src,des);
     tuple<int,int> a = vec[0];
     tuple<int,int> b = vec[1];

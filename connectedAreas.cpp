@@ -55,15 +55,15 @@ void robotPassMap(){
 
 
 // 是不是障碍物，是障碍物返回true
-bool judgeObstacle(int x, int y){
-    if(g_map[x][y] == '#' || g_map[x][y] == '!' || g_map[x][y] == '@') return true;
+bool judgeObstacle(int row, int col){
+    if(g_map[row][col] == '#' || g_map[row][col] == '!' || g_map[row][col] == '@') return true;
     else return false;
 }
 
 // 深度优先遍历
-void DFS(int x, int y, int area_cnt) {
+void DFS(int row, int col, int area_cnt) {
     stack<pair<int,int>> st;
-    st.push({x, y});
+    st.push({row, col});
     while (!st.empty()) {
         auto cur_node = st.top();
         st.pop();
@@ -88,7 +88,7 @@ void findConnectedAreas(){
                 g_connected_areas[i][j] = area_cnt;
                 DFS(i, j, area_cnt);
             }
-            // fprintf(stderr,"%d",j);
+            // fprintf(stderr,"%d",g_connected_areas[i][j]);
         }
         // fprintf(stderr,"\n");
     }

@@ -65,7 +65,6 @@ void Map1::assignSetTask(int frame_id, Robot* r){
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();
         Workstation* w = g_workstations[get<1>(minTimePriceWorker)];
-        cerr<<w->id<<" "<<r->item_carried<<endl;
         // 对机器人
         r->setAction({get<1>(minTimePriceWorker), item});
         // 对工作台
@@ -102,7 +101,6 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             int last_locked_id = w->getLocked()[w->production_item.type];
             // 上一个机器人重置
             g_robots[last_locked_id]->resetAction();
-            g_robots[last_locked_id]->setNextWorkerId(-1);
             // 上一个机器人重新分配任务
             robot_ids.push(last_locked_id);
             // 工作台被新的机器人锁定

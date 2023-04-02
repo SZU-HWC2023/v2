@@ -11,8 +11,8 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
+    this->path->index = -1;     // 初始时路径下标为-1 代表当前没有路径
 }
-
 /*
 更新机器人帧状态
 @param f 机器人帧信息
@@ -126,59 +126,61 @@ inline vec2 GetPoint(float x, float y){
     return {2*(49.75f - y),2*(x-0.25f)};
 }
 
-//为机器人规划一条路径
-void Robot::allocate_path(Workstation* w){
-//    vec2 s = GetPoint(this->coordinate.x,this->coordinate.y);
-    vec2_int s = this->coordinate.toIndex();
-//    vec2 g = GetPoint(w->coordinate.x,w->coordinate.y);
-    vec2_int g = w->coordinate.toIndex();
-    vector<Point*> result = g_astar->planning(int(s.x),int(s.y),int(g.x),int(g.y),this->item_carried!=0);
-    for(int i=1;i<result.size();i++){
-        paths.push(result[i]);
+/*
+初始化机器人路径导航
+@path 路径 Vector
+@size 
+ */
+void Robot::initPath(vector<Point*> points){
+    for(auto iter:points){
+        this->path->points.push_back(iter);
     }
+    this->path->index = 0;
+}
+/*
+没有路时开辟一条道路
+@w 目标工作站
+ */
+void Robot::allocate_path(Workstation* w){
+    vec2_int s = this->coordinate.toIndex();
+    vec2_int g = w->coordinate.toIndex();
+    vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
+    // 初始化路径
+    initPath(result);
+}
+/*
+获得机器人行动的导航点
+@ws 目标工作站
+ */
+Point* Robot::getNaviPoint(Workstation* w){
+    vec2_int g = w->coordinate.toIndex();
+
+    //路径为空，为机器人规划一条前往工作台ws的路径
+    if(this->path->index == -1){
+        // 判断数据结构中有没有 没有再取
+        vec2_int s = {-1, -1};
+        if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
+        if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
+            initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
+        }else{
+            // 数据结构中没有路径 规划路径
+            this->allocate_path(w);
+        }
+    }
+    vec2 w_coor = w->coordinate;       // 目标工作台的坐标
+    int &index = this->path->index;
+    deque<Point*> &dq = this->path->points;
+    Point* p = dq[index];                 // 导航点
+    vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
+    // 没到工作台且到了导航点附近 index++
+    if(index<dq.size()-1&&calcDistance(des,this->coordinate) < crt_radius){
+        index++;
+    }
+    return p;
 }
 
 void Robot::move2ws(Workstation* ws){
-
-    vec2 w = ws->coordinate;
-    Point* p = nullptr;
-    //路径为空，为机器人规划一条前往工作台ws的路径
-    if(this->paths.empty()){
-        this->pre_workstation = ws;
-        this->allocate_path(ws);
-
-        if(this->paths.size()>=1) p = this->paths.front();
-        else return;
-    }else{
-        Point* des_point = paths.front();
-        vec2 des = des_point->coordinate.toCenter();
-        //判断机器人是否到达路径中的某个点
-        if(paths.size()>1&&calcDistance(des,this->coordinate) < 0.5){
-            paths.pop();
-        }else if(paths.size()==1){//还剩下终点未到达
-            if(this->workshop_located!=-1){ //已经到达工作台附近
-                paths.pop();
-                // 到达工作附近，并被分配新的要前往的工作台，直接从全局变量g_astar_path取出一条关键路径
-                if(ws != this->pre_workstation){
-                    vec2_int src = this->pre_workstation->coordinate.toIndex();
-                    vec2_int des = ws->coordinate.toIndex();
-                    vector<Point*> result = g_astar_path[{src.x,src.y,des.x,des.y}];
-                    fprintf(stderr,"result.size():%d\n",result.size());
-                    for(int i=1;i<result.size();i++){
-                        paths.push(result[i]);
-                    }
-                    this->pre_workstation = ws;
-                }else{
-                    //到达工作附近，但未被分配新的要前往的工作台，暂时可能未被调度到
-                    return;
-                }
-            }else{  //尚未到达工作台附近
-
-            }
-        }
-        p = paths.front();
-    }
-
+    Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
     vec2 v = p->coordinate.toCenter();
     vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
@@ -222,6 +224,9 @@ void Robot::move2ws(Workstation* ws){
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
     this->action = {-1,-1};
+    this->next_worker_id = -1;
+    this->path->index = -1;
+    this->path->points.clear();
 }
 /*
 获得机器人当前的动作

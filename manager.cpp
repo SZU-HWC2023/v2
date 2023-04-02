@@ -15,7 +15,6 @@ void Manager::handleGetTask(Robot* r){
     }else{
         // 不可行 任务终止
         r->resetAction();
-        r->setNextWorkerId(-1);
         g_workstations[get<0>(action)]->rel_locked_production(get<1>(action));
     }
 }
@@ -58,7 +57,6 @@ void Manager::handleTask(Robot* r){
             }else{
                 // 不可行 任务终止
                 r->resetAction();
-                r->setNextWorkerId(-1);
                 g_workstations[get<0>(action)]->rel_locked_production(get<1>(action));
             }
         }
@@ -69,7 +67,6 @@ void Manager::assignTask(int frame_id, Robot* r, queue<int> robot_ids){
     int item = r->item_carried;
     // 没有物品要去取
     // 取到的物品必须要有地方放
-    
     if(item == 0){
         // 分配取货物的任务
         assignGetTask(frame_id, r, robot_ids);
