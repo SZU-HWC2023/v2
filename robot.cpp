@@ -138,7 +138,7 @@ void Robot::initPath(vector<Point*> points){
     for(int i=1;i<points.size();i++){
         this->path->points.push_back(points[i]);
     }
-    this->path->index = 0;
+    this->path->index = points.size()>0?0:-1;
 }
 /*
 没有路时开辟一条道路
@@ -184,6 +184,7 @@ Point* Robot::getNaviPoint(Workstation* w){
     }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     int &index = this->path->index;
+    if(this->path->index == -1)return nullptr;
     deque<Point*> &dq = this->path->points;
     Point* p = dq[index];                 // 导航点
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
@@ -191,6 +192,7 @@ Point* Robot::getNaviPoint(Workstation* w){
     if(index<dq.size()-1&&calcDistance(des,this->coordinate) < crt_radius*2){
         index++;
     }
+
     return p;
 }
 

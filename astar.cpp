@@ -160,25 +160,14 @@ bool AStar::verify(Point* from,Point* p,bool has_product){
     if(g_map[p->coordinate] == '#')return false;
     //不拿东西走不通
     if(g_map[p->coordinate] == '!')return false;
-    //墙角不访问
-    if(g_map[p->coordinate] == '$')return false;
+    //墙角能取不能放
+    if(has_product && g_map[p->coordinate] == '$')return false;
     if(has_product){
-        //机器人有产品时
-
+        //机器人有产品时，不能过只有两个空的
         if(g_map[p->coordinate] == '@'){
-//            fprintf(stderr,"不能过\n");
             return false;
         }
     }
-    int p_col = p->coordinate.col;
-    int p_row = p->coordinate.row;
-
-//    for(tuple<int,int, float> mot:this->motion){
-//        int drow = p_row + get<0>(mot);
-//        int dcol = p_col + get<1>(mot);
-//        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE) continue;
-//        if(g_map[drow][dcol] == '#')return false;
-//    }
 
     return true;
 }
