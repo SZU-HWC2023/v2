@@ -198,6 +198,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 
 void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
+    if(p== nullptr)return;  //这行别删了
     vec2 v = p->coordinate.toCenter();
     vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度

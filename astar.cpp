@@ -117,7 +117,7 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
             float baseCost = get<2>(mot);
-            if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=1;
+            if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=4; //这里不要改成*1
             Point* point = new Point(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
             if(!verify(current,point,has_product))continue;
