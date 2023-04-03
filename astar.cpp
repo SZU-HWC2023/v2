@@ -102,7 +102,7 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
             float baseCost = get<2>(mot);
-            if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=8;
+            if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=1;
             Point* point = new Point(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
             if(!verify(current,point,has_product))continue;
@@ -133,7 +133,7 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     }
     reverse(result.begin(),result.end());
 
-    vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
+    // vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
     // return simplified_path;
     return result;
 }

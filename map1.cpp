@@ -63,6 +63,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
     }
     // 下达指令 朝向最小的工作站台
     if(pq.size()>0){
+        
         // while循环可以类比取货物  看看能否加一些东西？？？？
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();
