@@ -18,8 +18,8 @@ bool near_obstacle(int row,int col){
             {1,1}
     };
     for(tuple<int,int> mot:motion){
-        int drow = drow + get<0>(mot);
-        int dcol = dcol + get<1>(mot);
+        int drow = row + get<0>(mot);
+        int dcol = col + get<1>(mot);
         if(g_map[drow][dcol]=='#')return true;
     }
     return false;
