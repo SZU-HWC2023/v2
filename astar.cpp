@@ -20,6 +20,7 @@ bool near_obstacle(int row,int col){
     for(tuple<int,int> mot:motion){
         int drow = row + get<0>(mot);
         int dcol = col + get<1>(mot);
+
         if(g_map[drow][dcol]=='#')return true;
     }
     return false;
@@ -128,8 +129,8 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     }
     reverse(result.begin(),result.end());
 
-    // return this-> simplify_path(result,has_product); //路径简化
-    return result;
+    vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
+    return simplified_path;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 
@@ -240,11 +241,11 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
         }
         if(obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
-            // result.emplace_back(vec_points[i-2]);
-            // result.emplace_back(vec_points[i-1]);
+//            result.emplace_back(vec_points[i-2]);
+//            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
-            // result.emplace_back(vec_points[i+1]);
-            // result.emplace_back(vec_points[i+2]);
+//            result.emplace_back(vec_points[i+1]);
+//            result.emplace_back(vec_points[i+2]);
         }
     }
     result.emplace_back(vec_points.back());
@@ -350,16 +351,16 @@ bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product)
     if(scol == gcol)return col_obstacle(a,b);
 
     //求两个点之间的直线方程
-    float k = (grow-srow)*1.0/(gcol-scol)*1.0;
-    float bb = srow*1.0 - k*scol;
+    float k = (gcol-scol)*1.0/(grow-srow)*1.0;
+    float bb = scol*1.0 - k*srow;
 
-    //看起点到终点的直线是否有障碍物
-    for(int c = scol; c <= gcol;c++){
-        int r = int(k*c+bb);
-        int pre_c = c - 1;
-        int pre_r = int(k*pre_c + bb);
+    for(int r = srow-1; r <= grow;r++){
+        int c = int(k*r+bb);
+        int pre_r = r - 1;
+        int pre_c = int(k*pre_r + bb);
 
-        if (near_obstacle(r,c)){
+
+        if (row_obstacle({pre_r,pre_c},{pre_r,c}) || col_obstacle({pre_r+1,pre_c},{pre_r,c}) || near_obstacle(r,c)){
             return true;
         }
         if(g_map[r][c] == '#')return true;
