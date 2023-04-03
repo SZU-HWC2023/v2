@@ -15,16 +15,40 @@ int check_map(Workstation *w){
     return 0;
 }
 
-Map1 initMap(){
-    int map_type = check_map(g_workstations[0]);
-    #ifdef DEBUG
-    fprintf(stderr, "map_type: %d\n", map_type);
-    #endif
-    Map1 map1;
-    return map1;
+
+template <typename T>
+void process(T &map){
+    int frameID;
+    int currentMoney = 0;
+    while (scanf("%d %d", &frameID,&currentMoney) != EOF) {
+        readUntilOK();
+        printf("%d\n", frameID);
+        fflush(stdout);
+        //当前帧的处理逻辑
+        map.handleFps(frameID);
+        printf("OK\n");
+        fflush(stdout);
+    }
 }
-void handleFps(int frame_id, Map1 map){
-    map.handleFps(frame_id);
+
+
+void frameOperation(int map_type){
+    if(map_type == 1){
+        Map1 map1;
+        process(map1);
+    }
+    if(map_type == 2){
+        Map2 map2;
+        process(map2);
+    }
+    if(map_type == 3){
+        Map3 map3;
+        process(map3);
+    }
+    if(map_type == 4){
+        Map4 map4;
+        process(map4);
+    }
 }
 
 
@@ -39,18 +63,6 @@ int main(){
 
     puts("OK");
     fflush(stdout);
-
-    int frameID;
-    int currentMoney = 0;
-    while (scanf("%d %d", &frameID,&currentMoney) != EOF) {
-        readUntilOK();
-        printf("%d\n", frameID);
-        fflush(stdout);
-        //当前帧的处理逻辑
-        handleFps(frameID, map);
-
-        printf("OK\n", frameID);
-        fflush(stdout);
-    }
+    frameOperation(map_type);
     return 0;
 }
