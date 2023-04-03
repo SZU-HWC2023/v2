@@ -140,7 +140,7 @@ struct vec2{
 
 
 
-float sign(float x);
+int sign(float x);
 float func_f(float x, float maxX, float minRate);
 float timeValue(float frames);
 float collisionValue(float impulse);
@@ -151,4 +151,4 @@ float calcTgtAngSpd(float deltaHDG);
 float clampHDG(float hdg);
 
 vec2 fromPolar(float len, float hdg);
-vec2 toQuadrant(vec2 pos, vec2 center={0., 0.});
+vec2_int toQuadrant(vec2 pos, vec2 center={0., 0.});

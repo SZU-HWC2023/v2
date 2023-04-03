@@ -137,14 +137,14 @@ bool AStar::verify(Point* from,Point* p,bool has_product){
     //下标超出地图
     if(p->coordinate.col<0 || p->coordinate.row<0 ||p->coordinate.col>=MAP_TRUE_SIZE||p->coordinate.row>=MAP_TRUE_SIZE)return false;
     //p所处位置为墙
-    if(g_map[p->coordinate.row][p->coordinate.col] == '#')return false;
+    if(g_map[p->coordinate] == '#')return false;
     //不拿东西走不通
-    if(g_map[p->coordinate.row][p->coordinate.col] == '!')return false;
+    if(g_map[p->coordinate] == '!')return false;
     //墙角不访问
-    if(g_map[p->coordinate.row][p->coordinate.col] == '$')return false;
+    if(g_map[p->coordinate] == '$')return false;
     if(has_product){
         //机器人有产品时
-        if(g_map[p->coordinate.row][p->coordinate.col] == '@')return false;
+        if(g_map[p->coordinate] == '@')return false;
     }
     int p_col = p->coordinate.col;
     int p_row = p->coordinate.row;
@@ -234,7 +234,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     vector<Point*> result;
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
-        if(g_map[vec_points[i]->coordinate.row][vec_points[i]->coordinate.col]=='@' ||help(vec_points[i])){
+        if(g_map[vec_points[i]->coordinate]=='@' ||help(vec_points[i])){
             result.emplace_back(vec_points[i]);
             continue;
         }
