@@ -47,9 +47,9 @@ void robotPassMap(){
                 else if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
                 else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
             }
-            fprintf(stderr,"%c", g_map[r][c]);
+            // fprintf(stderr,"%c", g_map[r][c]);
         }
-        fprintf(stderr,"\n");
+        // fprintf(stderr,"\n");
     }
 }
 // 是不是障碍物，是障碍物返回true  不带物品
@@ -128,16 +128,8 @@ void findConnectedAreas(){
                 g_connected_areas_uc.map[i][j] = area_cnt_uc;
                 DFS_uc(i, j, area_cnt_uc);
             }
-            fprintf(stderr,"%d",g_connected_areas_c[i][j]);
+            // fprintf(stderr,"%d",g_connected_areas_c[i][j]);
         }
-        fprintf(stderr,"\n");
+        // fprintf(stderr,"\n");
     }
-//    for (int i = N-1; i >= 0; i--) {
-//        for (int j = 0; j < N; j++) {
-//            fprintf(stderr,"%d",g_connected_areas_uc[i][j]);
-//
-//        }
-//        fprintf(stderr,"\n");
-//    }
-
 }
