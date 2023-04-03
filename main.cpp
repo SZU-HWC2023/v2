@@ -38,15 +38,15 @@ void frameOperation(int map_type){
         process(map1);
     }
     if(map_type == 2){
-        Map2 map2;
+        Map1 map2;
         process(map2);
     }
     if(map_type == 3){
-        Map3 map3;
+        Map1 map3;
         process(map3);
     }
     if(map_type == 4){
-        Map4 map4;
+        Map1 map4;
         process(map4);
     }
 }
@@ -59,7 +59,7 @@ int main(){
     robotPassMap();
     findConnectedAreas();
     init_points();
-    Map1 map;
+    int map_type = check_map(g_workstations[0]);
 
     puts("OK");
     fflush(stdout);

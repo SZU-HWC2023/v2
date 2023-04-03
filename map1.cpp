@@ -95,7 +95,6 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             if(w->production_locked(w->production_item.type)){
                 continue;
             }
-            // cerr<<historyGetMap[w->type]<<" "<<w->type<<endl;
             double weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 4);
             // 没有continue说明要么工作台没有被锁 要么当前的机器人距离代价比上一个锁住工作台的机器人代价更小 压入pq优先队列中
             tuple<double, int> tup01 = getTimePriceForBuy(r, w, frame_id);
