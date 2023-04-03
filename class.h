@@ -32,7 +32,8 @@ class DoubleDirectionAstar;
 
 
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
-extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //带有产品时，存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
 extern AStar *g_astar;
 extern DoubleDirectionAstar* g_directionAstar;
 extern RawMap g_map;    //原始地图

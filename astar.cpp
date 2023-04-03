@@ -2,6 +2,7 @@
 
 map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，srow,scol,grow,gcol 起点到终点的坐标
 map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度，srow,scol,grow,gcol 起点到终点的坐标
+map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //带有产品时，存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 AStar *g_astar;
 DoubleDirectionAstar* g_directionAstar;
 
@@ -46,12 +47,16 @@ void init_points(){
             Workstation* des_workstation = g_workstations[j];
             vec2_int src = src_workstation->coordinate.toIndex();
             vec2_int des = des_workstation->coordinate.toIndex();
-            // 不带物品都不在同一连通域中 无需找路径
+             // 不带物品都不在同一连通域中 无需找路径
             if(g_connected_areas_uc.map[src.row][src.col] != g_connected_areas_uc.map[des.row][des.col]){
                 continue;
             }
             //为起点工作台和终点工作台规划一条路径 不带物品规划路径
             vector<Point*> result = g_astar->planning(src.row,src.col,des.row,des.col,false);
+            if(result.size() == 0){
+                continue;
+            }
+//            test_astar(result);
             //计算该路径的长度
             float distance = calc_distance_path(result);
             //将结果存储到map中
@@ -61,6 +66,16 @@ void init_points(){
             reverse(result_inv.begin(),result_inv.end());
             g_astar_path[{des.row,des.col,src.row,src.col}] = result_inv;
             g_astar_path_distance[{des.row,des.col,src.row,src.col}] = distance;
+
+            //有产品的路径
+            vector<Point*> result_product = g_astar->planning(src.row,src.col,des.row,des.col,true);
+            if(result_product.size()==0)continue;
+            g_astar_product_path[{src.row,src.col,des.row,des.col}] = result_product;
+            vector<Point*> result_product_inv = result_product;
+            reverse(result_product_inv.begin(),result_product_inv.end());
+            g_astar_product_path[{des.row,des.col,src.row,src.col}] = result_product_inv;
+
+
         }
     }
 }
@@ -134,7 +149,7 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     reverse(result.begin(),result.end());
 
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-    // return simplified_path;
+//     return simplified_path;
     return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
@@ -149,17 +164,21 @@ bool AStar::verify(Point* from,Point* p,bool has_product){
     if(g_map[p->coordinate] == '$')return false;
     if(has_product){
         //机器人有产品时
-        if(g_map[p->coordinate] == '@')return false;
+
+        if(g_map[p->coordinate] == '@'){
+//            fprintf(stderr,"不能过\n");
+            return false;
+        }
     }
     int p_col = p->coordinate.col;
     int p_row = p->coordinate.row;
 
-    for(tuple<int,int, float> mot:this->motion){
-        int drow = p_row + get<0>(mot);
-        int dcol = p_col + get<1>(mot);
-        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE) continue;
-        if(g_map[drow][dcol] == '#')return false;
-    }
+//    for(tuple<int,int, float> mot:this->motion){
+//        int drow = p_row + get<0>(mot);
+//        int dcol = p_col + get<1>(mot);
+//        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE) continue;
+//        if(g_map[drow][dcol] == '#')return false;
+//    }
 
     return true;
 }
@@ -358,16 +377,18 @@ bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product)
     float k = (gcol-scol)*1.0/(grow-srow)*1.0;
     float bb = scol*1.0 - k*srow;
 
-    for(int r = srow-1; r <= grow;r++){
-        int c = int(k*r+bb);
-        int pre_r = r - 1;
-        int pre_c = int(k*pre_r + bb);
+    for(int db = -2; db < 3;db++){
+        for(int r = srow; r <= grow;r++){
+            int c = int(k*r+bb + db);
+            int pre_r = r - 1;
+            int pre_c = int(k*pre_r + bb +db);
 
-
-        if (row_obstacle({pre_r,pre_c},{pre_r,c}) || col_obstacle({pre_r+1,pre_c},{pre_r,c}) || near_obstacle(r,c)){
-            return true;
+//            if (row_obstacle({pre_r,pre_c},{pre_r,c}) || col_obstacle({pre_r+1,pre_c},{pre_r,c}) || near_obstacle(r,c)){
+//                return true;
+//            }
+            if(g_map[r][c] == '#' || near_obstacle(r,c))return true;
         }
-        if(g_map[r][c] == '#')return true;
     }
+
     return false;
 }

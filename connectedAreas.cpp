@@ -132,4 +132,12 @@ void findConnectedAreas(){
         }
         // fprintf(stderr,"\n");
     }
+//    for (int i = N-1; i >= 0; i--) {
+//        for (int j = 0; j < N; j++) {
+//            fprintf(stderr,"%d",g_connected_areas_uc[i][j]);
+//
+//        }
+//        fprintf(stderr,"\n");
+//    }
+
 }
