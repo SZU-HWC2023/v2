@@ -42,7 +42,13 @@ void init_points(){
     g_astar = new AStar();
     // g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
+        if(g_connected_areas_uc[g_workstations[i]->coordinate] <= 0) {
+            cerr<<222<<endl;
+            continue;}
         for(int j = i+1; j < g_workstations.size();j++){
+            if(g_connected_areas_uc[g_workstations[j]->coordinate] <= 0) {
+                cerr<<111<<endl;
+                continue;}
             Workstation* src_workstation = g_workstations[i];
             Workstation* des_workstation = g_workstations[j];
             vec2_int src = src_workstation->coordinate.toIndex();
