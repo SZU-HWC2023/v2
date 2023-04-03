@@ -15,10 +15,18 @@ int check_map(Workstation *w){
     return 0;
 }
 
-void handleFps(int frame_id){
+Map1 initMap(){
+    int map_type = check_map(g_workstations[0]);
+    #ifdef DEBUG
+    fprintf(stderr, "map_type: %d\n", map_type);
+    #endif
     Map1 map1;
-    map1.handleFps(frame_id);
+    return map1;
 }
+void handleFps(int frame_id, Map1 map){
+    map.handleFps(frame_id);
+}
+
 
 int main(){
     // sleep(10);
@@ -27,12 +35,8 @@ int main(){
     robotPassMap();
     findConnectedAreas();
     init_points();
+    Map1 map;
 
-    int map_type = check_map(g_workstations[0]);
-
-    #ifdef DEBUG
-    fprintf(stderr, "map_type: %d\n", map_type);
-    #endif
     puts("OK");
     fflush(stdout);
 
@@ -43,7 +47,7 @@ int main(){
         printf("%d\n", frameID);
         fflush(stdout);
         //当前帧的处理逻辑
-        handleFps(frameID);
+        handleFps(frameID, map);
 
         printf("OK\n", frameID);
         fflush(stdout);
