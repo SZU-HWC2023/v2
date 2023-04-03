@@ -46,7 +46,13 @@ void init_points(){
             Workstation* des_workstation = g_workstations[j];
             vec2_int src = src_workstation->coordinate.toIndex();
             vec2_int des = des_workstation->coordinate.toIndex();
-            //为起点工作台和终点工作台规划一条路径
+            // 不带物品都不在同一连通域中 无需找路径
+            // if(g_connected_areas_uc.map[src.row][src.col] != g_connected_areas_uc.map[des.row][des.col]){
+                // fprintf(stderr,"%d",g_connected_areas_c[src.row][src.col]);
+                // cerr<<g_connected_areas_uc[src.row][src.col]<<" "<<g_connected_areas_uc[des.row][des.col]<<endl;
+                // continue;
+            // }
+            //为起点工作台和终点工作台规划一条路径 不带物品规划路径
             vector<Point*> result = g_astar->planning(src.row,src.col,des.row,des.col,false);
             //计算该路径的长度
             float distance = calc_distance_path(result);
@@ -134,7 +140,6 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
-
 bool AStar::verify(Point* from,Point* p,bool has_product){
     //下标超出地图
     if(p->coordinate.col<0 || p->coordinate.row<0 ||p->coordinate.col>=MAP_TRUE_SIZE||p->coordinate.row>=MAP_TRUE_SIZE)return false;
@@ -154,7 +159,7 @@ bool AStar::verify(Point* from,Point* p,bool has_product){
     for(tuple<int,int, float> mot:this->motion){
         int drow = p_row + get<0>(mot);
         int dcol = p_col + get<1>(mot);
-        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE)continue;
+        if(drow<0 || dcol<0 || drow>=MAP_TRUE_SIZE || dcol >= MAP_TRUE_SIZE) continue;
         if(g_map[drow][dcol] == '#')return false;
     }
 

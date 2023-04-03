@@ -135,7 +135,7 @@ struct vec2{
 
     //返回该坐标在地图上的索引
     vec2_int toIndex() const{
-       return {int((y+0.25)/0.5f)-1, int((x+0.25)/0.5f)-1};
+       return {int(y/0.5), int(x/0.5)};
     }
 
     //返回该坐标所在格的中心坐标
