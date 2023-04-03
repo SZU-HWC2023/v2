@@ -24,6 +24,14 @@ struct vec2_int{
         return *this;
     }
 
+    bool operator<(const vec2_int& v) const{
+        return row < v.row || (row == v.row && col < v.col);
+    }
+
+    bool operator==(const vec2_int& v) const{
+        return row == v.row && col == v.col;
+    }
+
     //返回地图索引对应的中心坐标
     vec2 toCenter();
 
