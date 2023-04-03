@@ -165,7 +165,6 @@ class Robot{
     tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
     Path* path = new Path();        // 路径规划
-    Workstation* pre_workstation = nullptr; //存储机器人访问过的前一个节点
 
     vector<Robot*> other_robots;    //其他机器人列表
 

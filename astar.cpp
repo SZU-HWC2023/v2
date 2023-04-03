@@ -54,8 +54,8 @@ void init_points(){
             g_astar_path[{src.row,src.col,des.row,des.col}] = result;
             vector<Point*> result_inv = result;
             reverse(result_inv.begin(),result_inv.end());
-            g_astar_path[{src.row,src.col,des.row,des.col}] = result_inv;
-            g_astar_path_distance[{src.row,src.col,des.row,des.col}] = distance;
+            g_astar_path[{des.row,des.col,src.row,src.col}] = result_inv;
+            g_astar_path_distance[{des.row,des.col,src.row,src.col}] = distance;
         }
     }
 }
@@ -79,7 +79,7 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
         // 从待检测节点中，找到一个到目标节点代价最小的节点
         for(auto iter = open_map.begin();iter!=open_map.end();iter++){
             Point* p = iter->second;
-            float tmp_cost = p->cost;
+            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
             if(tmp_cost < cost){
                 cost = tmp_cost;
                 c_id = iter->first;
