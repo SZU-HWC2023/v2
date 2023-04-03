@@ -2,26 +2,10 @@
 #include "class.h"
 
 
-Map::Map(){
-    this->map.fill({'.'});
-}
-
-
-char Map::operator[](vec2_int pos){
-    return this->map[pos.row][pos.col];
-}
-
-char Map::operator[](vec2 pos){
-    return this->operator[](pos.toIndex());
-}
-
-array<char,MAP_TRUE_SIZE> Map::operator[](int row){
-    return this->map[row];
-}
 
 
 RawMap::RawMap(){
-    Map();
+    this->map.fill({'.'});
 }
 
 /*

@@ -4,8 +4,8 @@
 const int N = MAP_TRUE_SIZE;
 const int dr[4] = {1, 0, -1, 0};
 const int dc[4] = {0, -1, 0, 1};
-Map g_connected_areas_c;    // 携带物品全局连通区域
-Map g_connected_areas_uc;   // 未携带物品全局连通区域
+Map<int> g_connected_areas_c;    // 携带物品全局连通区域
+Map<int> g_connected_areas_uc;   // 未携带物品全局连通区域
 
 
 bool judgeWall(int row, int col){
