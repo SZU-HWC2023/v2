@@ -10,13 +10,13 @@ DWA::DWA(Robot *robot_){
 
 float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     float min_dist = 2;
-    for(auto p:trajectory){
-        float dist = calcDistance(p.pos, tgt_pos);
-        if(dist < 0.03)
-            return -1;
-        if(dist < min_dist)
-            min_dist = dist;
-    }
+    // for(auto p:trajectory){
+    //     float dist = calcDistance(p.pos, tgt_pos);
+    //     if(dist < 0.03)
+    //         return -1;
+    //     if(dist < min_dist)
+    //         min_dist = dist;
+    // }
     float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
     float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
     return (abs(atan2(sinf(deltaHDG), cosf(deltaHDG))) + min_dist)/(M_PI+2.0f);
