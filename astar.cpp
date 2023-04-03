@@ -47,11 +47,9 @@ void init_points(){
             vec2_int src = src_workstation->coordinate.toIndex();
             vec2_int des = des_workstation->coordinate.toIndex();
             // 不带物品都不在同一连通域中 无需找路径
-            // if(g_connected_areas_uc.map[src.row][src.col] != g_connected_areas_uc.map[des.row][des.col]){
-                // fprintf(stderr,"%d",g_connected_areas_c[src.row][src.col]);
-                // cerr<<g_connected_areas_uc[src.row][src.col]<<" "<<g_connected_areas_uc[des.row][des.col]<<endl;
-                // continue;
-            // }
+            if(g_connected_areas_uc.map[src.row][src.col] != g_connected_areas_uc.map[des.row][des.col]){
+                continue;
+            }
             //为起点工作台和终点工作台规划一条路径 不带物品规划路径
             vector<Point*> result = g_astar->planning(src.row,src.col,des.row,des.col,false);
             //计算该路径的长度

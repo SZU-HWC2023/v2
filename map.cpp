@@ -2,8 +2,6 @@
 #include "class.h"
 
 
-
-
 RawMap::RawMap(){
     this->map.fill({'.'});
 }
