@@ -39,7 +39,13 @@ void Map1::assignSetTask(int frame_id, Robot* r){
     // 优先送差这一个就能接收的站台
     for(auto iter=g_item_to_ws.equal_range(item); iter.first != iter.second; ++iter.first){
         Workstation *w = iter.first->second;
-        double timePrice = 1;     // 帧代价         不需要考虑距离因素  放物品的时候
+        vec2_int r_local_coor = {0,0};
+        if( r->workshop_located>=0)
+            r_local_coor = g_workstations[r->workshop_located]->coordinate.toIndex();
+        vec2_int w_coor = w->coordinate.toIndex();
+        double timePrice = MAX;     // 帧代价         不需要考虑距离因素  放物品的时候
+        if(g_astar_path_distance.count({r_local_coor.row, r_local_coor.col, w_coor.row, w_coor.col})>0)
+            timePrice = g_astar_path_distance[{r_local_coor.row, r_local_coor.col, w_coor.row, w_coor.col}];
         if(w->can_production_recycle(item)){
             int left_frame = MAX_FRAME-frame_id;
             if(item == 7){
@@ -47,7 +53,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 pq.push({timePrice, w->id});
             }else if(item >= 4){
                 // 456号物品 考虑距离 和 接受它的站台缺失物品数量
-                double weight = pow(w->getWeight(), 4);
+                double weight = pow(w->getWeight(), 2);
                 if(left_frame < 1500) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }else{
@@ -55,7 +61,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 double weight = pow(w->getWeight(), 2);
                 tuple<int, int> fill = {w->type, item};
                 int fill_count = historyFillMap.count(fill)>0?historyFillMap[fill]:0;
-                weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 4);
+                weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 2);
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }
@@ -89,12 +95,13 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             if(w->production_locked(w->production_item.type)){
                 continue;
             }
-            double weight = 1.0;
+            cerr<<historyGetMap[w->type]-getMinimumFromMap(historyGetMap)<<" "<<w->type<<endl;
+            double weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 4);
             // 没有continue说明要么工作台没有被锁 要么当前的机器人距离代价比上一个锁住工作台的机器人代价更小 压入pq优先队列中
             tuple<double, int> tup01 = getTimePriceForBuy(r, w, frame_id);
             int nxt_worker_id = get<1>(tup01);   // 取完后可以送的下一个工作台id
             double time_price = get<0>(tup01);   // 平均利润(性价比)
-            if(time_price >= 0) pq.push({time_price, w->id, nxt_worker_id});
+            if(time_price >= 0) pq.push({time_price*weight, w->id, nxt_worker_id});
         }
     }
     if(pq.size()>0){

@@ -140,8 +140,8 @@ void findConnectedAreas(){
             if (area != 0 && robot_exit_area.count(area) == 0){
                 g_connected_areas_uc.map[i][j] = 0;
             }
-            fprintf(stderr,"%d",g_connected_areas_uc[i][j]);
+            // fprintf(stderr,"%d",g_connected_areas_uc[i][j]);
         }
-        fprintf(stderr,"\n");
+        // fprintf(stderr,"\n");
     }
 }
