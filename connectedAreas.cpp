@@ -2,9 +2,10 @@
 #include <stack>
 
 const int N = MAP_TRUE_SIZE;
-const int dx[4] = {-1, 0, 1, 0};
-const int dy[4] = {0, 1, 0, -1};
-int g_connected_areas[MAP_TRUE_SIZE][MAP_TRUE_SIZE];    // 全局连通区域 
+const int dr[4] = {1, 0, -1, 0};
+const int dc[4] = {0, -1, 0, 1};
+Map g_connected_areas_c;    // 携带物品全局连通区域
+Map g_connected_areas_uc;   // 未携带物品全局连通区域
 
 
 bool judgeWall(int row, int col){
@@ -46,50 +47,89 @@ void robotPassMap(){
                 else if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
                 else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
             }
-            // fprintf(stderr,"%c", g_map[r][c]);
+            fprintf(stderr,"%c", g_map[r][c]);
         }
-        // fprintf(stderr,"\n");
+        fprintf(stderr,"\n");
     }
 }
-
-
-
-// 是不是障碍物，是障碍物返回true
-bool judgeObstacle(int row, int col){
-    if(g_map[row][col] == '#' || g_map[row][col] == '!' || g_map[row][col] == '@') return true;
+// 是不是障碍物，是障碍物返回true  不带物品
+bool judgeObstacle_uc(int row, int col){
+    vec2_int coor = {row, col};
+    if(g_map[coor] == '#' || g_map[coor] == '!') return true;
+    else return false;
+}
+// 是不是障碍物，是障碍物返回true  带物品
+bool judgeObstacle_c(int row, int col){
+    vec2_int coor = {row, col};
+    if(g_map[coor] == '#' || g_map[coor] == '!' || g_map[coor] == '@') return true;
     else return false;
 }
 
 // 深度优先遍历
-void DFS(int row, int col, int area_cnt) {
+void DFS_c(int row, int col, int area_cnt_c) {
     stack<pair<int,int>> st;
     st.push({row, col});
     while (!st.empty()) {
         auto cur_node = st.top();
         st.pop();
         for (int i = 0; i < 4; i++) {
-            int nx = cur_node.first + dx[i];
-            int ny = cur_node.second + dy[i];
-            if (nx >= 0 && nx < N && ny >= 0 && ny < N && !judgeObstacle(nx, ny) && g_connected_areas[nx][ny] == 0) {
-                g_connected_areas[nx][ny] = area_cnt;
-                st.push({nx, ny});
+            int nrow = cur_node.first + dr[i];
+            int ncol = cur_node.second + dc[i];
+            if (nrow >= 0 && nrow < N && ncol >= 0 && ncol < N){
+                if(!judgeObstacle_c(nrow, ncol) && g_connected_areas_c[nrow][ncol] == 0){
+                    g_connected_areas_c.map[nrow][ncol] = area_cnt_c;
+                    st.push({nrow, ncol});
+                }
             }
         }
     }
 }
 
+// 深度优先遍历
+void DFS_uc(int row, int col, int area_cnt_uc) {
+    stack<pair<int,int>> st;
+    st.push({row, col});
+    while (!st.empty()) {
+        auto cur_node = st.top();
+        st.pop();
+        for (int i = 0; i < 4; i++) {
+            int nrow = cur_node.first + dr[i];
+            int ncol = cur_node.second + dc[i];
+            if (nrow >= 0 && nrow < N && ncol >= 0 && ncol < N){
+                if(!judgeObstacle_uc(nrow, ncol) && g_connected_areas_uc[nrow][ncol] == 0){
+                    g_connected_areas_uc.map[nrow][ncol] = area_cnt_uc;
+                    st.push({nrow, ncol});
+                }
+            }
+        }
+    }
+}
+void init_g_connect_map(){
+    for(int r = 0; r < N; r++){
+        for(int c = 0; c < N; c++){
+            g_connected_areas_c.map[r][c] = 0;
+            g_connected_areas_uc.map[r][c] = 0;
+        }
+    }
+}
 // 查找所有连通区域
 void findConnectedAreas(){
-    int area_cnt = 0;   // 0代表障碍物
-    for (int i = 0; i < N; i++) {
+    init_g_connect_map();
+    int area_cnt_uc = 0, area_cnt_c = 0;   // 代表连通域序列号 0代表障碍物
+    for (int i = N-1; i >= 0; i--) {
         for (int j = 0; j < N; j++) {
-            if (!judgeObstacle(i, j) && g_connected_areas[i][j] == 0){
-                area_cnt++;
-                g_connected_areas[i][j] = area_cnt;
-                DFS(i, j, area_cnt);
+            if (!judgeObstacle_c(i, j) && g_connected_areas_c[i][j] == 0){
+                area_cnt_c++;
+                g_connected_areas_c.map[i][j] = area_cnt_c;
+                DFS_c(i, j, area_cnt_c);
             }
-            // fprintf(stderr,"%d",g_connected_areas[i][j]);
+            if (!judgeObstacle_uc(i, j) && g_connected_areas_uc[i][j] == 0){
+                area_cnt_uc++;
+                g_connected_areas_uc.map[i][j] = area_cnt_uc;
+                DFS_uc(i, j, area_cnt_uc);
+            }
+            fprintf(stderr,"%d",g_connected_areas_c[i][j]);
         }
-        // fprintf(stderr,"\n");
+        fprintf(stderr,"\n");
     }
 }
