@@ -154,7 +154,7 @@ void Robot::allocate_path(Workstation* w){
  */
 Point* Robot::getNaviPoint(Workstation* w){
     vec2_int g = w->coordinate.toIndex();
-
+    cerr<<w->type<<endl;
     //路径为空，为机器人规划一条前往工作台ws的路径
     if(this->path->index == -1){
         // 判断数据结构中有没有 没有再取

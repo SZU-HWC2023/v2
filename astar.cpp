@@ -301,12 +301,12 @@ vector<tuple<int,int>> swap_point(tuple<int,int> a,tuple<int,int> b){
  @return true 起点和终点之间有障碍物
  */
 bool row_obstacle(tuple<int,int> a,tuple<int,int> b){
-    int sx = get<0>(a), sy = get<1>(a);
-    int gx = get<0>(b), gy = get<1>(b);
-    int left = sy<gy ? sy:gy;
-    int right = sy < gy ? gy:sy;
+    int srow = get<0>(a), scol = get<1>(a);
+    int grow = get<0>(b), gcol = get<1>(b);
+    int left = scol<gcol ? scol:gcol;
+    int right = scol < gcol ? gcol:scol;
     for(int j=left;j<=right;j++){
-        if(g_map[sx][j]=='#')return true;
+        if(g_map[srow][j]=='#')return true;
     }
     return false;
 }
@@ -317,12 +317,12 @@ bool row_obstacle(tuple<int,int> a,tuple<int,int> b){
  @return true 起点和终点之间有障碍物
  */
 bool col_obstacle(tuple<int,int> a,tuple<int,int> b){
-    int sx = get<0>(a), sy = get<1>(a);
-    int gx = get<0>(b), gy = get<1>(b);
-    int left = sx<gx ? sx:gx;
-    int right = sx < gx ? gx:sx;
+    int srow = get<0>(a), scol = get<1>(a);
+    int grow = get<0>(b), gcol = get<1>(b);
+    int left = srow<grow ? srow:grow;
+    int right = srow < grow ? srow:grow;
     for(int i=left;i<=right;i++){
-        if(g_map[i][sy]=='#')return true;
+        if(g_map[i][scol]=='#')return true;
     }
     return false;
 }
@@ -341,28 +341,28 @@ bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product)
     tuple<int,int> b = vec[1];
     //两个点如果邻近，说明没有障碍物
     if(is_closed(a,b))return false;
-    int sx = get<0>(a), sy = get<1>(a);
-    int gx = get<0>(b), gy = get<1>(b);
+    int srow = get<0>(a), scol = get<1>(a);
+    int grow = get<0>(b), gcol = get<1>(b);
 
     //水平方向看是否有障碍物
-    if(sx == gx)return row_obstacle(a,b);
+    if(srow == grow)return row_obstacle(a,b);
     //垂直方向看是否有障碍物
-    if(sy == gy)return col_obstacle(a,b);
+    if(scol == gcol)return col_obstacle(a,b);
 
     //求两个点之间的直线方程
-    float k = (gy-sy)*1.0/(gx-sx)*1.0;
-    float bb = sy*1.0 - k*sx;
+    float k = (grow-srow)*1.0/(gcol-scol)*1.0;
+    float bb = srow*1.0 - k*scol;
 
     //看起点到终点的直线是否有障碍物
-    for(int dx = sx; dx <= gx;dx++){
-        int dy = int(k*dx+bb);
-        int pre_dx = dx - 1;
-        int pre_dy = int(k*pre_dx + bb);
+    for(int c = scol; c <= gcol;c++){
+        int r = int(k*c+bb);
+        int pre_c = c - 1;
+        int pre_r = int(k*pre_c + bb);
 
-        if (near_obstacle(dx,dy)){
+        if (near_obstacle(r,c)){
             return true;
         }
-        if(g_map[dx][dy] == '#')return true;
+        if(g_map[r][c] == '#')return true;
     }
     return false;
 }
