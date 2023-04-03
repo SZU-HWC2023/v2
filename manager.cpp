@@ -1,5 +1,52 @@
 #include "manager.h"
 
+Manager::Manager(){
+    // 初始化get
+    historyGetMap[1] = 0;
+    historyGetMap[2] = 0;
+    historyGetMap[3] = 0;
+    historyGetMap[4] = 0;
+    historyGetMap[5] = 0;
+    historyGetMap[6] = 0;
+    historyGetMap[7] = 0;
+    // 初始化 fill
+    historyFillMap[{4, 1}] = 0;
+    historyFillMap[{4, 2}] = 0;
+    historyFillMap[{5, 1}] = 0;
+    historyFillMap[{5, 3}] = 0;
+    historyFillMap[{6, 2}] = 0;
+    historyFillMap[{6, 3}] = 0;
+}
+int Manager::getMinimumFromMap(map<tuple<int, int>, int> dict){
+    int res = MAX;
+    if(dict.size() == 0) return -1;
+    for(auto d:dict){
+        if(d.second<res) res = d.second;
+    }
+    return res-1;
+}
+int Manager::getMinimumFromMap(map<int, int> dict){
+    int res = MAX;
+    if(dict.size() == 0) return -1;
+    for(auto d:dict){
+        if(d.second<res) res = d.second;
+    }
+    return res-1;
+}
+
+// 维护历史取货字典
+void Manager::mainHistoryGetMap(Workstation *w){
+    historyGetMap[w->type] += w->getRank();
+}
+// 维护历史填充字典
+void Manager::mainHistoryFillMap(int w_type, int item){
+    // 只对456的填充使用fillMap  因为123不需要填充 789填充不需要根据fillMap抉择
+    if(item < 4){
+        tuple<int, int> fill = {w_type, item};
+        historyFillMap[fill] += 1;
+    }
+}
+
 void Manager::handleGetTask(Robot* r){
     const tuple<int, int> &action = r->getAction();         // 当前机器的指令规划  工作台序号  物品序号
     Workstation* w = g_workstations[get<0>(action)];
@@ -12,6 +59,8 @@ void Manager::handleGetTask(Robot* r){
         r->resetAction();
         // 对工作台
         w->rel_locked_production(get<1>(action));
+        // 维护历史字典
+        mainHistoryGetMap(w);
     }else{
         // 不可行 任务终止
         r->resetAction();

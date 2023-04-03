@@ -151,6 +151,8 @@ void Robot::allocate_path(Workstation* w){
     // 初始化路径
     initPath(result);
 }
+
+
 /*
 获得机器人行动的导航点
 @ws 目标工作站

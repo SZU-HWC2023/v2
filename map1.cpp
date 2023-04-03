@@ -41,7 +41,6 @@ void Map1::assignSetTask(int frame_id, Robot* r){
         Workstation *w = iter.first->second;
         double timePrice = 1;     // 帧代价         不需要考虑距离因素  放物品的时候
         if(w->can_production_recycle(item)){
-            
             int left_frame = MAX_FRAME-frame_id;
             if(item == 7){
                 // 七号物品 仅仅考虑距离
@@ -52,8 +51,11 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 if(left_frame < 1500) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }else{
-                // 123号物品 考虑距离 和 生产产品数量 和 缺失物品数量
+                // 123号物品 考虑距离 和 历史填充数量 和 缺失物品数量
                 double weight = pow(w->getWeight(), 2);
+                tuple<int, int> fill = {w->type, item};
+                int fill_count = historyFillMap.count(fill)>0?historyFillMap[fill]:0;
+                weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 4);
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }
@@ -65,6 +67,8 @@ void Map1::assignSetTask(int frame_id, Robot* r){
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();
         Workstation* w = g_workstations[get<1>(minTimePriceWorker)];
+        // 维护历史填充记录
+        mainHistoryFillMap(w->type, item);
         // 对机器人
         r->setAction({get<1>(minTimePriceWorker), item});
         // 对工作台
@@ -112,6 +116,31 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
         // 对这个机器人
         r->setNextWorkerId(g_workstations[get<2>(minTimePriceWorker)]->id);
         r->setAction({get<1>(minTimePriceWorker), w->production_item.type});
+        // 调整 前进
+        r->move2ws(w);
+    }else if(frame_id > 50 && MAX_FRAME-frame_id>500){
+        // 对工作台 并没有释放锁 所以不会有什么变化
+        int min_dis_worker_id = 0;
+        double time = MAX;
+        for(int type_id = 1; type_id <= 3;type_id++){
+            for(auto iter=g_item_from_ws.equal_range(type_id); iter.first != iter.second; ++iter.first){
+                Workstation* w= iter.first->second;
+                double tmp = 1.0;
+                double weight = 1.0;
+                // 加入历史平衡的决策
+                if(MAX_FRAME-frame_id>1500) weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 4);   // 根据历史购买记录平衡去买哪个货物
+                if(tmp*weight < time){
+                    time = tmp*weight;
+                    min_dis_worker_id = w->id;
+                }
+            }
+        }
+        Workstation* w = g_workstations[min_dis_worker_id];
+        // 对工作台 并没有释放锁 所以不会有什么变化
+        w->add_locked_production(w->production_item.type, r->id);
+        // 对这个机器人
+        r->setNextWorkerId(6);
+        r->setAction({min_dis_worker_id, w->type});
         // 调整 前进
         r->move2ws(w);
     }
