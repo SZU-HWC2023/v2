@@ -39,12 +39,12 @@ bool hinderByCorner(int row, int col){
 // 读地图的时候 判断一些不可穿过的点，分为机器人不带物品(!)和机器人带物品(@)
 // 不带物品的机器人都过不去，带物品的机器人更过不去
 void robotPassMap(){
-    for(int r=0; r<MAP_TRUE_SIZE; r++){
+    for(int r=MAP_TRUE_SIZE-1; r>=0; r--){
         for(int c=0; c<MAP_TRUE_SIZE; c++){
-            if(g_map[r][c] == '.'){
-                if(hinderByCorner(r, c)) g_map[r][c] = '$';
-                else if(hinderWithoutPro(r, c)) g_map[r][c] = '!';
-                else if(hinderWithPro(r, c)) g_map[r][c] = '@';
+            if(g_map.map[r][c] == '.'){
+                if(hinderByCorner(r, c)) g_map.map[r][c] = '$';
+                else if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
+                else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
             }
             // fprintf(stderr,"%c", g_map[r][c]);
         }

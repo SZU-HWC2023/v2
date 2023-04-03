@@ -18,8 +18,8 @@ bool near_obstacle(int row,int col){
             {1,1}
     };
     for(tuple<int,int> mot:motion){
-        int drow = drow + get<0>(mot);
-        int dcol = dcol + get<1>(mot);
+        int drow = row + get<0>(mot);
+        int dcol = col + get<1>(mot);
         if(g_map[drow][dcol]=='#')return true;
     }
     return false;
@@ -240,11 +240,11 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
         }
         if(obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
-            result.emplace_back(vec_points[i-2]);
-            result.emplace_back(vec_points[i-1]);
+            // result.emplace_back(vec_points[i-2]);
+            // result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
-            result.emplace_back(vec_points[i+1]);
-            result.emplace_back(vec_points[i+2]);
+            // result.emplace_back(vec_points[i+1]);
+            // result.emplace_back(vec_points[i+2]);
         }
     }
     result.emplace_back(vec_points.back());
