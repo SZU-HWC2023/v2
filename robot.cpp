@@ -150,6 +150,7 @@ void Robot::allocate_path(Workstation* w){
     vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
     // 初始化路径
     initPath(result);
+//    test_astar(result);
 }
 
 
@@ -164,12 +165,22 @@ Point* Robot::getNaviPoint(Workstation* w){
         // 判断数据结构中有没有 没有再取
         vec2_int s = {-1, -1};
         if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
-        if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
-            initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
-        }else{
-            // 数据结构中没有路径 规划路径
-            this->allocate_path(w);
+        if(this->item_carried == 0){ //未携带产品
+            if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
+                initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
+            }else{
+                // 数据结构中没有路径 规划路径
+                this->allocate_path(w);
+            }
+        }else{ //携带产品
+            if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
+                initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}]);
+            }else{
+                // 数据结构中没有路径 规划路径
+                this->allocate_path(w);
+            }
         }
+
     }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     int &index = this->path->index;
