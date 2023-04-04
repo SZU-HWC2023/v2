@@ -290,7 +290,12 @@ void Robot::move2ws(Workstation* ws){
     if(p== nullptr)return;  //这行别删了
     vec2 v = judgeWallDirection(p);
     vec2 tgt_pos = v;  //目标位置
-    VW desire = this->dwa->find_vw(v);
+    VW desire = this->dwa->find_vw(p->coordinate.toCenter());
+
+    this->forward(desire.v);
+    this->rotate(desire.w);
+
+    return;
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
