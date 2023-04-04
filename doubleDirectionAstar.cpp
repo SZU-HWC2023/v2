@@ -15,9 +15,6 @@
 //     Point* meet_point_A = nullptr;
 //     Point* meet_point_B = nullptr;
 
-//     while(true){
-//         if(open_map_A.size()==0)break;
-//         if(open_map_B.size()==0)break;
 
 //         float cost_A = MAX;
 //         tuple<int,int> c_id_A;
