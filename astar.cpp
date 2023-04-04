@@ -1,6 +1,5 @@
 #include "class.h"
 
-#include<string.h>
 map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，srow,scol,grow,gcol 起点到终点的坐标
 map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度，srow,scol,grow,gcol 起点到终点的坐标
 map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //带有产品时，存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
@@ -14,10 +13,10 @@ bool near_obstacle(int row,int col){
             {0,1},
             {0,-1},
             {-1,0},
-            {-1,-1},
-            {-1,1},
-            {1,-1},
-            {1,1},
+            // {-1,-1},
+            // {-1,1},
+            // {1,-1},
+            // {1,1},
 
     };
     for(tuple<int,int> mot:motion){
@@ -40,17 +39,16 @@ float calc_distance_path(vector<Point*> &vec_paths){
 }
 //初始化A*算法、平台之间的关键路径及其路径长度
 void init_points(){
-
-
     // 初始化A*算法相关的类
     g_astar = new AStar();
 //     g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
-        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0) {
+        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0 || g_workstations[i]->ban) {
             continue;}
         for(int j = i+1; j < g_workstations.size();j++){
-            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0) {
+            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0 || g_workstations[i]->ban) {
                 continue;}
+            if(g_workstations[j]->type <= 3 && g_workstations[j]->type <= 3) continue;
             Workstation* src_workstation = g_workstations[i];
             Workstation* des_workstation = g_workstations[j];
             vec2_int src = src_workstation->coordinate.toIndex();
@@ -85,11 +83,10 @@ void init_points(){
 
         }
     }
-    fprintf(stderr,"初始化完成\n");
 }
 bool judgeAroundObstacle(int row, int col){
     if(g_map[row+1][col] == '#' || g_map[row][col+1] == '#' || g_map[row-1][col] == '#' || g_map[row][col-1] == '#') return true;
-    if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
+    // if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
     return false;
 }
 // 优先队列比较函数
@@ -152,7 +149,6 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
                     open_map[px][py] = point;
                 }
             }
-
         }
     }
     //回溯路径
@@ -173,10 +169,10 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,bool has_product){
         parent = p->parent_node;
     }
     reverse(result.begin(),result.end());
-//    fprintf(stderr,"result.size：%d\n",result.size());
+
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-//    return simplified_path;
-     return result;
+    return simplified_path;
+    //  return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
@@ -208,23 +204,14 @@ float AStar::calc_heuristic(Point* a, Point *b){
 //机器人移动的方向
 vector<tuple<int,int, float >> AStar::get_motion_model(){
     vector<tuple<int,int, float >> motion = {
-            {1, 0, 1.0},
-            {0, 1,  1.0},
-            {-1, 0, 1.0},
-            {0, -1, 1.0},
-            {-1, -1,2}, //斜着走代价大一点，可修改
-            {-1, 1,2},
-            {1, -1,2},
-            {1, 1,2},
-            // // 16邻域
-//             {2, -1, sqrt(5.0)},
-//             {2, 1, sqrt(5.0)},
-//             {1, -2, sqrt(5.0)},
-//             {1, 2, sqrt(5.0)},
-//             {-1, -2, sqrt(5.0)},
-//             {-1, 2, sqrt(5.0)},
-//             {-2, -1, sqrt(5.0)},
-//             {-2, 1, sqrt(5.0)}
+        {1, 0, 1.0},
+        {0, 1,  1.0},
+        {-1, 0, 1.0},
+        {0, -1, 1.0},
+        {-1, -1,2}, //斜着走代价大一点，可修改
+        {-1, 1,2},
+        {1, -1,2},
+        {1, 1,2},
     };
     return motion;
 }
@@ -283,12 +270,17 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
         if(g_map[vec_points[i]->coordinate]=='@'){
+            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
+            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
+            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
+            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
+
         }
     }
     result.emplace_back(vec_points.back());
