@@ -24,6 +24,14 @@ struct vec2_int{
         return *this;
     }
 
+    bool operator<(const vec2_int& v) const{
+        return row < v.row || (row == v.row && col < v.col);
+    }
+
+    bool operator==(const vec2_int& v) const{
+        return row == v.row && col == v.col;
+    }
+
     //返回地图索引对应的中心坐标
     vec2 toCenter();
 
@@ -129,13 +137,23 @@ struct vec2{
 
     //返回该坐标在地图上的索引
     vec2_int toIndex() const{
-       return {int(y/0.5f), int(x/0.5f)};
+       return {int(y/0.5), int(x/0.5)};
     }
 
     //返回该坐标所在格的中心坐标
     vec2 toCenter() const{
         vec2_int idx = this->toIndex();
         return idx.toCenter();
+    }
+
+    //返回该向量的法线向量
+    vec2 normal() const{
+        return {-y, x};
+    }
+
+    //返回到向量p的夹角(恒正)
+    float angle2(const vec2& p) const{
+        return acosf((x*p.x + y*p.y)/(len()*p.len()));
     }
 
 };

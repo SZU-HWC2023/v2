@@ -11,7 +11,9 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
-    this->path->index = -1;     // 初始时路径下标为-1 代表当前没有路径
+        // 初始化机器人列表
+    this->initOtherRobot();
+    this->path->points.clear();
     this->trajectory.clear();
     this->dwa = new DWA(this);
 }
@@ -143,7 +145,7 @@ void Robot::initPath(vector<Point*> points){
     for(int i=1;i<points.size();i++){
         this->path->points.push_back(points[i]);
     }
-    this->path->index = 0;
+    this->path->iter=this->path->points.begin();
 }
 /*
 没有路时开辟一条道路
@@ -156,54 +158,80 @@ void Robot::allocate_path(Workstation* w){
     // 初始化路径
     initPath(result);
 }
+void BFS_avoid_robot(){
+
+}
+
+bool judge_need_avoid(Robot *r1, Robot* r2){
+    float dis = calcDistance(r1->coordinate, r2->coordinate);
+    // float angle_diff = 
+    // if()
+    
+}
+void Robot::avoidPointsAdd(){
+    // 先判断有没有撞墙
+    
+
+
+    // 再判断是否存在机器人走独木桥的情况
+
+    for(Robot* o_r:this->other_robots){
+        // 判断是否会出现走独木桥的情况
+        if(judge_need_avoid(this, o_r)){
+
+        }
+    }
+}
+
 /*
 获得机器人行动的导航点
 @ws 目标工作站
  */
 Point* Robot::getNaviPoint(Workstation* w){
-
+    vec2_int g = w->coordinate.toIndex();
     //路径为空，为机器人规划一条前往工作台ws的路径
-    if(this->path->index == -1){
-        this->pre_workstation = w;
-        this->allocate_path(w);
-        if(this->path->points.size() ==0)return nullptr;
-    }
-    else{
-
-        int &index = this->path->index;
-        deque<Point*> &dq = this->path->points;
-        Point* p = dq[index];                 // 导航点
-        vec2 des = p->coordinate.toCenter();
-        //判断机器人是否到达路径中的某个点,不包括终点
-        if(this->path->index < this->path->points.size()-1 &&calcDistance(des,this->coordinate) < crt_radius){
-            index++;
-        }else if(this->path->index == this->path->points.size() -1){    //还剩终点未到达
-            if(this->workshop_located != -1){   //到达工作台附近
-                this->path->index = -1; // 清空为机器人规划的路径
-                this->path->points.clear();
-
-                if(w != this->pre_workstation){ // 到达工作附近，并被分配新的要前往的工作台，直接从全局变量g_astar_path取出一条关键路径
-                    vec2_int src = this->pre_workstation->coordinate.toIndex();
-                    vec2_int des = w->coordinate.toIndex();
-                    vector<Point*> result = g_astar_path[{src.row,src.col,des.row,des.col}];
-                    initPath(result);
-                    this->pre_workstation = w;
-                }else{
-                    //到达工作附近，但未被分配新的要前往的工作台，暂时可能未被调度到
-                    return nullptr;
-                }
-            }else{ //尚未到达工作台附近
-
+    if(this->path->points.empty()){
+        // 判断数据结构中有没有 没有再取
+        vec2_int s = {-1, -1};
+        if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
+        if(this->item_carried == 0){ //未携带产品
+            if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
+                initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
+            }else{
+                // 数据结构中没有路径 规划路径
+                this->allocate_path(w);
+//                fprintf(stderr,"机器人：%d 未带产品分配路径, 目的工作台：%d 类型:%d\n",this->id,w->id,w->type);
+            }
+        }else{ //携带产品
+            if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
+                initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}]);
+            }else{
+                // 数据结构中没有路径 规划路径
+                this->allocate_path(w);
+//                fprintf(stderr,"机器人：%d 带产品分配路径 目的工作台：%d 类型：%d\n",this->id,w->id,w->type);
             }
         }
     }
-    Point* des_point = this->path->points[this->path->index]; //取出一个关键路径点
-    return des_point;
+    vec2 w_coor = w->coordinate;       // 目标工作台的坐标
+    auto &iter = this->path->iter;
+    if(this->path->points.empty())return nullptr;
+    list<Point*> &points = this->path->points;
+    Point* p = *iter;                 // 导航点
+    vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
+    // 没到工作台且到了导航点附近 index++
+    auto iter_end = points.end();
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius){
+        iter++;
+        p = *iter;
+    }
+    // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
+    avoidPointsAdd();
+    return p;
 }
 
 void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
-    if(p == nullptr)return;
+    if(p== nullptr)return;  //这行别删了
     vec2 v = p->coordinate.toCenter();
     vec2 tgt_pos = v;  //目标位置
     VW desire = this->dwa->find_vw(v);
@@ -211,28 +239,28 @@ void Robot::move2ws(Workstation* ws){
     this->forward(desire.v);
     this->rotate(desire.w);
 
-//     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
+    float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
 //     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
 //     float tgt_hdg = calcHeading(this->coordinate, tgt_pos);     //目标方位角
 //     float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
 
-//     // simple——demo中的速度角度控制方式
-//     const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
-//     if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
-//         tgt_lin_spd = MAX_FORWARD_SPD;
-//         tgt_ang_spd = 0.01;
-//     } else {
-//         if (abs(delta_hdg) > M_PI/2) {
-//             // 角度太大，全速扭转
-//             // 速度控制小一点，避免靠近不了工作台
-//             tgt_lin_spd = 0;
-//             tgt_ang_spd = maxRotateSpeed;
-//         } else {
-//             tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大
-//             tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
-//         }
-//     }
+    // simple——demo中的速度角度控制方式
+    const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
+    if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
+        tgt_lin_spd = MAX_FORWARD_SPD;
+        tgt_ang_spd = 0.01;
+    } else {
+        if (abs(delta_hdg) > M_PI/4) {
+            // 角度太大，全速扭转
+            // 速度控制小一点，避免靠近不了工作台
+            tgt_lin_spd = 0;
+            tgt_ang_spd = maxRotateSpeed;
+        } else {
+            tgt_lin_spd = MAX_FORWARD_SPD * cos(abs(delta_hdg)); // 前进速度随角度变小而变大
+            tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
+        }
+    }
     
 //      if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
 //          tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
@@ -254,7 +282,6 @@ void Robot::move2ws(Workstation* ws){
 void Robot::resetAction(){
     this->action = {-1,-1};
     this->next_worker_id = -1;
-    this->path->index = -1;
     this->path->points.clear();
 }
 /*

@@ -4,7 +4,13 @@
 
 class Manager{
 public:
-    Manager()=default;
+    Manager();
+    map<int, int> historyGetMap;       // 存储历史取货信息--------要去哪个工作台取东西根据这个设置权重(平衡历史买卖)
+    map<tuple<int, int>, int> historyFillMap;   // 历史填入次数  {工作台编号 原材料编号} 次数------卖东西的时候卖给哪个平台根据这个设置权重(平衡历史买卖)
+    void mainHistoryGetMap(Workstation *w);
+    void mainHistoryFillMap(int w_type, int item);
+    int getMinimumFromMap(map<tuple<int, int>, int> dict);
+    int getMinimumFromMap(map<int, int> dict);
     void handleFps(int frame_id);
     void handleTask(Robot* r);       
     void assignTask(int frame_id, Robot* r, queue<int> robot_ids);   

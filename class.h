@@ -21,7 +21,9 @@ struct Item;
 class Workstation;
 class Robot;
 
+template <typename T>
 class Map;
+
 class RawMap;
 class RVO;
 class AStar;
@@ -36,12 +38,13 @@ extern Map g_Map;                                   //地图类
 
 
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
-extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
+extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //带有产品时，存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
 extern AStar *g_astar;
 extern DoubleDirectionAstar* g_directionAstar;
 extern RawMap g_map;    //原始地图
-extern Map g_connected_areas_c;    // 携带物品全局连通区域
-extern Map g_connected_areas_uc;   // 未携带物品全局连通区域
+extern Map<int> g_connected_areas_c;    // 携带物品全局连通区域
+extern Map<int> g_connected_areas_uc;   // 未携带物品全局连通区域
 
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -161,8 +164,8 @@ class Workstation{
 
 
 struct Path{
-    deque<Point*> points;
-    int index = -1;
+    list<Point*> points;
+    list<Point*>::iterator iter;
 };
 
 // 实现于robot.cpp
@@ -185,7 +188,6 @@ class Robot{
     tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
     Path* path = new Path();        // 路径规划
-    Workstation* pre_workstation = nullptr; //存储机器人访问过的前一个节点
 
     vector<Robot*> other_robots;    //其他机器人列表
 
@@ -210,7 +212,8 @@ class Robot{
     // 路径函数
     void allocate_path(Workstation* w);
     void initPath(vector<Point*> path);
-    Point* getNaviPoint(Workstation* ws);              
+    Point* getNaviPoint(Workstation* ws);     
+    void avoidPointsAdd();         
     // 维护操作
     void resetAction();                     
     const tuple<int, int> getAction();
@@ -224,19 +227,38 @@ class Robot{
 //实现于map.cpp
 
 //地图相关类，适用于任何类似地图的数据结构
+template <typename T>
 class Map{
     public:
-    array<array<char, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map; //地图底层数组
+    array<array<T, MAP_TRUE_SIZE>, MAP_TRUE_SIZE> map; //地图底层数组
     Map();
 
     //取指
-    char operator[](vec2_int pos);
-    char operator[](vec2 pos);
-    array<char,MAP_TRUE_SIZE> operator[](int row);
+    T operator[](vec2_int pos);
+    T operator[](vec2 pos);
+    array<T,MAP_TRUE_SIZE> operator[](int row);
 };
 
+template <typename T>
+Map<T>::Map(){
+}
+
+template <typename T>
+T Map<T>::operator[](vec2_int pos){
+    return this->map[pos.row][pos.col];
+}
+
+template <typename T>
+T Map<T>::operator[](vec2 pos){
+    return this->operator[](pos.toIndex());
+}
+template <typename T>
+array<T,MAP_TRUE_SIZE> Map<T>::operator[](int row){
+    return this->map[row];
+}
+
 //原始地图
-class RawMap:public Map{
+class RawMap:public Map<char>{
     public:
     RawMap();
 
@@ -244,6 +266,8 @@ class RawMap:public Map{
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
+    bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product);
+    bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
 
 
