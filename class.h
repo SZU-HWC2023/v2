@@ -34,9 +34,6 @@ struct DW;
 struct DWA_state;
 class DWA;
 
-extern Map g_Map;                                   //地图类
-
-
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //带有产品时，存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
@@ -392,7 +389,7 @@ struct DWA_state{
     };
 
     DW calcDW(float dt = FRAME_INTERVAL){
-        DW vs = {-2, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
+        DW vs = {0, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
         float linAcc = this->robot->crt_lin_acc, angAcc = this->robot->crt_ang_acc;
         DW vd = {this->linSpd.len() - linAcc * dt,
                  this->linSpd.len() + linAcc * dt,
@@ -428,8 +425,8 @@ class DWA{
     Robot* robot;
     
     static constexpr float alpha = 10;
-    static constexpr float beta = 1.0;
-    static constexpr float gamma = 3;
+    static constexpr float beta = 10;
+    static constexpr float gamma = 6;
     static constexpr float pred_t = PRED_T;
     // static constexpr float ang_spd_intv = 0.05;
     // static constexpr float lin_spd_intv = 0.1;

@@ -29,10 +29,10 @@ float wall_dist(vec2 pos){
     );
 }
 
-#define MAX_OBS_COST 1/(2*ROBOT_NORM_RADIUS) + 1/ROBOT_NORM_RADIUS
+#define MAX_OBS_COST 1/(2*ROBOT_NORM_RADIUS) + 2/ROBOT_NORM_RADIUS
 
 float DWA::obs_cost(vector<DWA_state> trajectory){
-    float min_robot_dist = 10, min_wall_dist = 1;
+    float min_robot_dist = 10, min_wall_dist = 2;
     
     for(int i=0; i<trajectory.size(); i++){
         min_wall_dist = min(min_wall_dist, wall_dist(trajectory[i].pos));
@@ -52,7 +52,7 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
     else if(min_wall_dist>1)
         min_wall_dist = 1;
         
-    return (1.0/min_robot_dist + 1.0/min_wall_dist)/MAX_OBS_COST;
+    return (1.0/min_robot_dist + 2.0/min_wall_dist)/MAX_OBS_COST;
 }
 
 float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
