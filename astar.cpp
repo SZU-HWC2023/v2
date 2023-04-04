@@ -271,14 +271,12 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
         if(g_map[vec_points[i]->coordinate]=='@'){
-            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
             result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
-            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
             result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
             
