@@ -11,7 +11,9 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
-    this->path->index = -1;     // 初始时路径下标为-1 代表当前没有路径
+    this->path->points.clear();
+    // 初始化机器人列表
+    this->initOtherRobot();
 }
 /*
 更新机器人帧状态
@@ -138,7 +140,7 @@ void Robot::initPath(vector<Point*> points){
     for(int i=1;i<points.size();i++){
         this->path->points.push_back(points[i]);
     }
-    this->path->index = points.size()>0?0:-1;
+    this->path->iter=this->path->points.begin();
 }
 /*
 没有路时开辟一条道路
@@ -150,9 +152,33 @@ void Robot::allocate_path(Workstation* w){
     vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
     // 初始化路径
     initPath(result);
-//    test_astar(result);
+}
+void BFS_avoid_wall(){
+
+}
+void BFS_avoid_robot(){
+
 }
 
+bool judge_need_avoid(Robot *r1, Robot* r2){
+    float dis = calcDistance(r1->coordinate, r2->coordinate);
+    // float angle_diff = 
+    // if()
+}
+void Robot::avoidPointsAdd(){
+    // 先判断有没有撞墙
+    
+
+
+    // 再判断是否存在机器人走独木桥的情况
+
+    for(Robot* o_r:this->other_robots){
+        // 判断是否会出现走独木桥的情况
+        if(judge_need_avoid(this, o_r)){
+
+        }
+    }
+}
 
 /*
 获得机器人行动的导航点
@@ -161,7 +187,7 @@ void Robot::allocate_path(Workstation* w){
 Point* Robot::getNaviPoint(Workstation* w){
     vec2_int g = w->coordinate.toIndex();
     //路径为空，为机器人规划一条前往工作台ws的路径
-    if(this->path->index == -1){
+    if(this->path->points.empty()){
         // 判断数据结构中有没有 没有再取
         vec2_int s = {-1, -1};
         if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
@@ -180,19 +206,21 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }
-
     }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
-    int &index = this->path->index;
-    if(this->path->index == -1)return nullptr;
-    deque<Point*> &dq = this->path->points;
-    Point* p = dq[index];                 // 导航点
+    auto &iter = this->path->iter;
+    if(this->path->points.empty())return nullptr;
+    list<Point*> &points = this->path->points;
+    Point* p = *iter;                 // 导航点
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
     // 没到工作台且到了导航点附近 index++
-    if(index<dq.size()-1&&calcDistance(des,this->coordinate) < crt_radius*2){
-        index++;
+    auto iter_end = points.end();
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*2){
+        iter++;
+        p = *iter;
     }
-
+    // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
+    avoidPointsAdd();
     return p;
 }
 
@@ -213,7 +241,7 @@ void Robot::move2ws(Workstation* ws){
         tgt_lin_spd = MAX_FORWARD_SPD;
         tgt_ang_spd = 0.01;
     } else {
-        if (abs(delta_hdg) > M_PI/2) {
+        if (abs(delta_hdg) > M_PI/4) {
             // 角度太大，全速扭转
             // 速度控制小一点，避免靠近不了工作台
             tgt_lin_spd = 0;
@@ -243,7 +271,6 @@ void Robot::move2ws(Workstation* ws){
 void Robot::resetAction(){
     this->action = {-1,-1};
     this->next_worker_id = -1;
-    this->path->index = -1;
     this->path->points.clear();
 }
 /*

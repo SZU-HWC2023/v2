@@ -147,8 +147,8 @@ class Workstation{
 };
 
 struct Path{
-    deque<Point*> points;
-    int index = -1;
+    list<Point*> points;
+    list<Point*>::iterator iter;
 };
 //机器人
 class Robot{
@@ -190,7 +190,8 @@ class Robot{
     // 路径函数
     void allocate_path(Workstation* w);
     void initPath(vector<Point*> path);
-    Point* getNaviPoint(Workstation* ws);              
+    Point* getNaviPoint(Workstation* ws);     
+    void avoidPointsAdd();         
     // 维护操作
     void resetAction();                     
     const tuple<int, int> getAction();
