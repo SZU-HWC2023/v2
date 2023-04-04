@@ -50,7 +50,16 @@ void frameOperation(int map_type){
         process(map4);
     }
 }
-
+void deleteRed(){
+    // ban掉多余的机器人
+    set<int> worker_exit_areas;
+    for(Workstation *w:g_workstations){
+        if(w->type >= 4)  worker_exit_areas.insert(g_connected_areas_uc[w->coordinate]);
+    }
+    for(auto iter = g_robots.begin(); iter < g_robots.end(); iter++){
+        if(worker_exit_areas.count(g_connected_areas_uc[(*iter)->coordinate]) <= 0) g_robots.erase(iter);
+    }
+}
 
 int main(){
 //    sleep(10);
@@ -58,6 +67,7 @@ int main(){
     read_map();
     robotPassMap();
     findConnectedAreas();
+    deleteRed();
     init_points();
     int map_type = check_map(g_workstations[0]);
 

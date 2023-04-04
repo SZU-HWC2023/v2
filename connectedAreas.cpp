@@ -137,6 +137,7 @@ void findConnectedAreas(){
     for (int i = N-1; i >= 0; i--) {
         for (int j = 0; j < N; j++) {
             int area = g_connected_areas_c[i][j];
+            // 没有机器人
             if (area != 0 && robot_exit_area.count(area) == 0){
                 g_connected_areas_c.map[i][j] = 0;
             }
