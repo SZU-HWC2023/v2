@@ -132,15 +132,15 @@ void findConnectedAreas(){
     }
     set<int> robot_exit_area;
     for(int i = 0; i < 4;i++){
-        robot_exit_area.insert(g_connected_areas_uc[g_robots[i]->coordinate]);
+        robot_exit_area.insert(g_connected_areas_c[g_robots[i]->coordinate]);
     }
     for (int i = N-1; i >= 0; i--) {
         for (int j = 0; j < N; j++) {
-            int area = g_connected_areas_uc[i][j];
+            int area = g_connected_areas_c[i][j];
             if (area != 0 && robot_exit_area.count(area) == 0){
-                g_connected_areas_uc.map[i][j] = 0;
+                g_connected_areas_c.map[i][j] = 0;
             }
-            // fprintf(stderr,"%d",g_connected_areas_uc[i][j]);
+            // fprintf(stderr,"%d",g_connected_areas_c[i][j]);
         }
         // fprintf(stderr,"\n");
     }

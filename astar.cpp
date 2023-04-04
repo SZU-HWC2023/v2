@@ -16,7 +16,8 @@ bool near_obstacle(int row,int col){
             {-1,-1},
             {-1,1},
             {1,-1},
-            {1,1}
+            {1,1},
+
     };
     for(tuple<int,int> mot:motion){
         int drow = row + get<0>(mot);
@@ -42,10 +43,10 @@ void init_points(){
     g_astar = new AStar();
     // g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
-        if(g_connected_areas_uc[g_workstations[i]->coordinate] <= 0) {
+        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0) {
             continue;}
         for(int j = i+1; j < g_workstations.size();j++){
-            if(g_connected_areas_uc[g_workstations[j]->coordinate] <= 0) {
+            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0) {
                 continue;}
             Workstation* src_workstation = g_workstations[i];
             Workstation* des_workstation = g_workstations[j];
@@ -60,7 +61,6 @@ void init_points(){
             if(result.size() == 0){
                 continue;
             }
-//            test_astar(result);
             //计算该路径的长度
             float distance = calc_distance_path(result);
             //将结果存储到map中
@@ -153,8 +153,8 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     reverse(result.begin(),result.end());
 
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-//     return simplified_path;
-    return result;
+    return simplified_path;
+    // return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
@@ -193,7 +193,16 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
             {-1, -1,sqrt(2.0)},
             {-1, 1,sqrt(2.0)},
             {1, -1,sqrt(2.0)},
-            {1, 1,sqrt(2.0)}
+            {1, 1,sqrt(2.0)},
+            // // 16邻域
+            // {2, -1, sqrt(5.0)},
+            // {2, 1, sqrt(5.0)},
+            // {1, -2, sqrt(5.0)},
+            // {1, 2, sqrt(5.0)},
+            // {-1, -2, sqrt(5.0)},
+            // {-1, 2, sqrt(5.0)},
+            // {-2, -1, sqrt(5.0)},
+            // {-2, 1, sqrt(5.0)}
     };
     return motion;
 }
@@ -251,17 +260,13 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     vector<Point*> result;
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
-        if(g_map[vec_points[i]->coordinate]=='@' ||help(vec_points[i])){
+        if(g_map[vec_points[i]->coordinate]=='@'){
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
-//            result.emplace_back(vec_points[i-2]);
-//            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
-//            result.emplace_back(vec_points[i+1]);
-//            result.emplace_back(vec_points[i+2]);
         }
     }
     result.emplace_back(vec_points.back());
