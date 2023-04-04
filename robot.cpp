@@ -13,6 +13,7 @@ Robot::Robot(int robotID, float x, float y){
     this->coordinate = {x, y};
         // 初始化机器人列表
     this->initOtherRobot();
+    this->ban = false;
     this->path->points.clear();
     this->trajectory.clear();
     this->dwa = new DWA(this);
@@ -168,13 +169,23 @@ bool judge_need_avoid(Robot *r1, Robot* r2){
     // if()
     
 }
-void Robot::avoidPointsAdd(){
+void Robot::addPathPoint(vector<Point*> result){
+    path->points.erase(path->iter++);
+    for(int i = result.size()-1; i>=0; i--){
+        path->iter = path->points.insert(path->iter, result[i]);
+    }
+}
+
+void Robot::avoidPointsAdd(Point *p){
     // 先判断有没有撞墙
-    
-
-
+    bool carry = item_carried==0?false:true;
+    if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
+        vec2_int s = this->coordinate.toIndex();
+        vec2_int g = p->coordinate;
+        vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
+        addPathPoint(result);
+    }
     // 再判断是否存在机器人走独木桥的情况
-
     for(Robot* o_r:this->other_robots){
         // 判断是否会出现走独木桥的情况
         if(judge_need_avoid(this, o_r)){
@@ -218,26 +229,90 @@ Point* Robot::getNaviPoint(Workstation* w){
     list<Point*> &points = this->path->points;
     Point* p = *iter;                 // 导航点
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
+    // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
+    avoidPointsAdd(p);
     // 没到工作台且到了导航点附近 index++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*2){
         iter++;
         p = *iter;
     }
-    // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
-    avoidPointsAdd();
+    
     return p;
+}
+
+// 上下左右是墙 偏移0.25
+vec2 Robot::judgeWallDirection(Point *point){
+    vec2_int coor = point->coordinate;
+    vec2 res = coor.toCenter();
+    float bias = 0.5;
+    // 上边是墙
+    // if(g_map[point->coordinate.row+1][point->coordinate.col]){
+    //     res.y -= bias;
+    // }
+    // // 下边是墙
+    // if(g_map[point->coordinate.row-1][point->coordinate.col]){
+    //     res.y += bias;
+    // }
+    // // 左边是墙
+    // if(g_map[point->coordinate.row][point->coordinate.col-1]){
+    //     res.x += bias;
+    // }
+    // // 右边是墙
+    // if(g_map[point->coordinate.row][point->coordinate.col+1]){
+    //     res -= bias;
+    // }
+    // 左上是墙
+    if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
+        res.y -= bias;
+        res.x += bias;
+    }
+    // 右上是墙
+    if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
+        res.y -= bias;
+        res.x -= bias;
+    }
+    // 左下是墙
+    if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
+        res.y += bias;
+        res.x += bias;
+    }
+    // 右下是墙
+    if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
+        res.y += bias;
+        res.x -= bias;
+    }
+    return res;
 }
 
 void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
     if(p== nullptr)return;  //这行别删了
-    vec2 v = p->coordinate.toCenter();
+    vec2 v = judgeWallDirection(p);
     vec2 tgt_pos = v;  //目标位置
     VW desire = this->dwa->find_vw(v);
+    float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
-    this->forward(desire.v);
-    this->rotate(desire.w);
+    float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
+    float tgt_hdg = calcHeading(this->coordinate, tgt_pos);     //目标方位角
+    float delta_hdg = clampHDG(tgt_hdg - this->heading);        //方位角差
+
+    // simple——demo中的速度角度控制方式
+    const double maxRotateSpeed = (delta_hdg > 0 ? MAX_ANGULAR_SPD : -MAX_ANGULAR_SPD);
+    if (abs(delta_hdg) < MIN_ANGLE) { // 如果朝向和目标点的夹角很小，直接全速前进
+        tgt_lin_spd = MAX_FORWARD_SPD;
+        tgt_ang_spd = 0.01;
+    }else {
+        if (abs(delta_hdg)>M_PI/2) {
+            // 角度太大，全速扭转
+            // 速度控制小一点，避免靠近不了工作台
+            tgt_lin_spd = 1;
+            tgt_ang_spd = maxRotateSpeed;
+        } else {
+            tgt_lin_spd = MAX_FORWARD_SPD * pow(cos(abs(delta_hdg)), 2); // 前进速度随角度变小而变大
+            tgt_ang_spd = maxRotateSpeed * sin(abs(delta_hdg));    // 旋转速度随角度变小而变小
+        }
+    }
     
 //      if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
 //          tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
