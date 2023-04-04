@@ -81,3 +81,60 @@ float RawMap::dist2Obstacle(vec2 pos){
     }
     return 1000.0f;
 }
+
+
+
+
+/*
+在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
+@param src_point 起点坐标
+@param des_point 终点坐标
+return true 连线有障碍物
+return false 连线没有障碍物
+ */
+bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product) { 
+    //两个点如果邻近，说明没有障碍物
+    if(src_point.chebyshevDist(des_point) == 1)return false;
+
+    //遍历步长
+    float step = 0.5;
+
+    //方向向量
+    vec2 direction = des_point.toCenter() - src_point.toCenter();
+    //长度
+    float len = direction.len();
+    //单位化
+    direction = direction / direction.len();
+    //步长向量
+    vec2 step_vec = direction * step;
+    //法线向量
+    vec2 normal = direction.normal();
+    //机器人半径
+    float radius = has_product?ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
+    //起点中心点
+    vec2 src_center = src_point.toCenter();
+    //起点左侧偏移机器人半径点
+    vec2 src_left = src_center + normal * radius;
+    //起点右侧偏移机器人半径点
+    vec2 src_right = src_center - normal * radius; 
+
+    for(float l=0;l<len;l+=step){
+        //分别判断各个点是否有障碍物
+        if(this->isObstacle(src_center))
+            return true;
+        if(this->isObstacle(src_left))
+            return true;
+        if(this->isObstacle(src_right))
+            return true;
+        //更新点
+        src_center += step_vec;
+        src_left += step_vec;
+        src_right += step_vec;
+    }
+
+    return false;
+}
+
+bool RawMap::obstacle_in_line(Point* src_point,Point* des_point,bool has_product){
+    return this->obstacle_in_line(src_point->coordinate,des_point->coordinate,has_product);
+}

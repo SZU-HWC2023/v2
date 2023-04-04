@@ -241,6 +241,8 @@ class RawMap:public Map<char>{
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
+    bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product);
+    bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
 
 typedef struct Point{

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "manager.h"
-// #include <unistd.h>
+#include <unistd.h>
 
 int check_map(Workstation *w){
     if((int)w->coordinate.x == 23 && (int)w->coordinate.y == 47)
@@ -53,7 +53,7 @@ void frameOperation(int map_type){
 
 
 int main(){
-    // sleep(10);
+    sleep(10);
     init_items();
     read_map();
     robotPassMap();

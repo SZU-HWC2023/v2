@@ -144,6 +144,16 @@ struct vec2{
         return idx.toCenter();
     }
 
+    //返回该向量的法线向量
+    vec2 normal() const{
+        return {-y, x};
+    }
+
+    //返回到向量p的夹角(恒正)
+    float angle2(const vec2& p) const{
+        return acosf((x*p.x + y*p.y)/(len()*p.len()));
+    }
+
 };
 
 

@@ -247,7 +247,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     //路径的点的数小于等于2,不用简化，直接返回
     if(vec_points.size()<=2)return vec_points;
     //起点和终点之间没有障碍物,说明这条路径可以直接由起点和终点表示
-    if(!obstacle_in_line(vec_points[0],vec_points.back(),has_product)) return {vec_points[0],vec_points.back()};
+    if(!g_map.obstacle_in_line(vec_points[0],vec_points.back(),has_product)) return {vec_points[0],vec_points.back()};
     vector<Point*> result;
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
@@ -255,7 +255,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
             result.emplace_back(vec_points[i]);
             continue;
         }
-        if(obstacle_in_line(result.back(),vec_points[i],has_product)){
+        if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
 //            result.emplace_back(vec_points[i-2]);
 //            result.emplace_back(vec_points[i-1]);
@@ -273,7 +273,7 @@ void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Poin
    if(left > right)return;
    if(left == right)return;
    // left和right没有障碍物 
-   if(!obstacle_in_line(vec_points[left],vec_points[right],has_product)){
+   if(!g_map.obstacle_in_line(vec_points[left],vec_points[right],has_product)){
        result.emplace_back(vec_points[left]);
        return;
    }
@@ -281,107 +281,6 @@ void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Poin
    divide_conquer(result,left,mid,vec_points,has_product);
    divide_conquer(result,mid+1,right,vec_points,has_product);
 }
-/*
-判断字符矩阵的点是否相邻 上、下、左、右、左上、左下、右上、右下
- @param a 点a
- @param b 点b
- @return true 点a和点b相邻
- */
-bool is_closed(tuple<int,int> a,tuple<int,int> b){
-    int sx = get<0>(a), sy = get<1>(a);
-    int gx = get<0>(b), gy = get<1>(b);
-    if(sx == gx){
-        if(abs(sy - gy) == 1)return true;
-        return false;
-    }
-    if(sy == gy){
-        if(abs(sx - gx)==1)return true;
-        return false;
-    }
-    if(abs(sx - gx) + abs(sy - gy) == 2)return true;
-    return false;
-
-}
 
 
-//节点交换
-vector<tuple<int,int>> swap_point(tuple<int,int> a,tuple<int,int> b){
-    int sx = get<0>(a), sy = get<1>(a);
-    int gx = get<0>(b), gy = get<1>(b);
-    if(sx<=gx)return {a,b};
-    return {b,a};
-}
-/*
- 判断水平方向上是否有障碍物
- @param src_point 起点
- @param des_point 终点
- @return true 起点和终点之间有障碍物
- */
-bool row_obstacle(tuple<int,int> a,tuple<int,int> b){
-    int srow = get<0>(a), scol = get<1>(a);
-    int grow = get<0>(b), gcol = get<1>(b);
-    int left = scol<gcol ? scol:gcol;
-    int right = scol < gcol ? gcol:scol;
-    for(int j=left;j<=right;j++){
-        if(g_map[srow][j]=='#')return true;
-    }
-    return false;
-}
-/*
- 判断垂直方向上是否有障碍物
- @param src_point 起点
- @param des_point 终点
- @return true 起点和终点之间有障碍物
- */
-bool col_obstacle(tuple<int,int> a,tuple<int,int> b){
-    int srow = get<0>(a), scol = get<1>(a);
-    int grow = get<0>(b), gcol = get<1>(b);
-    int left = srow<grow ? srow:grow;
-    int right = srow < grow ? srow:grow;
-    for(int i=left;i<=right;i++){
-        if(g_map[i][scol]=='#')return true;
-    }
-    return false;
-}
-/*
-在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
-@param src_point 起点坐标
-@param des_point 终点坐标
-return true 连线有障碍物
-return false 连线没有障碍物
- */
-bool AStar::obstacle_in_line(Point* src_point,Point* des_point,bool has_product) { //
-    tuple<int,int> src = {src_point->coordinate.row,src_point->coordinate.col};
-    tuple<int,int> des = {des_point->coordinate.row,des_point->coordinate.col};
-    vector<tuple<int,int>> vec = swap_point(src,des);
-    tuple<int,int> a = vec[0];
-    tuple<int,int> b = vec[1];
-    //两个点如果邻近，说明没有障碍物
-    if(is_closed(a,b))return false;
-    int srow = get<0>(a), scol = get<1>(a);
-    int grow = get<0>(b), gcol = get<1>(b);
 
-    //水平方向看是否有障碍物
-    if(srow == grow)return row_obstacle(a,b);
-    //垂直方向看是否有障碍物
-    if(scol == gcol)return col_obstacle(a,b);
-
-    //求两个点之间的直线方程
-    float k = (gcol-scol)*1.0/(grow-srow)*1.0;
-    float bb = scol*1.0 - k*srow;
-
-    for(int db = -2; db < 3;db++){
-        for(int r = srow; r <= grow;r++){
-            int c = int(k*r+bb + db);
-            int pre_r = r - 1;
-            int pre_c = int(k*pre_r + bb +db);
-
-//            if (row_obstacle({pre_r,pre_c},{pre_r,c}) || col_obstacle({pre_r+1,pre_c},{pre_r,c}) || near_obstacle(r,c)){
-//                return true;
-//            }
-            if(g_map[r][c] == '#' || near_obstacle(r,c))return true;
-        }
-    }
-
-    return false;
-}
