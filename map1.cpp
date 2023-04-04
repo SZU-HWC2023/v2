@@ -2,7 +2,7 @@
 
 // 这个应该是去读取
 
- // 买货物（取货物）的代价   是否可以优化？？？？
+// 买货物（取货物）的代价   是否可以优化？？？？
 tuple<double, int> getTimePriceForBuy(Robot* r, Workstation *w, int frame_id){
     // 判断是否有工作站接收
     double time02 = MAX;
@@ -39,6 +39,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
     // 优先送差这一个就能接收的站台
     for(auto iter=g_item_to_ws.equal_range(item); iter.first != iter.second; ++iter.first){
         Workstation *w = iter.first->second;
+        if(g_connected_areas_c[w->coordinate]!=g_connected_areas_c[r->coordinate]) continue;
         vec2_int r_local_coor = {0,0};
         if( r->workshop_located>=0)
             r_local_coor = g_workstations[r->workshop_located]->coordinate.toIndex();
@@ -65,11 +66,11 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }
-        } 
+        }
     }
     // 下达指令 朝向最小的工作站台
     if(pq.size()>0){
-        
+
         // while循环可以类比取货物  看看能否加一些东西？？？？
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();
@@ -90,6 +91,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
     // 没有物品 要去向某个站点取物品
     for(int j = 0; j < g_workstations.size(); j++){
         Workstation* w = g_workstations[j];
+        if(g_connected_areas_uc[w->coordinate]!=g_connected_areas_uc[r->coordinate]) continue;
         if(w->can_production_sell()){
             // 当前机器人的取货代价。
             if(w->production_locked(w->production_item.type)){
