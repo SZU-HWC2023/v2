@@ -195,6 +195,7 @@ Point* Robot::getNaviPoint(Workstation* w){
             }else{
                 // 数据结构中没有路径 规划路径
                 this->allocate_path(w);
+//                fprintf(stderr,"机器人：%d 未带产品分配路径, 目的工作台：%d 类型:%d\n",this->id,w->id,w->type);
             }
         }else{ //携带产品
             if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
@@ -202,6 +203,7 @@ Point* Robot::getNaviPoint(Workstation* w){
             }else{
                 // 数据结构中没有路径 规划路径
                 this->allocate_path(w);
+//                fprintf(stderr,"机器人：%d 带产品分配路径 目的工作台：%d 类型：%d\n",this->id,w->id,w->type);
             }
         }
     }

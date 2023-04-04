@@ -88,28 +88,43 @@ bool judgeAroundObstacle(int row, int col){
     // if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
     return false;
 }
-
+// 优先队列比较函数
+struct cmp
+{
+    bool operator() (const Point* x1, const Point* x2)
+    {
+        return x1->cost + x1->current_to_goal_cost > x2->cost +x2->current_to_goal_cost;
+    }
+};
 vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_product){
+    vector<vector<bool>> vis(MAP_TRUE_SIZE,vector<bool>(MAP_TRUE_SIZE,false));
+
     Point* start_node = new Point(srow,scol,0.0, nullptr);
     Point* goal_node = new Point(grow,gcol,0.0, nullptr);
     map<tuple<int,int>,Point*> open_map;    // 存储待检测节点
     map<tuple<int,int>,Point*> closed_map;  // 存储已经检测过的节点
     open_map[getIndex(start_node)] = start_node;
+    priority_queue<Point*, vector<Point*>, cmp> que;
+    que.push(start_node);
     while(true){
         if(open_map.size()==0)break;
 
-        float cost = MAX;
-        tuple<int,int> c_id;
-        // 从待检测节点中，找到一个到目标节点代价最小的节点
-        for(auto iter = open_map.begin();iter!=open_map.end();iter++){
-            Point* p = iter->second;
-            float tmp_cost = sqrt(this->calc_heuristic(p,goal_node))+p->cost;
-            if(tmp_cost < cost){
-                cost = tmp_cost;
-                c_id = iter->first;
-            }
-        }
-        Point* current = open_map[c_id];
+//        float cost = MAX;
+//        tuple<int,int> c_id;
+//        // 从待检测节点中，找到一个到目标节点代价最小的节点
+//        for(auto iter = open_map.begin();iter!=open_map.end();iter++){
+//            Point* p = iter->second;
+//            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
+//            if(tmp_cost < cost){
+//                cost = tmp_cost;
+//                c_id = iter->first;
+//            }
+//        }
+        Point* current = que.top();
+        que.pop();
+//        Point* current = open_map[c_id];
+        tuple<int,int> c_id = getIndex(current);
+//        vis[get<0>(c_id)][get<1>(c_id)] = true;
         // 已经找到目标节点，退出循环
         if(current->coordinate.col == goal_node->coordinate.col && current->coordinate.row == goal_node->coordinate.row){
             goal_node->cost = current->cost;
@@ -124,10 +139,14 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
             if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=4; //这里不要改成*1
             Point* point = new Point(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
+
             if(!verify(current,point,has_product))continue;
+//            if(vis[get<0>(p_id)][get<1>(p_id)])continue;
             if(closed_map.find(p_id)!=closed_map.end())continue;
+            point->current_to_goal_cost = this->calc_heuristic(point,goal_node);
             if(open_map.find(p_id)==open_map.end()){
                 open_map[p_id] = point;
+                que.push(point);
             }else{
                 if(open_map[p_id]->cost > point->cost){
                     open_map[p_id] = point;
@@ -152,8 +171,8 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     reverse(result.begin(),result.end());
 
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-    return simplified_path;
-    // return result;
+//    return simplified_path;
+     return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
@@ -180,7 +199,7 @@ tuple<int,int> AStar::getIndex(Point* p){
 float AStar::calc_heuristic(Point* a, Point *b){
     float row = a->coordinate.row - b->coordinate.row;
     float col = a->coordinate.col - b->coordinate.col;
-    return sqrt(row*row + col*col);
+    return abs(row) + abs(col);
 }
 //机器人移动的方向
 vector<tuple<int,int, float >> AStar::get_motion_model(){
@@ -189,10 +208,10 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
             {0, 1,  1.0},
             {-1, 0, 1.0},
             {0, -1, 1.0},
-            // {-1, -1,sqrt(2.0)},
-            // {-1, 1,sqrt(2.0)},
-            // {1, -1,sqrt(2.0)},
-            // {1, 1,sqrt(2.0)},
+            {-1, -1,2}, //斜着走代价大一点，可修改
+            {-1, 1,2},
+            {1, -1,2},
+            {1, 1,2},
             // // 16邻域
             // {2, -1, sqrt(5.0)},
             // {2, 1, sqrt(5.0)},

@@ -2,7 +2,7 @@
 
 // 这个应该是去读取
 
- // 买货物（取货物）的代价   是否可以优化？？？？
+// 买货物（取货物）的代价   是否可以优化？？？？
 tuple<double, int> getTimePriceForBuy(Robot* r, Workstation *w, int frame_id){
     // 判断是否有工作站接收
     double time02 = MAX;
@@ -66,11 +66,11 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }
-        } 
+        }
     }
     // 下达指令 朝向最小的工作站台
     if(pq.size()>0){
-        
+
         // while循环可以类比取货物  看看能否加一些东西？？？？
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();
