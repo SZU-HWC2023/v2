@@ -53,7 +53,7 @@ void frameOperation(int map_type){
 
 
 int main(){
-    sleep(10);
+//    sleep(10);
     init_items();
     read_map();
     robotPassMap();
