@@ -116,6 +116,7 @@ class Workstation{
     Item production_item;   //生产物品信息
     int raw_status_code;      //原材料状态码    每一帧实时变化
     bitset<ITEMS_NUM> accept_items; //接受物品类型    常量
+    bool ban;               // 是否被ban
 
     // 实时更行的量
     set<int> need;            // 还需要物品的类型
@@ -164,7 +165,7 @@ class Robot{
     float crt_mass;         //当前质量 (kg)
     float crt_lin_acc;      //当前线加速度 (m/s^2)
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
-
+    bool ban;               // 是否被ban
     // 需要维护的量
     tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
@@ -191,7 +192,9 @@ class Robot{
     void allocate_path(Workstation* w);
     void initPath(vector<Point*> path);
     Point* getNaviPoint(Workstation* ws);     
-    void avoidPointsAdd();         
+    void avoidPointsAdd(Point*p);   
+    vec2 judgeWallDirection(Point *point);     
+    void addPathPoint(vector<Point*> result); 
     // 维护操作
     void resetAction();                     
     const tuple<int, int> getAction();

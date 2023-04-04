@@ -43,11 +43,12 @@ void init_points(){
     g_astar = new AStar();
     // g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
-        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0) {
+        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0 || g_workstations[i]->ban) {
             continue;}
         for(int j = i+1; j < g_workstations.size();j++){
-            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0) {
+            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0 || g_workstations[i]->ban) {
                 continue;}
+            if(g_workstations[j]->type <= 3 && g_workstations[j]->type <= 3) continue;
             Workstation* src_workstation = g_workstations[i];
             Workstation* des_workstation = g_workstations[j];
             vec2_int src = src_workstation->coordinate.toIndex();
@@ -171,8 +172,8 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*
     reverse(result.begin(),result.end());
 
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-//    return simplified_path;
-     return result;
+    return simplified_path;
+    //  return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
@@ -270,13 +271,17 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
         if(g_map[vec_points[i]->coordinate]=='@'){
+            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
+            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
+            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
             result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
+            
         }
     }
     result.emplace_back(vec_points.back());

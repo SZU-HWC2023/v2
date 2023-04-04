@@ -57,7 +57,15 @@ void deleteRed(){
         if(w->type >= 4)  worker_exit_areas.insert(g_connected_areas_uc[w->coordinate]);
     }
     for(auto iter = g_robots.begin(); iter < g_robots.end(); iter++){
-        if(worker_exit_areas.count(g_connected_areas_uc[(*iter)->coordinate]) <= 0) g_robots.erase(iter);
+        if(worker_exit_areas.count(g_connected_areas_uc[(*iter)->coordinate]) <= 0) (*iter)->ban = true;
+    }
+    // ban多余的工作台
+    set<int> robot_exit_area;
+    for(int i = 0; i < 4;i++){
+        robot_exit_area.insert(g_connected_areas_c[g_robots[i]->coordinate]);
+    }
+    for (auto iter = g_workstations.begin(); iter < g_workstations.end(); iter++) {
+        if(robot_exit_area.count(g_connected_areas_c[(*iter)->coordinate]) <= 0) (*iter)->ban = true;
     }
 }
 

@@ -169,7 +169,7 @@ Workstation::Workstation(int workstationID,int type, float x, float y){
     this->type = type;
     this->production_item = g_items[type];
     this->accept_items = g_ws_requirement[type];
-    
+    this->ban = false;
 
 }
 
