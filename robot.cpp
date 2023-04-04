@@ -153,9 +153,6 @@ void Robot::allocate_path(Workstation* w){
     // 初始化路径
     initPath(result);
 }
-void BFS_avoid_wall(){
-
-}
 void BFS_avoid_robot(){
 
 }
@@ -164,6 +161,7 @@ bool judge_need_avoid(Robot *r1, Robot* r2){
     float dis = calcDistance(r1->coordinate, r2->coordinate);
     // float angle_diff = 
     // if()
+    
 }
 void Robot::avoidPointsAdd(){
     // 先判断有没有撞墙
@@ -215,7 +213,7 @@ Point* Robot::getNaviPoint(Workstation* w){
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
     // 没到工作台且到了导航点附近 index++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*2){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius){
         iter++;
         p = *iter;
     }

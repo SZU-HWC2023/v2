@@ -85,7 +85,7 @@ void init_points(){
 }
 bool judgeAroundObstacle(int row, int col){
     if(g_map[row+1][col] == '#' || g_map[row][col+1] == '#' || g_map[row-1][col] == '#' || g_map[row][col-1] == '#') return true;
-    if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
+    // if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
     return false;
 }
 
@@ -103,7 +103,7 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
         // 从待检测节点中，找到一个到目标节点代价最小的节点
         for(auto iter = open_map.begin();iter!=open_map.end();iter++){
             Point* p = iter->second;
-            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
+            float tmp_cost = sqrt(this->calc_heuristic(p,goal_node))+p->cost;
             if(tmp_cost < cost){
                 cost = tmp_cost;
                 c_id = iter->first;
@@ -133,7 +133,6 @@ vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_pro
                     open_map[p_id] = point;
                 }
             }
-
         }
     }
     //回溯路径
@@ -190,10 +189,10 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
             {0, 1,  1.0},
             {-1, 0, 1.0},
             {0, -1, 1.0},
-            {-1, -1,sqrt(2.0)},
-            {-1, 1,sqrt(2.0)},
-            {1, -1,sqrt(2.0)},
-            {1, 1,sqrt(2.0)},
+            // {-1, -1,sqrt(2.0)},
+            // {-1, 1,sqrt(2.0)},
+            // {1, -1,sqrt(2.0)},
+            // {1, 1,sqrt(2.0)},
             // // 16邻域
             // {2, -1, sqrt(5.0)},
             // {2, 1, sqrt(5.0)},
@@ -266,6 +265,7 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
+            result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
         }
     }
