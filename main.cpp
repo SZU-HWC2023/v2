@@ -50,6 +50,7 @@ void frameOperation(int map_type){
         process(map4);
     }
 }
+// 多余去除
 void deleteRed(){
     // ban掉多余的机器人
     set<int> worker_exit_areas;
@@ -68,7 +69,29 @@ void deleteRed(){
         if(robot_exit_area.count(g_connected_areas_c[(*iter)->coordinate]) <= 0) (*iter)->ban = true;
     }
 }
-
+bool judgeWOrR(int row, int col){
+    if(g_map[row][col]=='A'||(g_map[row][col]>='0'&&g_map[row][col]<='9') || g_map[row][col]=='@') return true;
+    return false;
+}
+bool judgeObs(int row, int col){
+    if(row<0||col<0||row>=MAP_TRUE_SIZE||col>=MAP_TRUE_SIZE) return false;
+    return true;
+}
+// 地图膨胀
+void expandMap(){
+    for(int row = MAP_TRUE_SIZE-1; row >= 0; row--){
+        for(int col = 0; col < MAP_TRUE_SIZE-1; col++){
+            if(g_map[row][col] == '#'){
+                // 左上
+                if(!(judgeWOrR(row+1, col)||judgeWOrR(row+1, col-1)||judgeWOrR(row, col-1))){
+                    if(judgeObs(row+1, col)) g_map.map[row+1][col] = '#';
+                    if(judgeObs(row, col-1)) g_map.map[row][col-1] = '#';
+                    if(judgeObs(row+1, col-1)) g_map.map[row+1][col-1] = '#';
+                }
+            }
+        }
+    }
+}
 int main(){
 //    sleep(10);
     init_items();
@@ -76,6 +99,7 @@ int main(){
     robotPassMap();
     findConnectedAreas();
     deleteRed();
+    expandMap();
     init_points();
     int map_type = check_map(g_workstations[0]);
 

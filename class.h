@@ -266,7 +266,7 @@ class RawMap:public Map<char>{
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
-    bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product);
+    bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist=-1);
     bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
 
@@ -294,11 +294,14 @@ float calc_distance_path(vector<Point*> &vec_paths);
 class AStar{
 public:
     vector<tuple<int,int,float>> motion;
+    array<array<bool,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> vis;
+    array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> open_map; // 存储待检测节点
+    array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> closed_map; // 存储已经检测过的节点
     AStar(){
         this->motion = this->get_motion_model();
     }
     vector<Point*> planning(int srow,int scol,int grow,int gcol,bool has_product);
-    vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map,bool has_product);
+    vector<Point*> calc_final_path(Point* goal_node,bool has_product);
     vector<Point *> simplify_path(vector<Point*> &vec_points,bool has_product);
     //判断下标是否合法
     bool verify(Point * from,Point* p,bool has_product);
@@ -332,6 +335,9 @@ public:
 //     vector<tuple<int,int, float >> get_motion_model();
 
 // };
+bool judgeAroundObstacle(int row, int col);
+vector<Point*> double_planning(int sx,int sy,int gx,int gy,bool has_product);
+
 /*
 根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
 @param i 字符矩阵的第i行，从上往下数
@@ -353,7 +359,6 @@ void test_astar(vector<Point*> &result);
 bool read_map();
 bool readUntilOK();
 
-void test_astar();
 
 //线速度-角速度对
 struct VW{

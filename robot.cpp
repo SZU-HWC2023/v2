@@ -245,7 +245,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 vec2 Robot::judgeWallDirection(Point *point){
     vec2_int coor = point->coordinate;
     vec2 res = coor.toCenter();
-    float bias = 0.5;
+    float bias = -1;
     // 上边是墙
     // if(g_map[point->coordinate.row+1][point->coordinate.col]){
     //     res.y -= bias;

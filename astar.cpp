@@ -41,7 +41,7 @@ float calc_distance_path(vector<Point*> &vec_paths){
 void init_points(){
     // 初始化A*算法相关的类
     g_astar = new AStar();
-    // g_directionAstar = new DoubleDirectionAstar();
+//     g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
         if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0 || g_workstations[i]->ban) {
             continue;}
@@ -98,74 +98,73 @@ struct cmp
     }
 };
 vector<Point*> AStar::planning(int srow,int scol,int grow,int gcol, bool has_product){
-    vector<vector<bool>> vis(MAP_TRUE_SIZE,vector<bool>(MAP_TRUE_SIZE,false));
 
+    vis.fill({false});
+    open_map.fill({nullptr});
+    closed_map.fill({nullptr});
     Point* start_node = new Point(srow,scol,0.0, nullptr);
     Point* goal_node = new Point(grow,gcol,0.0, nullptr);
-    map<tuple<int,int>,Point*> open_map;    // 存储待检测节点
-    map<tuple<int,int>,Point*> closed_map;  // 存储已经检测过的节点
-    open_map[getIndex(start_node)] = start_node;
+    open_map[srow][scol] = start_node;
+    int open_map_size = 1;
+
     priority_queue<Point*, vector<Point*>, cmp> que;
     que.push(start_node);
     while(true){
-        if(open_map.size()==0)break;
+          if(open_map_size==0) break;
 
-//        float cost = MAX;
-//        tuple<int,int> c_id;
-//        // 从待检测节点中，找到一个到目标节点代价最小的节点
-//        for(auto iter = open_map.begin();iter!=open_map.end();iter++){
-//            Point* p = iter->second;
-//            float tmp_cost = this->calc_heuristic(p,goal_node)+p->cost;
-//            if(tmp_cost < cost){
-//                cost = tmp_cost;
-//                c_id = iter->first;
-//            }
-//        }
         Point* current = que.top();
         que.pop();
-//        Point* current = open_map[c_id];
         tuple<int,int> c_id = getIndex(current);
-//        vis[get<0>(c_id)][get<1>(c_id)] = true;
+        int cx  = get<0>(c_id);
+        int cy = get<1>(c_id);
+        vis[cx][cy] = true;
         // 已经找到目标节点，退出循环
-        if(current->coordinate.col == goal_node->coordinate.col && current->coordinate.row == goal_node->coordinate.row){
+        if(current->coordinate == goal_node->coordinate){
             goal_node->cost = current->cost;
             goal_node->parent_node = current->parent_node;
             break;
         }
-        open_map.erase(c_id);   //将已经访问过的节点从开放列表移除
-        closed_map[c_id] = current;
+        open_map[cx][cy] = nullptr;
+        open_map_size --;
+        closed_map[cx][cy] = current;
         //从当前节点往各个方向探索
         for(tuple<int,int, float> mot:this->motion){
             float baseCost = get<2>(mot);
             if(judgeAroundObstacle(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot)))baseCost *=4; //这里不要改成*1
             Point* point = new Point(current->coordinate.row + get<0>(mot),current->coordinate.col + get<1>(mot),current->cost+baseCost,current);
             tuple<int,int> p_id = getIndex(point);
-
+            int px = get<0>(p_id);
+            int py = get<1>(p_id);
             if(!verify(current,point,has_product))continue;
-//            if(vis[get<0>(p_id)][get<1>(p_id)])continue;
-            if(closed_map.find(p_id)!=closed_map.end())continue;
+            if(vis[px][py])continue;
+            if(closed_map[px][py]!= nullptr)continue;
             point->current_to_goal_cost = this->calc_heuristic(point,goal_node);
-            if(open_map.find(p_id)==open_map.end()){
-                open_map[p_id] = point;
+
+            if(open_map[px][py] == nullptr){
+                open_map[px][py] = point;
                 que.push(point);
+                open_map_size ++;
             }else{
-                if(open_map[p_id]->cost > point->cost){
-                    open_map[p_id] = point;
+                if(open_map[px][py]->cost > point->cost){
+                    open_map[px][py] = point;
                 }
             }
         }
     }
     //回溯路径
-    return this->calc_final_path(goal_node,closed_map,has_product);
+    return this->calc_final_path(goal_node,has_product);
 
 }
-vector<Point*> AStar::calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map,bool has_product){
+vector<Point*> AStar::calc_final_path(Point* goal_node,bool has_product){
     if(goal_node->parent_node== nullptr)return {};
     vector<Point*> result;
     result.emplace_back(goal_node);
     Point* parent = goal_node->parent_node;
     while(parent!=nullptr){
-        Point* p = closed_map[getIndex(parent)];
+        tuple<int,int> tIndex = getIndex(parent);
+        int px = get<0>(tIndex);
+        int py = get<1>(tIndex);
+        Point* p = closed_map[px][py];
         result.emplace_back(p);
         parent = p->parent_node;
     }
@@ -272,17 +271,15 @@ vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product
     result.emplace_back(vec_points[0]);
     for(int i=1;i<vec_points.size()-1;i++){
         if(g_map[vec_points[i]->coordinate]=='@'){
-            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
             result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
             continue;
         }
         if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
             // 上一个没有障碍物 这一个就有障碍物了 选上一个
-            if(i - 2 >= 0) result.emplace_back(vec_points[i-2]);
             result.emplace_back(vec_points[i-1]);
             result.emplace_back(vec_points[i]);
-            
+
         }
     }
     result.emplace_back(vec_points.back());

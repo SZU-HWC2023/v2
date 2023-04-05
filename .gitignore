@@ -9,4 +9,5 @@ code
 *.data
 *.svg
 *.old
-FlameGraph
+FlameGraph/
+run.sh

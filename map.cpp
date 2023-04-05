@@ -12,7 +12,6 @@ RawMap::RawMap(){
 @return true 为位于障碍物内
 @return false 为不位于障碍物内
 */
-
 bool RawMap::isObstacle(vec2 pos){
     vec2_int pos_idx = pos.toIndex();
     return this->isObstacle(pos_idx);
@@ -24,7 +23,6 @@ bool RawMap::isObstacle(vec2 pos){
 @return true 为位于障碍物内
 @return false 为不位于障碍物内
 */
-
 bool RawMap::isObstacle(vec2_int pos_idx){
     return this->operator[](pos_idx) == '#';
 }
@@ -61,13 +59,12 @@ float minDist2Obstacle(vec2 pos, vec2_int obstacle){
 
 vec2_int directions[] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
 
-
 float RawMap::dist2Obstacle(vec2 pos){
     vec2_int start_idx = pos.toIndex();
     vec2_int p = start_idx;
     int dir = 0, steps = 1, step = steps, turns = 0;
     // perform spiral search from center to chebyshevdist 2 
-    while(p.chebyshevDist(start_idx) <=2){
+    while(p.chebyshevDist(start_idx) <=4){
         if(this->isObstacle(p))
             return minDist2Obstacle(pos, p);
         p += directions[dir];
@@ -86,16 +83,16 @@ float RawMap::dist2Obstacle(vec2 pos){
 }
 
 
-
-
 /*
 在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
 @param src_point 起点坐标
 @param des_point 终点坐标
+@param has_product 是否有携带物品
+@param max_dist 最大距离，如果为负数则为到终点的距离
 return true 连线有障碍物
 return false 连线没有障碍物
  */
-bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product) { 
+bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist) { 
     //两个点如果邻近，说明没有障碍物
     if(src_point.chebyshevDist(des_point) == 1)return false;
 
@@ -105,7 +102,7 @@ bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_pro
     //方向向量
     vec2 direction = des_point.toCenter() - src_point.toCenter();
     //长度
-    float len = direction.len();
+    float len = max_dist<0?direction.len():max_dist;
     //单位化
     direction = direction / direction.len();
     //步长向量
