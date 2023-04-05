@@ -171,18 +171,18 @@ bool Robot::judge_need_avoid(Robot* r2){
     // 4. 没带货物的优先避让带货物的
     vec2_int r1_coor = this->coordinate.toIndex();
     vec2_int r2_coor = r2->coordinate.toIndex();
-    if(r2->path->iter == r2->path->points.end()) cerr<<111<<endl;
+    if(this->path->points.size() == 0 || r2->path->points.size() == 0) return false;    // 为空则未分配路径 不需要避让
     vec2_int r1_nxt_point = (*(this->path->iter))->coordinate;
     vec2_int r2_nxt_point = (*(r2->path->iter))->coordinate;
-    // float dis = calcDistance(coordinate, r2->coordinate);
-    // float heading_r1 = calcHeading(r1_coor.toCenter(), r1_nxt_point.toCenter());
-    // float heading_r2 = calcHeading(r2_coor.toCenter(), r2_nxt_point.toCenter());
-    // float heading_diff = abs(heading_r1-heading_r2);
+    float dis = calcDistance(coordinate, r2->coordinate);
+    float heading_r1 = calcHeading(r1_coor.toCenter(), r1_nxt_point.toCenter());
+    float heading_r2 = calcHeading(r2_coor.toCenter(), r2_nxt_point.toCenter());
+    float heading_diff = abs(heading_r1-heading_r2);
     // 判断
-    // if(judgeInterOrPara(r1_coor, r1_nxt_point, r2_coor, r2_nxt_point)){
-    //     cerr<<111<<endl;
-    // }
-    return true;
+    if(heading_diff>3*M_PI/4&&judgeInterOrPara(r1_coor, r1_nxt_point, r2_coor, r2_nxt_point)){
+        return true;
+    }
+    return false;
 }
 void Robot::addPathPoint(vector<Point*> result){
     path->points.erase(path->iter++);
@@ -202,11 +202,12 @@ void Robot::avoidPointsAdd(Point *p){
         addPathPoint(result);
     }
     // 再判断是否存在机器人走独木桥的情况
+
     for(Robot* o_r:this->other_robots){
         if(o_r->ban) continue;
         // 判断是否会出现走独木桥的情况
         if(judge_need_avoid(o_r)){
-
+            
         }
     }
 }

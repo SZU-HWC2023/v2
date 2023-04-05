@@ -286,9 +286,6 @@ public:
     tuple<int,int> getIndex(Point* p);
     float calc_heuristic(Point* a, Point *b);
     vector<tuple<int,int, float >> get_motion_model();
-
-    bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product); //在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
-
     void divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product);
 
 };
