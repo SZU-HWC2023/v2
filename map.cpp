@@ -84,6 +84,51 @@ float RawMap::dist2Obstacle(vec2 pos){
 
 
 /*
+检测src到des的直线上是否有障碍物
+@param src 起点坐标
+@param heading 朝向
+@param radius 搜索直线半径
+@param max_dist 最大距离
+@return -1 为没有障碍物
+@return 其他值为距离起点的距离
+*/
+float RawMap::dist2ObstacleAhead(vec2 src, float heading, float radius, float max_dist){
+    //遍历步长
+    float step = 0.5;
+
+    //方向向量
+    vec2 direction = fromPolar(1,heading);
+    //长度
+    float len = max_dist;
+    //步长向量
+    vec2 step_vec = direction * step;
+    //法线向量
+    vec2 normal = direction.normal();
+    //起点中心点
+    vec2 src_center = src + direction * radius;
+    //起点左侧偏移机器人半径点
+    vec2 src_left = src + normal * radius;
+    //起点右侧偏移机器人半径点
+    vec2 src_right = src - normal * radius; 
+
+    for(float l=0;l<len;l+=step){
+        //分别判断各个点是否有障碍物
+        if(this->isObstacle(src_center))
+            return l;
+        if(this->isObstacle(src_left))
+            return l;
+        if(this->isObstacle(src_right))
+            return l;
+        //更新点
+        src_center += step_vec;
+        src_left += step_vec;
+        src_right += step_vec;
+    }
+    return -1;
+}
+
+
+/*
 在100*100的字符矩阵中，给出起点和终点，判断连线是否有障碍物
 @param src_point 起点坐标
 @param des_point 终点坐标
@@ -96,43 +141,19 @@ bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_pro
     //两个点如果邻近，说明没有障碍物
     if(src_point.chebyshevDist(des_point) == 1)return false;
 
-    //遍历步长
-    float step = 0.5;
+    vec2 src = src_point.toCenter(), des = des_point.toCenter();
 
-    //方向向量
-    vec2 direction = des_point.toCenter() - src_point.toCenter();
-    //长度
-    float len = max_dist<0?direction.len():max_dist;
-    //单位化
-    direction = direction / direction.len();
-    //步长向量
-    vec2 step_vec = direction * step;
-    //法线向量
-    vec2 normal = direction.normal();
-    //机器人半径
-    float radius = has_product?ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
-    //起点中心点
-    vec2 src_center = src_point.toCenter();
-    //起点左侧偏移机器人半径点
-    vec2 src_left = src_center + normal * radius;
-    //起点右侧偏移机器人半径点
-    vec2 src_right = src_center - normal * radius; 
+    float heading = calcHeading(src, des);
 
-    for(float l=0;l<len;l+=step){
-        //分别判断各个点是否有障碍物
-        if(this->isObstacle(src_center))
-            return true;
-        if(this->isObstacle(src_left))
-            return true;
-        if(this->isObstacle(src_right))
-            return true;
-        //更新点
-        src_center += step_vec;
-        src_left += step_vec;
-        src_right += step_vec;
+    if (max_dist < 0) {
+        max_dist = calcDistance(src, des);
     }
 
-    return false;
+    float radius = has_product?ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
+
+    float obs_dist = this->dist2ObstacleAhead(src, heading, radius, max_dist);
+
+    return obs_dist >= 0;
 }
 
 bool RawMap::obstacle_in_line(Point* src_point,Point* des_point,bool has_product){
