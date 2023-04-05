@@ -29,7 +29,10 @@ class RVO;
 class AStar;
 class DoubleDirectionAstar;
 
-
+struct VW;
+struct DW;
+struct DWA_state;
+class DWA;
 
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
@@ -48,6 +51,8 @@ extern map<int,Item> g_items;                       //物品类型->物品信息
 extern vector<Workstation*> g_workstations;          //工作台列表           全局变量
 extern vector<Robot*> g_robots;                      //机器人列表            全局变量
 
+
+
 // 工作台需要的原材料材料
 const set<int> WORKERSTATION_TO_RECYCLE[10] = {
         {},                   // 工作台0不回收
@@ -62,6 +67,10 @@ const set<int> WORKERSTATION_TO_RECYCLE[10] = {
         {1, 2, 3, 4, 5, 6, 7} // 工作台9回收1-7
 };
 
+
+
+
+//实现于 items.cpp
 //物品
 struct Item{
     int type;                   //物品类型
@@ -103,8 +112,12 @@ struct robot_frame{
     float y;                //坐标y
 };
 
+// 实现于io.cpp
+//读地图和读帧的相关函数
+bool read_map();
+bool readUntilOK();
 
-
+// 实现于workstation.cpp
 //工作台
 class Workstation{
     public:
@@ -147,10 +160,13 @@ class Workstation{
     double getProfit();
 };
 
+
 struct Path{
     list<Point*> points;
     list<Point*>::iterator iter;
 };
+
+// 实现于robot.cpp
 //机器人
 class Robot{
     public:
@@ -172,6 +188,9 @@ class Robot{
     Path* path = new Path();        // 路径规划
 
     vector<Robot*> other_robots;    //其他机器人列表
+
+    vector<DWA_state> trajectory;   //轨迹
+    DWA* dwa;                       //DWA指针
 
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
@@ -206,6 +225,7 @@ class Robot{
 };
 
 //实现于map.cpp
+
 //地图相关类，适用于任何类似地图的数据结构
 template <typename T>
 class Map{
@@ -242,6 +262,7 @@ class RawMap:public Map<char>{
     public:
     RawMap();
 
+
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
@@ -249,6 +270,9 @@ class RawMap:public Map<char>{
     bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
 
+
+
+// 实现于astar.cpp
 typedef struct Point{
     vec2_int coordinate; // 坐标
     float cost; //记录从源节点到当前节点的代价
@@ -263,15 +287,16 @@ typedef struct Point{
 }Point;
 
 
+
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths);
+
 class AStar{
 public:
     vector<tuple<int,int,float>> motion;
     array<array<bool,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> vis;
     array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> open_map; // 存储待检测节点
     array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> closed_map; // 存储已经检测过的节点
-
     AStar(){
         this->motion = this->get_motion_model();
     }
@@ -291,26 +316,28 @@ public:
 };
 
 
+
 // class DoubleDirectionAstar{
 // public:
 //     vector<tuple<int,int, float >> motion;
 //     DoubleDirectionAstar(){
 //         this->motion = this->get_motion_model();
 //     }
-//     vector<Point*> planning(int sx,int sy,int gx,int gy,bool has_product);
+//     vector<Point*> planning(int sx,int sy,int gx,int gy);
 //     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
 //     vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
 //     vector<Point *> simplify_path(vector<Point*> &vec_points);
 //     //判断下标是否合法
-//     bool verify(Point * from,Point* p, bool has_product);
+//     bool verify(Point * from,Point* p);
 //     tuple<int,int> getIndex(Point* p);
 //     float calc_heuristic(Point* a, Point *b);
 //     float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
 //     vector<tuple<int,int, float >> get_motion_model();
-//
+
 // };
 bool judgeAroundObstacle(int row, int col);
 vector<Point*> double_planning(int sx,int sy,int gx,int gy,bool has_product);
+
 /*
 根据字符矩阵的坐标，计算实际的坐标, 地图的左上角为(0,0),地图的右下角为（99，0）
 @param i 字符矩阵的第i行，从上往下数
@@ -331,3 +358,98 @@ void test_astar(vector<Point*> &result);
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();
+
+
+//线速度-角速度对
+struct VW{
+    float v;   
+    float w;
+};
+
+struct DW{
+    float v_min;
+    float v_max;
+    float ang_v_min;
+    float ang_v_max;
+
+    float v_step(int v_samples){
+        return (v_max - v_min) / v_samples;
+    }
+
+    float ang_v_step(int ang_v_samples){
+        return (ang_v_max - ang_v_min) / ang_v_samples;
+    }
+};
+
+struct DWA_state{
+    vec2 pos; //位置 m [0,1]
+    float heading; //航向角 rad [2]
+    vec2 linSpd; //线速度 m/s .len()->[3]
+    float angSpd; //角速度 rad/s [4]
+    Robot* robot;   //指向机器人
+
+    DWA_state(Robot* robot){
+        this->pos = robot->coordinate;
+        this->heading = robot->heading;
+        this->linSpd = robot->linear_speed;
+        this->angSpd = robot->angular_speed;
+        this->robot = robot;
+    };
+
+    DW calcDW(float dt = FRAME_INTERVAL){
+        DW vs = {0, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
+        float linAcc = this->robot->crt_lin_acc, angAcc = this->robot->crt_ang_acc;
+        DW vd = {this->linSpd.len() - linAcc * dt,
+                 this->linSpd.len() + linAcc * dt,
+                 this->angSpd - angAcc * dt,
+                 this->angSpd + angAcc * dt};
+
+        return {max(vs.v_min, vd.v_min), min(vs.v_max, vd.v_max),
+                max(vs.ang_v_min, vd.ang_v_min), min(vs.ang_v_max, vd.ang_v_max)};
+    }
+
+    void move_dt(VW vw, float dt){
+        this->heading += vw.w * dt;
+        this->heading = clampHDG(this->heading);
+        vec2 delta_pos = {cos(this->heading) * vw.v * dt, sin(this->heading) * vw.v * dt};
+        this->pos += delta_pos;
+        this->linSpd = {vw.v * cos(this->heading), vw.v * sin(this->heading)};
+        this->angSpd = vw.w;
+    }
+
+    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL){
+        vector<DWA_state> trajectory;
+        trajectory.push_back(*this);
+        for(float t = dt; t < pred_t; t += dt){
+            this->move_dt(vw,dt);
+            trajectory.push_back(*this);
+        }
+        return trajectory;
+    }
+};
+
+class DWA{
+    public:
+    Robot* robot;
+    
+    static constexpr float alpha = 10;
+    static constexpr float beta = 10;
+    static constexpr float gamma = 6;
+    static constexpr float pred_t = PRED_T;
+    // static constexpr float ang_spd_intv = 0.05;
+    // static constexpr float lin_spd_intv = 0.1;
+    static constexpr float v_samples = 10;
+    static constexpr float ang_v_samples = 30;
+
+    DWA(Robot* robot);
+
+    float tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos);
+    float obs_cost(vector<DWA_state> trajectory);
+    float vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos);
+
+    float calc_cost(VW vw, vec2 tgt_pos, bool log=false);
+
+    VW find_vw(vec2 tgt_pos);
+};
+
+

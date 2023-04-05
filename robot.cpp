@@ -11,10 +11,12 @@
 Robot::Robot(int robotID, float x, float y){
     this->id = robotID;
     this->coordinate = {x, y};
-    this->path->points.clear();
-    // 初始化机器人列表
+        // 初始化机器人列表
     this->initOtherRobot();
     this->ban = false;
+    this->path->points.clear();
+    this->trajectory.clear();
+    this->dwa = new DWA(this);
 }
 /*
 更新机器人帧状态
@@ -33,7 +35,10 @@ void Robot::update(robot_frame f){
     this->crt_mass = M_PI * powf(this->crt_radius,2) * ROBOT_DENSITY;
 
     this->crt_lin_acc = MAX_TRACTION / this->crt_mass;
-    this->crt_lin_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+    this->crt_ang_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+
+    DWA_state s(this);
+    this->trajectory = s.calcTrajectory({this->linear_speed.len(), this->angular_speed},PRED_T);
 }
 
 //初始化其他机器人列表
@@ -285,6 +290,12 @@ void Robot::move2ws(Workstation* ws){
     if(p== nullptr)return;  //这行别删了
     vec2 v = judgeWallDirection(p);
     vec2 tgt_pos = v;  //目标位置
+    VW desire = this->dwa->find_vw(p->coordinate.toCenter());
+
+    this->forward(desire.v);
+    this->rotate(desire.w);
+
+    return;
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
@@ -308,21 +319,22 @@ void Robot::move2ws(Workstation* ws){
         }
     }
     
-     if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
-         tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
+//      if(abs(abs(delta_hdg) - M_PI/2) < 0.1)
+//          tgt_lin_spd = this->linear_speed.len()/sqrtf(1.2);
     
-//    //刹车距离 ----判断刹车
-//    float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
-//    brake_dist += 2*this->crt_radius + 0.05;
-//    if(!isAble2Brake(brake_dist))
-//        tgt_lin_spd = 0;
-//    tgt_lin_spd = 1;
-//    tgt_ang_spd = 0;
+// //    //刹车距离 ----判断刹车
+// //    float brake_dist = powf(this->linear_speed.len(), 2) / (2 * this->crt_lin_acc);
+// //    brake_dist += 2*this->crt_radius + 0.05;
+// //    if(!isAble2Brake(brake_dist))
+// //        tgt_lin_spd = 0;
+// //    tgt_lin_spd = 1;
+// //    tgt_ang_spd = 0;
 
-    this->forward(tgt_lin_spd);
-    this->rotate(tgt_ang_spd);
+    // this->forward(tgt_lin_spd);
+    // this->rotate(tgt_ang_spd);
 
 }
+
 /*对机器人的动作进行重置*/
 void Robot::resetAction(){
     this->action = {-1,-1};

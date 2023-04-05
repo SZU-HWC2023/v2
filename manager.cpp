@@ -16,7 +16,7 @@ Manager::Manager(){
     historyFillMap[{5, 3}] = 0;
     historyFillMap[{6, 2}] = 0;
     historyFillMap[{6, 3}] = 0;
-}
+};
 int Manager::getMinimumFromMap(map<tuple<int, int>, int> dict){
     int res = MAX;
     if(dict.size() == 0) return -1;

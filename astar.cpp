@@ -174,6 +174,7 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,bool has_product){
     return simplified_path;
     //  return result;
 }
+
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
     //下标超出地图

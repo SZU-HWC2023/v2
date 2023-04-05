@@ -6,8 +6,8 @@ cmake-build-debug
 code
 .idea
 *.zip
-*.svg
 *.data
+*.svg
 *.old
 FlameGraph/
 run.sh

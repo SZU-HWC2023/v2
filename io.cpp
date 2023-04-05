@@ -4,7 +4,9 @@ vector<Workstation*> g_workstations;          //工作台列表
 vector<Robot*> g_robots;
 multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
+
 RawMap g_map;    //原始地图
+
 
 #include <cstring>
 using namespace std;
@@ -12,6 +14,7 @@ using namespace std;
 初始化：选手程序初始化时，将输入 100 行*100 列的字符组成的地图数据,然后紧接着一行 OK。
  * */
 bool read_map(){
+
     //读取地图
     char line[1024];
     int current_workstation_id = 0;
@@ -24,7 +27,9 @@ bool read_map(){
         //do something
         line[strlen(line)-1] = '\0';
         for(int col=0;col < strlen(line);col++){
+
             g_map.map[row][col] = line[col];
+
             if (line[col] == '.')continue;
             float y = (row+1)*0.5-0.25;
             float x = (col+1)*0.5-0.25;
@@ -51,6 +56,11 @@ bool read_map(){
         }
         row--;
     }
+
+    for(auto r:g_robots){
+        r->initOtherRobot();
+    }
+
     return false;
 }
 /*

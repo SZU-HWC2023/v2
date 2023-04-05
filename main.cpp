@@ -107,4 +107,5 @@ int main(){
     fflush(stdout);
     frameOperation(map_type);
     return 0;
+
 }
