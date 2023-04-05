@@ -117,3 +117,29 @@ vec2_int toQuadrant(vec2 pos, vec2 center){
     vec2_int quadrant = {sign(pos.x-center.x), sign(pos.y-center.y)};
     return quadrant;
 }
+/*
+ * 判断线段AB 与线段CD是否会相交
+ * @param point_A 点A
+ * @param point_B 点B
+ * @param point_C 点C
+ * @param point_D 点D
+ * @return true 线段AB会和线段CD相交
+ * @return false 线段AB不会和线段CD相交
+ * */
+bool is_line_segment_intersection(vec2 point_A,vec2 point_B,vec2 point_C, vec2 point_D){
+    vec2 A_B = point_B - point_A;
+    vec2 A_C = point_C - point_A;
+    vec2 A_D = point_D - point_A;
+    vec2 C_D = point_D - point_C;
+    vec2 C_A = point_A - point_C;
+    vec2 C_B = point_B - point_C;
+    float AB_AC = A_B.cross_product(A_C); //向量AB和AC的叉乘
+    float AB_AD = A_B.cross_product(A_D); //向量AB和AD的叉乘
+    float CD_CA = C_D.cross_product(C_A); //向量CD和CA的叉乘
+    float CD_CB = C_D.cross_product(C_B); //向量CD和CB的叉乘
+    if( max(point_A.x,point_B.x) < min(point_C.x,point_D.x) || max(point_C.x,point_D.x) < min(point_A.x,point_B.x)||
+        max(point_A.y, point_B.y) < min(point_C.y, point_D.y) || max(point_C.y, point_D.y) < min(point_A.y, point_B.y)){
+        return false;
+    }else if(AB_AC * AB_AD <=0 && CD_CA*CD_CB <=0)return true;
+    return false;
+}

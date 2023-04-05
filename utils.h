@@ -42,6 +42,8 @@ struct vec2_int{
 
     //返回地图方格在对应象限的顶点坐标，例如第一象限为右上顶点
     vec2 vertice(vec2_int quadrant);
+
+
 };
 
 //二维矢量
@@ -153,10 +155,24 @@ struct vec2{
     float angle2(const vec2& p) const{
         return acosf((x*p.x + y*p.y)/(len()*p.len()));
     }
+    //返回和向量v的叉积
+    float cross_product(vec2& v){
+        return v.y*x - y*v.x;
+    }
 
 };
 
 
+/*
+ * 判断线段AB 与线段CD是否会相交
+ * @param point_A 点A
+ * @param point_B 点B
+ * @param point_C 点C
+ * @param point_D 点D
+ * @return true 线段AB会和线段CD相交
+ * @return false 线段AB不会和线段CD相交
+ * */
+bool is_line_segment_intersection(vec2 point_A,vec2 point_B,vec2 point_C, vec2 point_D);
 
 int sign(float x);
 float func_f(float x, float maxX, float minRate);
