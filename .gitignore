@@ -10,3 +10,4 @@ code
 *.data
 *.old
 FlameGraph/
+run.sh
