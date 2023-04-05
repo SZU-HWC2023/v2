@@ -151,6 +151,11 @@ struct Path{
     list<Point*> points;
     list<Point*>::iterator iter;
 };
+struct AvoidInfo{
+    bool avoiding;      // 是否正处于避让中
+    set<int> robots_id; // 需要避让的机器人ID
+    list<Point*>::iterator iter;    // 避让结束后需要恢复到的节点位置 继续前行
+};
 //机器人
 class Robot{
     public:
@@ -165,12 +170,13 @@ class Robot{
     float crt_mass;         //当前质量 (kg)
     float crt_lin_acc;      //当前线加速度 (m/s^2)
     float crt_ang_acc;      //当前角加速度 (rad/s^2)
-    bool ban;               // 是否被ban
     // 需要维护的量
     tuple<int, int> action = {-1, -1};         // 奔向的工作台编号 物品编号(1-7)
     int next_worker_id = -1;                // -1表示下一个工作台未指定 注意对这个工作台不会进行加锁操作
-    Path* path = new Path();        // 路径规划
-
+    Path* path = new Path(); // 路径规划
+    bool ban;               // 是否被ban
+    AvoidInfo av_info;      // 避让信息的存储   
+    // 默认
     vector<Robot*> other_robots;    //其他机器人列表
 
     Robot(int robotID, float x, float y);
@@ -198,6 +204,7 @@ class Robot{
     void addPathPoint(vector<Point*> result);
     bool judge_need_avoid(Robot* r2);
     void BFS_avoid_robot();
+    void initAvoidInfo();
     // 维护操作
     void resetAction();                     
     const tuple<int, int> getAction();

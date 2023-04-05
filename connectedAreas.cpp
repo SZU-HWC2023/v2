@@ -55,7 +55,7 @@ void robotPassMap(){
                 if(hinderByCorner(r, c)) g_map.map[r][c] = '$';
                 else if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
                 else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
-                // if(characForExpand(r, c)) g_map.map[r][c] = '+';
+                if(characForExpand(r, c) && g_map[r][c] == '.') g_map.map[r][c] = '+';
             }
             // fprintf(stderr,"%c", g_map[r][c]);
         }

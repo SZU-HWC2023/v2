@@ -86,7 +86,7 @@ void init_points(){
 }
 bool judgeAroundObstacle(int row, int col){
     if(g_map[row+1][col] == '#' || g_map[row][col+1] == '#' || g_map[row-1][col] == '#' || g_map[row][col-1] == '#') return true;
-    // if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
+    if(g_map[row+1][col+1] == '#' || g_map[row-1][col-1] == '#' || g_map[row-1][col+1] == '#' || g_map[row+1][col-1] == '#') return true;
     return false;
 }
 // 优先队列比较函数
@@ -174,6 +174,40 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,bool has_product){
     return simplified_path;
     //  return result;
 }
+
+/*
+    简化A*算法求得的路径
+ @param vec_points A*算法找到的路径
+ @param has_product 机器人是否携带产品
+ @return vector<Point*> 简化后的路径，包含关键节点
+ */
+vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product){
+
+    //路径的点的数小于等于2,不用简化，直接返回
+    if(vec_points.size()<=2)return vec_points;
+    //起点和终点之间没有障碍物,说明这条路径可以直接由起点和终点表示
+    if(!g_map.obstacle_in_line(vec_points[0],vec_points.back(),has_product)) return {vec_points[0],vec_points.back()};
+    vector<Point*> result;
+    int i = 0, size = vec_points.size();
+    result.emplace_back(vec_points[i]);
+    while(i < size-1){
+        for(int j = size-1; j>i; j--){
+            if(!g_map.obstacle_in_line(vec_points[i],vec_points[j],has_product)){
+                // 直到没有障碍物
+                result.emplace_back(vec_points[j]);
+                i = j;
+                break;
+            }
+        }
+        // 如果都有障碍物
+        if(i+1<size){
+            i++;
+            result.emplace_back(vec_points[i]);
+        }
+    }
+    return result;
+}
+
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){
     //下标超出地图
@@ -208,10 +242,10 @@ vector<tuple<int,int, float >> AStar::get_motion_model(){
         {0, 1,  1.0},
         {-1, 0, 1.0},
         {0, -1, 1.0},
-        {-1, -1,2}, //斜着走代价大一点，可修改
-        {-1, 1,2},
-        {1, -1,2},
-        {1, 1,2},
+        // {-1, -1,2}, //斜着走代价大一点，可修改
+        // {-1, 1,2},
+        // {1, -1,2},
+        // {1, 1,2},
     };
     return motion;
 }
@@ -253,36 +287,6 @@ bool help(Point* p){
     }
     sum ++;
     return sum < 5;
-}
-/*
-    简化A*算法求得的路径
- @param vec_points A*算法找到的路径
- @param has_product 机器人是否携带产品
- @return vector<Point*> 简化后的路径，包含关键节点
- */
-vector<Point *> AStar::simplify_path(vector<Point*> &vec_points,bool has_product){
-
-    //路径的点的数小于等于2,不用简化，直接返回
-    if(vec_points.size()<=2)return vec_points;
-    //起点和终点之间没有障碍物,说明这条路径可以直接由起点和终点表示
-    if(!g_map.obstacle_in_line(vec_points[0],vec_points.back(),has_product)) return {vec_points[0],vec_points.back()};
-    vector<Point*> result;
-    result.emplace_back(vec_points[0]);
-    for(int i=1;i<vec_points.size()-1;i++){
-        if(g_map[vec_points[i]->coordinate]=='@'){
-            result.emplace_back(vec_points[i-1]);
-            result.emplace_back(vec_points[i]);
-            continue;
-        }
-        if(g_map.obstacle_in_line(result.back(),vec_points[i],has_product)){
-            // 上一个没有障碍物 这一个就有障碍物了 选上一个
-            result.emplace_back(vec_points[i-1]);
-            result.emplace_back(vec_points[i]);
-
-        }
-    }
-    result.emplace_back(vec_points.back());
-    return result;
 }
 
 // 暂时没有任何使用
