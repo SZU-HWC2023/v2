@@ -170,3 +170,8 @@ float clampHDG(float hdg);
 
 vec2 fromPolar(float len, float hdg);
 vec2_int toQuadrant(vec2 pos, vec2 center={0., 0.});
+// 判断ab cd是否相交
+int cross_product(vec2_int a, vec2_int b, vec2_int c);
+bool is_intersect(vec2_int a, vec2_int b, vec2_int c, vec2_int d);
+bool is_parallel(vec2_int a, vec2_int b, vec2_int c, vec2_int d);
+bool judgeInterOrPara(vec2_int a, vec2_int b, vec2_int c, vec2_int d);

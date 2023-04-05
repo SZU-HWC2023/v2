@@ -191,10 +191,13 @@ class Robot{
     // 路径函数
     void allocate_path(Workstation* w);
     void initPath(vector<Point*> path);
-    Point* getNaviPoint(Workstation* ws);     
+    Point* getNaviPoint(Workstation* ws); 
+    // ---避让算法
     void avoidPointsAdd(Point*p);   
     vec2 judgeWallDirection(Point *point);     
-    void addPathPoint(vector<Point*> result); 
+    void addPathPoint(vector<Point*> result);
+    bool judge_need_avoid(Robot* r2);
+    void BFS_avoid_robot();
     // 维护操作
     void resetAction();                     
     const tuple<int, int> getAction();

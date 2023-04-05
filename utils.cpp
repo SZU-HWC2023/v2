@@ -117,3 +117,67 @@ vec2_int toQuadrant(vec2 pos, vec2 center){
     vec2_int quadrant = {sign(pos.x-center.x), sign(pos.y-center.y)};
     return quadrant;
 }
+
+// 计算向量的叉积
+int cross_product(vec2_int a, vec2_int b, vec2_int c) {
+    int c1 = b.col - a.col;
+    int r1 = b.row - a.row;
+    int c2 = c.col - a.col;
+    int r2 = c.row - a.row;
+    return c1 * r2 - c2 * r1;
+}
+
+// 判断线段AB和CD是否相交
+bool is_intersect(vec2_int a, vec2_int b, vec2_int c, vec2_int d) {
+    int cp1 = cross_product(a, b, c);
+    int cp2 = cross_product(a, b, d);
+    int cp3 = cross_product(c, d, a);
+    int cp4 = cross_product(c, d, b);
+    if (cp1 * cp2 < 0 && cp3 * cp4 < 0) {
+        return true;
+    }
+    if (cp1 == 0 && cp2 == 0 && cp3 == 0 && cp4 == 0) {
+        // 两条线段共线
+        if (b.col < a.col) {
+            swap(a, b);
+        }
+        if (d.col < c.col) {
+            swap(c, d);
+        }
+        return !(b.col < c.col || d.col < a.col);
+    }
+    return false;
+}
+// 判断线段是否平行
+bool is_parallel(vec2_int a, vec2_int b, vec2_int c, vec2_int d) {
+    bool res = false;
+    if (b.col == a.col) {
+        if (d.col == c.col) {
+            // 两条线段都垂直于x轴
+            res = true;
+        } else {
+            // 只有线段AB垂直于x轴
+            res = false;
+        }
+    } else if (d.col == c.col) {
+        // 只有线段CD垂直于x轴
+        res = false;
+    } else {
+        // 计算两条线段的斜率
+        double k1 = (double)(b.row - a.row) / (b.col - a.col);
+        double k2 = (double)(d.row - c.row) / (d.col - c.col);
+        res = fabs(k1 - k2) < 1e-6;
+    }
+    // 如果两线段平行还要判断是否有平行交会
+    if(res){
+        int l1_min_c = min(a.col, b.col), l1_min_r = min(a.row, b.row), l1_max_c = max(a.col, b.col), l1_max_r = max(a.row, b.row);
+        int l2_min_c = min(c.col, d.col), l2_min_r = min(c.row, d.row), l2_max_c = max(c.col, d.col), l2_max_r = max(c.row, d.row);
+        if(l1_max_c <= l2_min_c || l2_max_c <= l1_min_c || l1_max_r <= l2_min_r || l2_max_r <= l1_min_r){
+            res = false;
+        }
+    }
+    return res;
+}
+bool judgeInterOrPara(vec2_int a, vec2_int b, vec2_int c, vec2_int d){
+    return is_intersect(a, b, c, d)||is_parallel(a, b, c, d);
+}
