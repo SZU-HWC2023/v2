@@ -301,7 +301,8 @@ void Robot::avoidPointsAdd(Point *p){
 //                Point * point = new Point(result.back()->coordinate.row,result.back()->coordinate.col+4,1.0, nullptr);
 //                result.push_back(point);
                 for(int i=0;i<result.size();i++){
-                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
+//                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
+                    this->avoid_path.push(result[i]);
                 }
                 this->avoid_robot = o_r; //当前机器人在主动避让
                 this->safe_point = safe_point;
@@ -340,6 +341,19 @@ Point* Robot::getNaviPoint(Workstation* w){
             }
         }
     }
+    // 1.主动避让的机器人到达安全点后，就应该不动，等待让行的机器人通过关键路口
+    if(this->avoid_robot!= nullptr){
+        Point* p = this->avoid_path.front();
+        if(p->coordinate == this->safe_point->coordinate){
+            return nullptr;
+        }else{
+            vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
+            if(calcDistance(des,this->coordinate) < crt_radius*2){
+                this->avoid_path.pop();
+            }
+            return this->avoid_path.front();
+        }
+    }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     auto &iter = this->path->iter;
     if(this->path->points.empty())return nullptr;
@@ -348,17 +362,13 @@ Point* Robot::getNaviPoint(Workstation* w){
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
     // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
     avoidPointsAdd(p);
-    // 1.主动避让的机器人到达安全点后，就应该不动，等待让行的机器人通过关键路口
-    if(this->avoid_robot!= nullptr){
-        if(p->coordinate == this->safe_point->coordinate){
-            return nullptr;
-        }
-    }
+
     // 2. 被让行的机器人经过关键路口后，要通知主动让行的那个机器人继续执行它的任务
     if(this->avoided_robot != nullptr){
         if(p->coordinate == this->road_point->coordinate){
             this->avoided_robot->avoid_robot = nullptr;
             this->avoided_robot->safe_point = nullptr;
+            this->avoided_robot->avoid_path = queue<Point*>();
             this->avoided_robot = nullptr;
             this->road_point = nullptr;
             return nullptr;
