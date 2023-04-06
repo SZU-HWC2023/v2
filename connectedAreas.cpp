@@ -37,25 +37,26 @@ bool hinderByCorner(int row, int col){
     if(up&&left||up&&right||left&&down||down&&right) return true;
     return false;
 }
-bool characForExpand(int row, int col){
-    bool up1=judgeWall(row-1,col),down1=judgeWall(row+1,col),left1=judgeWall(row,col-1),right1=judgeWall(row,col+1);
-    bool up2=judgeWall(row-2,col),down2=judgeWall(row+2,col),left2=judgeWall(row,col-2),right2=judgeWall(row,col+2);
-    bool u1l1=judgeWall(row-1,col-1),u1r1=judgeWall(row-1,col+1),d1l1=judgeWall(row+1,col-1),d1r1=judgeWall(row+1,col+1);
-    bool u2l2=judgeWall(row-2,col-2),u2l1=judgeWall(row-2,col-1),u2r1=judgeWall(row-2,col+1),u2r2=judgeWall(row-2,col+2);
-    bool u1l2=judgeWall(row-1,col-2),u1r2=judgeWall(row-1,col+2),d1l2=judgeWall(row+1,col-2),d1r2=judgeWall(row+1,col+2);
-    bool d2l2=judgeWall(row+2,col-2),d2l1=judgeWall(row+2,col-1),d2r1=judgeWall(row+2,col+1),d2r2=judgeWall(row+2,col+2);
-    if(u2l1&&d1r1||u2r1&&d1l1||u1l2&&d1r1||u1l1&&d2r1||u1l1&&d1r2||u1r1&&d2l1||u1r1&&d1l2||u1r2&&d1l1) return true;
-}
+// bool characForExpand(int row, int col){
+//     bool up1=judgeWall(row-1,col),down1=judgeWall(row+1,col),left1=judgeWall(row,col-1),right1=judgeWall(row,col+1);
+//     bool up2=judgeWall(row-2,col),down2=judgeWall(row+2,col),left2=judgeWall(row,col-2),right2=judgeWall(row,col+2);
+//     bool u1l1=judgeWall(row-1,col-1),u1r1=judgeWall(row-1,col+1),d1l1=judgeWall(row+1,col-1),d1r1=judgeWall(row+1,col+1);
+//     bool u2l2=judgeWall(row-2,col-2),u2l1=judgeWall(row-2,col-1),u2r1=judgeWall(row-2,col+1),u2r2=judgeWall(row-2,col+2);
+//     bool u1l2=judgeWall(row-1,col-2),u1r2=judgeWall(row-1,col+2),d1l2=judgeWall(row+1,col-2),d1r2=judgeWall(row+1,col+2);
+//     bool d2l2=judgeWall(row+2,col-2),d2l1=judgeWall(row+2,col-1),d2r1=judgeWall(row+2,col+1),d2r2=judgeWall(row+2,col+2);
+//     if(u2l1&&d1r1||u2r1&&d1l1||u1l2&&d1r1||u1l1&&d2r1||u1l1&&d1r2||u1r1&&d2l1||u1r1&&d1l2||u1r2&&d1l1) return true;
+// }
 // 读地图的时候 判断一些不可穿过的点，分为机器人不带物品(!)和机器人带物品(@)
 // 不带物品的机器人都过不去，带物品的机器人更过不去
 void robotPassMap(){
     for(int r=MAP_TRUE_SIZE-1; r>=0; r--){
         for(int c=0; c<MAP_TRUE_SIZE; c++){
-            if(g_map.map[r][c] == '.'){
+            if(g_map.map[r][c] == '.' || (g_map.map[r][c] >= '4' && g_map.map[r][c] <= '9')){
                 if(hinderByCorner(r, c)) g_map.map[r][c] = '$';
-                else if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
-                else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
-                if(characForExpand(r, c) && g_map[r][c] == '.') g_map.map[r][c] = '+';
+                else if(g_map.map[r][c] == '.'){
+                    if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
+                    else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
+                }
             }
             // fprintf(stderr,"%c", g_map[r][c]);
         }
