@@ -41,13 +41,43 @@ bitset<8> DirectionMap::operator[](vec2_int pos_idx){
 }
 
 bitset<8> DirectionMap::operator[](vec2 pos){
-
+    return this->operator[](this->to_pos_idx(pos));
 }
 
+//方向图索引转坐标
 vec2 DirectionMap::to_pos(vec2_int pos_idx){
     return {0.5f * pos_idx.col, 0.5f * pos_idx.row};
 }
 
+//坐标转方向图索引
+vec2_int DirectionMap::to_pos_idx(vec2 pos){
+    return {(int)roundf(pos.y * 2), (int)roundf(pos.x * 2)};
+}
+
 vec2_int DirectionMap::to_DL_corner(vec2_int pos_idx){
     return pos_idx + vec2_int{-2,-2};
+}
+
+
+//是否携带物品时可通过
+bool DirectionMap::is_carry_passable(vec2_int pos_idx){
+    bitset<8> b = this->operator[](pos_idx);
+    return (b[0] || b[4]) && (b[2] || b[6]);
+}
+
+//是否携带物品时可通过
+bool DirectionMap::is_carry_passable(vec2 pos){
+    return this->is_carry_passable(this->to_pos_idx(pos));
+}
+
+//返回pos_idx所在点的可通行方向矢量
+vector<vec2_int> DirectionMap::get_directions(vec2_int pos_idx){
+    vector<vec2_int> d;
+    bitset<8> b = this->operator[](pos_idx);
+    for(int i=0;i<8;i++){
+        if(b[i]){
+            d.push_back(directions[i]);
+        }
+    }
+    return d;
 }

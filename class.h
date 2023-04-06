@@ -280,7 +280,13 @@ class DirectionMap{
     bitset<8> operator[](vec2_int pos_idx);
     bitset<8> operator[](vec2 pos);
     vec2 to_pos(vec2_int pos_idx);
+    vec2_int to_pos_idx(vec2 pos);
     vec2_int to_DL_corner(vec2_int pos_idx);
+
+    bool is_carry_passable(vec2_int pos_idx);
+    bool is_carry_passable(vec2 pos);
+
+    vector<vec2_int> get_directions(vec2_int pos_idx);
 };
 
 
