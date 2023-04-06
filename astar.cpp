@@ -306,4 +306,95 @@ void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Poin
 }
 
 
+vector<Point*> AStarTest::planning(vec2_int src_point,vec2_int des_point,bool has_product){
 
+    vis.fill({false});
+    open_map.fill({nullptr});
+    closed_map.fill({nullptr});
+    Point* start_node = new Point(src_point,0.0, nullptr);
+    Point* goal_node = new Point(des_point,0.0, nullptr);
+    open_map[src_point.row][src_point.col] = start_node;
+    int open_map_size = 1;
+
+    priority_queue<Point*, vector<Point*>, cmp> que;
+    que.push(start_node);
+    while(true){
+        if(open_map_size==0) break;
+
+        Point* current = que.top();
+        que.pop();
+
+        int cx  = current->coordinate.row;
+        int cy = current->coordinate.col;
+        vis[cx][cy] = true;
+        // 已经找到目标节点，退出循环
+        if(current->coordinate == goal_node->coordinate){
+            goal_node->cost = current->cost;
+            goal_node->parent_node = current->parent_node;
+            break;
+        }
+        open_map[cx][cy] = nullptr;
+        open_map_size --;
+        closed_map[cx][cy] = current;
+
+        //从当前节点往各个方向探索
+        vector<vec2_int> directions =  g_direction_map.get_directions(current->coordinate);
+
+        for(vec2_int v: directions){
+            float baseCost = abs(v.row) + abs(v.col);
+            Point* point = new Point(current->coordinate + v,current->cost+baseCost,current);
+            int px = point->coordinate.row;
+            int py = point->coordinate.col;
+            if(!verify(point,has_product))continue;
+            if(vis[px][py])continue;
+            if(closed_map[px][py]!= nullptr)continue;
+            point->current_to_goal_cost = this->calc_heuristic(point,goal_node);
+
+            if(open_map[px][py] == nullptr){
+                open_map[px][py] = point;
+                que.push(point);
+                open_map_size ++;
+            }else{
+                if(open_map[px][py]->cost > point->cost){
+                    open_map[px][py] = point;
+                }
+            }
+
+
+        }
+    }
+    return calc_final_path(goal_node);
+}
+vector<Point*> AStarTest::calc_final_path(Point* goal_node){
+    if(goal_node->parent_node== nullptr)return {};
+    vector<Point*> result;
+    result.emplace_back(goal_node);
+    Point* parent = goal_node->parent_node;
+    while(parent!=nullptr){
+        int px = parent->coordinate.row;
+        int py = parent->coordinate.col;
+        Point* p = closed_map[px][py];
+        result.emplace_back(p);
+        parent = p->parent_node;
+    }
+    reverse(result.begin(),result.end());
+    return result;
+
+
+}
+//判断下标是否合法
+bool AStarTest::verify(Point * p,bool has_product){
+    //下标超出地图
+    if(p->coordinate.col < 0 || p->coordinate.row < 0 ||
+        p->coordinate.col>=MAP_TRUE_SIZE+1 || p->coordinate.row >= MAP_TRUE_SIZE+1 ||
+            (!g_direction_map.is_carry_passable(p->coordinate)) && has_product
+        )return false;
+
+    return true;
+
+}
+float AStarTest::calc_heuristic(Point * a, Point *b){
+    float row = a->coordinate.row - b->coordinate.row;
+    float col = a->coordinate.col - b->coordinate.col;
+    return abs(row) + abs(col);
+}

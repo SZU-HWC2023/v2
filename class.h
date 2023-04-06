@@ -29,6 +29,7 @@ class DirectionMap;
 
 class RVO;
 class AStar;
+class AStarTest;
 class DoubleDirectionAstar;
 
 
@@ -37,6 +38,7 @@ extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台�
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 extern map<tuple<int,int,int,int>,float> g_astar_path_distance; //带有产品时，存储平台之间的关键路径长度, sx,sy,gx,gy 起点到终点的坐标
 extern AStar *g_astar;
+
 extern DoubleDirectionAstar* g_directionAstar;
 extern RawMap g_map;    //原始地图
 extern Map<int> g_connected_areas_c;    // 携带物品全局连通区域
@@ -304,6 +306,12 @@ typedef struct Point{
         this->cost = cost;
         this->parent_node = parent_node;
     }
+    Point(vec2_int v,float cost, Point* parent_node){
+        this->coordinate = v;
+        this->cost = cost;
+        this->current_to_goal_cost = 0.0f;
+        this->parent_node = parent_node;
+    }
 }Point;
 
 
@@ -332,6 +340,24 @@ public:
 };
 
 
+
+class AStarTest{
+public:
+
+    array<array<bool,MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> vis;
+    array<array<Point*,MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> open_map; // 存储待检测节点
+    array<array<Point*,MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> closed_map; // 存储已经检测过的节点
+
+    AStarTest(){
+
+    }
+    vector<Point*> planning(vec2_int src_point,vec2_int des_point,bool has_product);
+    vector<Point*> calc_final_path(Point* goal_node);
+    //判断下标是否合法
+    bool verify(Point * p,bool has_product);
+    float calc_heuristic(Point * a, Point *b);
+
+};
 // class DoubleDirectionAstar{
 // public:
 //     vector<tuple<int,int, float >> motion;

@@ -30,9 +30,9 @@ void DirectionMap::init(RawMap &raw_map){
                 if(b==0)    break;
             }
             this->map[row][col] = b;
-            fprintf(stderr,"%ld ",b.to_ulong());
+//            fprintf(stderr,"%ld ",b.to_ulong());
         }
-        fprintf(stderr,"\n");
+//        fprintf(stderr,"\n");
     }
 }
 
