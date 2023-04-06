@@ -94,7 +94,9 @@ void expandMap(){
 }
 void print_path(vector<Point*> &vec_paths){
     for(Point* p:vec_paths){
-        fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
+        // fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
+        vec2 pos = g_direction_map.to_pos(p->coordinate,true);
+        fprintf(stderr,"%.2f, %.2f | ",pos.x,pos.y);
     }
     fprintf(stderr,"\n");
 }

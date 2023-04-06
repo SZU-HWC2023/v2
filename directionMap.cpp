@@ -2,13 +2,20 @@
 
 
 
-
 bitset<8> BAN_DIRECTION[][4] = {
-    {0b00100000,0b11100000,0b11100000,0b10000000},
-    {0b00111000,0b11111111,0b11111111,0b10000011},
-    {0b00111000,0b11111111,0b11111111,0b10000011},
-    {0b00001000,0b00001110,0b00001110,0b00000010}
+    {0b00100000,0b01100000,0b11000000,0b10000000},
+    {0b00110000,0b11111111,0b11111111,0b10000001},
+    {0b00011000,0b11111111,0b11111111,0b00000011},
+    {0b00001000,0b00001100,0b00000110,0b00000010}
 };
+
+
+// bitset<8> BAN_DIRECTION[][4] = {
+//     {0b00100000,0b11100000,0b11100000,0b10000000},
+//     {0b00111000,0b11111111,0b11111111,0b10000011},
+//     {0b00111000,0b11111111,0b11111111,0b10000011},
+//     {0b00001000,0b00001110,0b00001110,0b00000010}
+// };
 
 
 DirectionMap::DirectionMap(){
@@ -45,8 +52,18 @@ bitset<8> DirectionMap::operator[](vec2 pos){
 }
 
 //方向图索引转坐标
-vec2 DirectionMap::to_pos(vec2_int pos_idx){
-    return {0.5f * pos_idx.col, 0.5f * pos_idx.row};
+vec2 DirectionMap::to_pos(vec2_int pos_idx,bool compenstate){
+    vec2 pos = {0.5f * pos_idx.col, 0.5f * pos_idx.row};
+    if(!compenstate) return pos;
+    bitset<8> b = this->operator[](pos_idx);
+    b.flip();
+    b &= 0b01010101;
+    for(int i=0;i<8;i+=2){
+        if(b[i]){
+            pos += this->compenstation[i];
+        }
+    }
+    return pos;
 }
 
 //坐标转方向图索引

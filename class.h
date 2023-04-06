@@ -276,12 +276,13 @@ class DirectionMap{
     public:
     array<array<bitset<8>, MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> map; //地图底层数组
     vec2_int directions[8] = {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+    vec2 compenstation[8] = {{-0.25,0},{0,0},{0,-0.25},{0,0},{0.25,0},{0,0},{0,0.25},{0,0}};
 
     DirectionMap();
     void init(RawMap &raw_map);
     bitset<8> operator[](vec2_int pos_idx);
     bitset<8> operator[](vec2 pos);
-    vec2 to_pos(vec2_int pos_idx);
+    vec2 to_pos(vec2_int pos_idx, bool compenstate=false);
     vec2_int to_pos_idx(vec2 pos);
     vec2_int to_DL_corner(vec2_int pos_idx);
 
