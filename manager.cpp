@@ -41,7 +41,7 @@ void Manager::mainHistoryGetMap(Workstation *w){
 // 维护历史填充字典
 void Manager::mainHistoryFillMap(int w_type, int item){
     // 只对456的填充使用fillMap  因为123不需要填充 789填充不需要根据fillMap抉择
-    if(item < 4){
+    if(item < 4 && w_type<=6){
         tuple<int, int> fill = {w_type, item};
         historyFillMap[fill] += 1;
     }

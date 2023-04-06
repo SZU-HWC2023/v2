@@ -294,7 +294,7 @@ void Robot::avoidPointsAdd(Point *p){
         if(o_r->ban) continue;
         // 判断是否会出现走独木桥的情况
         if(judge_need_avoid(o_r)){
-            fprintf(stderr,"走独木桥");
+            // fprintf(stderr,"走独木桥");
             if( this->avoid_robot== nullptr){
                 Point* road_point = nullptr; //关键的岔路口点
                 Point* safe_point = nullptr;
@@ -369,7 +369,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*2){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*4){
         iter++;
         p = *iter;
     }
@@ -380,8 +380,8 @@ Point* Robot::getNaviPoint(Workstation* w){
 vec2 Robot::judgeWallDirection(Point *point){
     vec2_int coor = point->coordinate;
     vec2 res = coor.toCenter();
-    float bias = -1;
-    // 上边是墙
+    float bias = crt_radius;
+    // // 上边是墙
     // if(g_map[point->coordinate.row+1][point->coordinate.col]){
     //     res.y -= bias;
     // }
@@ -398,25 +398,25 @@ vec2 Robot::judgeWallDirection(Point *point){
     //     res -= bias;
     // }
     // 左上是墙
-    if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
-        res.y -= bias;
-        res.x += bias;
-    }
-    // 右上是墙
-    if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
-        res.y -= bias;
-        res.x -= bias;
-    }
-    // 左下是墙
-    if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
-        res.y += bias;
-        res.x += bias;
-    }
-    // 右下是墙
-    if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
-        res.y += bias;
-        res.x -= bias;
-    }
+    // if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
+    //     res.y -= bias;
+    //     res.x += bias;
+    // }
+    // // 右上是墙
+    // if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
+    //     res.y -= bias;
+    //     res.x -= bias;
+    // }
+    // // 左下是墙
+    // if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
+    //     res.y += bias;
+    //     res.x += bias;
+    // }
+    // // 右下是墙
+    // if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
+    //     res.y += bias;
+    //     res.x -= bias;
+    // }
     return res;
 }
 
