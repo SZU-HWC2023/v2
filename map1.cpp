@@ -101,47 +101,47 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
     if(pq.size()>0){
         // 下达指令 朝向最小的工作站台
         priority_queue<tuple<double, int, int>, vector<tuple<double, int, int>>, greater<tuple<double, int, int>>> tmp_pq = pq;
-            // 距离不是唯一选取标准 可以考虑一些特殊情况下优先选取
-            while(tmp_pq.size()>0){
-                Workstation* cur_w = g_workstations[get<1>(tmp_pq.top())];
-                Workstation* nxt_w = g_workstations[get<2>(tmp_pq.top())];
-                double dis01 = calcDistance(r->coordinate, cur_w->coordinate);
-                double dis02 = calcDistance(nxt_w->coordinate, cur_w->coordinate);
+        // 距离不是唯一选取标准 可以考虑一些特殊情况下优先选取
+        while(tmp_pq.size()>0){
+            Workstation* cur_w = g_workstations[get<1>(tmp_pq.top())];
+            Workstation* nxt_w = g_workstations[get<2>(tmp_pq.top())];
+            double dis01 = calcDistance(r->coordinate, cur_w->coordinate);
+            double dis02 = calcDistance(nxt_w->coordinate, cur_w->coordinate);
 
-                if(MAX_FRAME-frame_id < 1000 && cur_w->type == 7) break;
-                // 送到后取优先级提高(如456送到后可以顺手取了7)
-                if(cur_w->type == 7){
-                    if(dis01 < r->crt_radius*4){
-                        break;
-                    }
-                }
-                // 456送到后取的优先级提高(如123送到后可以顺手取了456)
-                if((nxt_w->type == 7) && MAX_FRAME-frame_id>1500){
-                    if(dis01 < r->crt_radius*4){
-                        break;
-                    }
-                }
-                tmp_pq.pop();
-            }
-            // 说明没有可以取的
-            if(tmp_pq.size()==0){
-                tmp_pq = pq;
-                while(tmp_pq.size()>0){
-                    Workstation* cur_w = g_workstations[get<1>(tmp_pq.top())];
-                    Workstation* nxt_w = g_workstations[get<2>(tmp_pq.top())];
-                    // 如果已经有人锁定他的产出则不考虑该工作台 因为这个锁定住工作台的机器人可以顺手取了它的产出
-                    if(cur_w->haveRawLocked() && MAX_FRAME-frame_id>500){
-                        tmp_pq.pop();
-                        continue;
-                    }
-                    // 4567只有送过去才会去取 不会大老远跑过去取
-                    if(cur_w->type >= 4 && MAX_FRAME-frame_id > 2000 && cur_w->getMissingNum()!=0){
-                        tmp_pq.pop();
-                        continue;
-                    }
+            if(MAX_FRAME-frame_id < 1000 && cur_w->type == 7) break;
+            // 送到后取优先级提高(如456送到后可以顺手取了7)
+            if(cur_w->type == 7){
+                if(dis01 < r->crt_radius*4){
                     break;
                 }
             }
+            // 456送到后取的优先级提高(如123送到后可以顺手取了456)
+            if((nxt_w->type == 7) && MAX_FRAME-frame_id>1500){
+                if(dis01 < r->crt_radius*4){
+                    break;
+                }
+            }
+            tmp_pq.pop();
+        }
+        // 说明没有可以取的
+        if(tmp_pq.size()==0){
+            tmp_pq = pq;
+            while(tmp_pq.size()>0){
+                Workstation* cur_w = g_workstations[get<1>(tmp_pq.top())];
+                Workstation* nxt_w = g_workstations[get<2>(tmp_pq.top())];
+                // 如果已经有人锁定他的产出则不考虑该工作台 因为这个锁定住工作台的机器人可以顺手取了它的产出
+                if(cur_w->haveRawLocked() && MAX_FRAME-frame_id>500){
+                    tmp_pq.pop();
+                    continue;
+                }
+                // 4567只有送过去才会去取 不会大老远跑过去取
+                if(cur_w->type >= 4 && MAX_FRAME-frame_id > 2000 && cur_w->getMissingNum()!=0){
+                    tmp_pq.pop();
+                    continue;
+                }
+                break;
+            }
+        }
 
         tuple<double, int, int> minTimePriceWorker = (tmp_pq.size()>0?tmp_pq.top():pq.top());
         Workstation* w = g_workstations[get<1>(minTimePriceWorker)];
@@ -174,7 +174,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
                 double tmp = 1.0;
                 double weight = 1.0;
                 // 加入历史平衡的决策
-                if(MAX_FRAME-frame_id>1500) weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 4);   // 根据历史购买记录平衡去买哪个货物
+                if(MAX_FRAME-frame_id>1500) weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 2);   // 根据历史购买记录平衡去买哪个货物
                 if(tmp*weight < time){
                     time = tmp*weight;
                     min_dis_worker_id = w->id;
@@ -197,12 +197,16 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
 void Map1::assignSetTask(int frame_id, Robot* r){
     priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> pq; // 总代价(时间表示 帧) 目标工作台
     int item = r->item_carried;
+    // if(r->id == 0 && r->item_carried == 1) cerr<<111<<endl;
     // 有物品 需要去某个站台出售该物品 这就很简单 朝向理论时间最短的去站台去。
     // 情况1：选中的物品可能会没有工作站台接收他  ： 在时间代价里计算是否有空闲机器
     // 优先送差这一个就能接收的站台
     for(auto iter=g_item_to_ws.equal_range(item); iter.first != iter.second; ++iter.first){
         Workstation *w = iter.first->second;
-        if(g_map[w->coordinate.toIndex()] == '$') continue;
+        if(g_map[w->coordinate.toIndex()] == '$'){
+            if(r->id == 0 && r->item_carried == 1) cerr<<111<<endl;
+            continue;
+        }
         if(g_connected_areas_c[w->coordinate]!=g_connected_areas_c[r->coordinate] || w->ban) continue;
         vec2_int r_local_coor = {0,0};
         if( r->workshop_located>=0)
@@ -234,7 +238,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
     }
     // 下达指令 朝向最小的工作站台
     if(pq.size()>0){
-
+        // if(r->id == 0 && r->item_carried == 1) cerr<<222<<endl;
         // while循环可以类比取货物  看看能否加一些东西？？？？
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();

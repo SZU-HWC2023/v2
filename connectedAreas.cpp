@@ -72,7 +72,7 @@ bool judgeObstacle_uc(int row, int col){
 // 是不是障碍物，是障碍物返回true  带物品 带物品的连通域划分更细
 bool judgeObstacle_c(int row, int col){
     vec2_int coor = {row, col};
-    if(g_map[coor] == '#' || g_map[coor] == '!' || g_map[coor] == '@') return true;
+    if(g_map[coor] == '#' || g_map[coor] == '!' || g_map[coor] == '@' || g_map[coor] == '$') return true;
     else return false;
 }
 

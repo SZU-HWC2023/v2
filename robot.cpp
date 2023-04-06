@@ -289,29 +289,29 @@ void Robot::avoidPointsAdd(Point *p){
     }
     // 再判断是否存在机器人走独木桥的情况
 
-    for(Robot* o_r:this->other_robots){
-        if(o_r->ban) continue;
-        // 判断是否会出现走独木桥的情况
-        if(judge_need_avoid(o_r)){
-            // fprintf(stderr,"走独木桥");
-            if( this->avoid_robot== nullptr){
-                Point* road_point = nullptr; //关键的岔路口点
-                Point* safe_point = nullptr;
-                vector<Point*> result = get_remain_points(o_r,road_point,safe_point);
-//                Point * point = new Point(result.back()->coordinate.row,result.back()->coordinate.col+4,1.0, nullptr);
-//                result.push_back(point);
-                for(int i=0;i<result.size();i++){
-//                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
-                    this->avoid_path.push(result[i]);
-                }
-                this->avoid_robot = o_r; //当前机器人在主动避让
-                this->safe_point = safe_point;
-                o_r->avoided_robot = this;
-                o_r->road_point = road_point;
+//     for(Robot* o_r:this->other_robots){
+//         if(o_r->ban) continue;
+//         // 判断是否会出现走独木桥的情况
+//         if(judge_need_avoid(o_r)){
+//             // fprintf(stderr,"走独木桥");
+//             if( this->avoid_robot== nullptr){
+//                 Point* road_point = nullptr; //关键的岔路口点
+//                 Point* safe_point = nullptr;
+//                 vector<Point*> result = get_remain_points(o_r,road_point,safe_point);
+// //                Point * point = new Point(result.back()->coordinate.row,result.back()->coordinate.col+4,1.0, nullptr);
+// //                result.push_back(point);
+//                 for(int i=0;i<result.size();i++){
+// //                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
+//                     this->avoid_path.push(result[i]);
+//                 }
+//                 this->avoid_robot = o_r; //当前机器人在主动避让
+//                 this->safe_point = safe_point;
+//                 o_r->avoided_robot = this;
+//                 o_r->road_point = road_point;
 
-            }
-        }
-    }
+//             }
+//         }
+//     }
 }
 
 /*
@@ -337,6 +337,7 @@ Point* Robot::getNaviPoint(Workstation* w){
                 initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}]);
             }else{
                 // 数据结构中没有路径 规划路径
+                // if(id == 0 && item_carried == 1) cerr<< g_workstations[get<0>(action)]->id <<endl;
                 this->allocate_path(w);
             }
         }
@@ -374,8 +375,6 @@ Point* Robot::getNaviPoint(Workstation* w){
             return nullptr;
         }
     }
-
-
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
     if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*4){
@@ -407,25 +406,25 @@ vec2 Robot::judgeWallDirection(Point *point){
     //     res -= bias;
     // }
     // 左上是墙
-    // if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
-    //     res.y -= bias;
-    //     res.x += bias;
-    // }
-    // // 右上是墙
-    // if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
-    //     res.y -= bias;
-    //     res.x -= bias;
-    // }
-    // // 左下是墙
-    // if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
-    //     res.y += bias;
-    //     res.x += bias;
-    // }
-    // // 右下是墙
-    // if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
-    //     res.y += bias;
-    //     res.x -= bias;
-    // }
+    if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
+        res.y -= bias;
+        res.x += bias;
+    }
+    // 右上是墙
+    if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
+        res.y -= bias;
+        res.x -= bias;
+    }
+    // 左下是墙
+    if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
+        res.y += bias;
+        res.x += bias;
+    }
+    // 右下是墙
+    if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
+        res.y += bias;
+        res.x -= bias;
+    }
     return res;
 }
 
