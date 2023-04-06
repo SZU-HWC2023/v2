@@ -276,6 +276,7 @@ typedef struct Point{
 
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths);
+void print_path(list<Point*> &vec_paths);
 class AStar{
 public:
     vector<tuple<int,int,float>> motion;

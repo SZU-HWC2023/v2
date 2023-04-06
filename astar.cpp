@@ -305,3 +305,9 @@ void AStar::divide_conquer(vector<Point*> &result,int left,int right,vector<Poin
 
 
 
+void print_path(list<Point*> &vec_paths){
+    for(Point* p:vec_paths){
+        fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
+    }
+    fprintf(stderr,"\n");
+}

@@ -264,6 +264,11 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }
+
+        fprintf(stderr, "Robot %d Path: ", this->id);
+        vec2_int pos = this->coordinate.toIndex();
+        fprintf(stderr, "%d, %d|", pos.row, pos.col);
+        print_path(this->path->points);
     }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     auto &iter = this->path->iter;
