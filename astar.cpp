@@ -6,6 +6,7 @@ map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //带有产品�
 AStar *g_astar;
 DoubleDirectionAstar* g_directionAstar;
 
+// 用不到了
 bool near_obstacle(int row,int col){
     if(g_map[row][col] == '#')return true;
     vector<tuple<int,int>> motion = {
@@ -27,6 +28,7 @@ bool near_obstacle(int row,int col){
     }
     return false;
 }
+
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths){
     float distance = 0.0;
