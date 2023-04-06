@@ -2,8 +2,18 @@
 #include "class.h"
 
 
+
 RawMap::RawMap(){
     this->map.fill({'.'});
+}
+
+char RawMap::find(vec2_int pos){
+    try{
+        return this->map[pos.row][pos.col];
+    }
+    catch (out_of_range const &exc){
+        return '#';
+    }
 }
 
 /*

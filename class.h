@@ -25,6 +25,8 @@ template <typename T>
 class Map;
 
 class RawMap;
+class DirectionMap;
+
 class RVO;
 class AStar;
 class DoubleDirectionAstar;
@@ -39,6 +41,7 @@ extern DoubleDirectionAstar* g_directionAstar;
 extern RawMap g_map;    //原始地图
 extern Map<int> g_connected_areas_c;    // 携带物品全局连通区域
 extern Map<int> g_connected_areas_uc;   // 未携带物品全局连通区域
+extern DirectionMap g_direction_map;    //方向地图
 
 extern int g_ws_requirement[WS_TYPE_NUM+1];             //工作台需要的原材料材料   全局变量
 extern multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
@@ -251,12 +254,38 @@ class RawMap:public Map<char>{
     public:
     RawMap();
 
+    char find(vec2_int pos);
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
     bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist=-1);
     bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
+
+
+
+/*
+方向阵列图
+记录每个0.5倍坐标值的8方向可达性
+可达性使用8位二进制表示
+从第0位到第7位表示：↑、↗、→、↘、↓、↙、←、↖
+*/
+class DirectionMap{
+    public:
+    array<array<bitset<8>, MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> map; //地图底层数组
+    vec2_int directions[8] = {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+
+    DirectionMap();
+    void init(RawMap &raw_map);
+    bitset<8> operator[](vec2_int pos_idx);
+    bitset<8> operator[](vec2 pos);
+    vec2 to_pos(vec2_int pos_idx);
+    vec2_int to_DL_corner(vec2_int pos_idx);
+};
+
+
+
+
 
 typedef struct Point{
     vec2_int coordinate; // 坐标

@@ -18,6 +18,10 @@ struct vec2_int{
 
     vec2_int(int row_=0, int col_=0) : row(row_), col(col_){}
 
+    vec2_int operator+(const vec2_int& v) const{
+        return {row+v.row, col+v.col};
+    }
+
     vec2_int& operator+=(vec2_int& v){
         row += v.row;
         col += v.col;

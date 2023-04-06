@@ -5,6 +5,7 @@ vector<Robot*> g_robots;
 multimap<int, Workstation*> g_item_from_ws;        //物品类型->提供该物品的工作台    全局变量
 multimap<int, Workstation*> g_item_to_ws;         //物品类型->需要该物品的工作台   全局变量
 RawMap g_map;    //原始地图
+DirectionMap g_direction_map;   //方向地图
 
 #include <cstring>
 using namespace std;
@@ -19,6 +20,7 @@ bool read_map(){
     int row = 99;
     while (fgets(line, sizeof line, stdin)) {
         if (line[0] == 'O' && line[1] == 'K') {
+            g_direction_map.init(g_map);
             return true;
         }
         //do something
@@ -51,6 +53,8 @@ bool read_map(){
         }
         row--;
     }
+    fprintf(stderr, "read map error\n");
+    
     return false;
 }
 /*
