@@ -153,6 +153,11 @@ struct Path{
 };
 //机器人
 class Robot{
+    Robot* avoid_robot = nullptr; //当前机器人主动避让的机器人
+    Point* safe_point = nullptr; //安全的区域点
+
+    Robot* avoided_robot = nullptr; //哪个机器人在避让当前机器人
+    Point* road_point = nullptr; //关键的岔路口
     public:
     int id;                 //机器人ID
     vec2 coordinate;        //机器人坐标

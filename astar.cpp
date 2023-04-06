@@ -171,8 +171,8 @@ vector<Point*> AStar::calc_final_path(Point* goal_node,bool has_product){
     reverse(result.begin(),result.end());
 
     vector<Point*> simplified_path = this-> simplify_path(result,has_product); //路径简化
-    return simplified_path;
-    //  return result;
+//    return simplified_path;
+      return result;
 }
 //判断下标是否合法, has_product为true时表示机器人有东西
 bool AStar::verify(Point* from,Point* p,bool has_product){

@@ -190,7 +190,94 @@ void Robot::addPathPoint(vector<Point*> result){
         path->iter = path->points.insert(path->iter, result[i]);
     }
 }
+vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_point){
 
+    vector<Point*> result;
+    auto iter_cur = robot->path->iter;
+    auto iter_end = robot->path->points.end();
+
+    while(iter_cur!=iter_end){
+        Point *point = *iter_cur;
+        int cur_x = point->coordinate.row;
+        int cur_y = point->coordinate.col;
+        result.emplace_back(*iter_cur);
+        auto iter_next = iter_cur;
+        iter_next++;
+        if(iter_next == iter_end)continue;
+        Point* next_point = *iter_next;
+        int next_x = next_point->coordinate.row;
+        int next_y = next_point->coordinate.col;
+//        fprintf(stderr,"cur_x:%d cur_y:%d next_x:%d next_y:%d \n",cur_x,cur_y,next_x,next_y);
+        if(cur_x == next_x){
+            //垂直方向走
+            //1. 水平方向往左看看有没有安全的
+            int num = 0;
+            for(int dy = -1;dy+cur_y>=0;dy--){
+                if(g_map[cur_x][cur_y+dy]=='#')break;
+                num++;
+            }
+            if(num>=8){
+                for(int dy = -1;dy+cur_y>=0;dy--){
+                    if(g_map[cur_x][cur_y+dy]=='#')break;
+                    Point* p = new Point(cur_x,dy+cur_y,1.0f, nullptr);
+                    result.emplace_back(p);
+                }
+                road_point = point;
+                break;
+            }
+            num = 0;
+            //2. 水平方向往右看看有没有安全的
+            for(int dy = 1;dy+cur_y<MAP_TRUE_SIZE;dy++){
+                if(g_map[cur_x][cur_y+dy]=='#')break;
+                num++;
+            }
+            if(num>=8){
+                for(int dy = 1;dy+cur_y<MAP_TRUE_SIZE;dy++){
+                    if(g_map[cur_x][cur_y+dy]=='#')break;
+                    Point* p = new Point(cur_x,dy+cur_y,1.0f, nullptr);
+                    result.emplace_back(p);
+                }
+                road_point = point;
+                break;
+            }
+        }else if(cur_y == next_y){
+            //水平方向走
+            //1. 垂直向上走看看有没有安全的
+            int num = 0;
+            for(int dx = -1;cur_x+dx>=0;dx--){
+                if(g_map[cur_x+dx][cur_y]=='#')break;
+                num++;
+            }
+            if(num>=8){
+                for(int dx = -1;cur_x+dx>=0;dx--){
+                    if(g_map[cur_x+dx][cur_y]=='#')break;
+                    Point* p = new Point(cur_x+dx,cur_y,1.0f, nullptr);
+                    result.emplace_back(p);
+                }
+                road_point = point;
+                break;
+            }
+            //2. 垂直向下走看看有没有安全的
+            for(int dx = 1;cur_x+dx<MAP_TRUE_SIZE;dx++){
+                if(g_map[cur_x+dx][cur_y]=='#')break;
+                num++;
+            }
+            if(num>=8){
+                for(int dx = 1;cur_x+dx<MAP_TRUE_SIZE;dx++){
+                    if(g_map[cur_x+dx][cur_y]=='#')break;
+                    Point* p = new Point(cur_x+dx,cur_y,1.0f, nullptr);
+                    result.emplace_back(p);
+                }
+                road_point = point;
+                break;
+            }
+        }
+
+        iter_cur++;
+    }
+    safe_point = result.back();
+    return result;
+}
 void Robot::avoidPointsAdd(Point *p){
     // 先判断有没有撞墙
     // 这段代码目前存在bug 图四会死
@@ -207,7 +294,22 @@ void Robot::avoidPointsAdd(Point *p){
         if(o_r->ban) continue;
         // 判断是否会出现走独木桥的情况
         if(judge_need_avoid(o_r)){
-            
+            fprintf(stderr,"走独木桥");
+            if( this->avoid_robot== nullptr){
+                Point* road_point = nullptr; //关键的岔路口点
+                Point* safe_point = nullptr;
+                vector<Point*> result = get_remain_points(o_r,road_point,safe_point);
+//                Point * point = new Point(result.back()->coordinate.row,result.back()->coordinate.col+4,1.0, nullptr);
+//                result.push_back(point);
+                for(int i=0;i<result.size();i++){
+                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
+                }
+                this->avoid_robot = o_r; //当前机器人在主动避让
+                this->safe_point = safe_point;
+                o_r->avoided_robot = this;
+                o_r->road_point = road_point;
+
+            }
         }
     }
 }
@@ -247,6 +349,24 @@ Point* Robot::getNaviPoint(Workstation* w){
     vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
     // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
     avoidPointsAdd(p);
+    // 1.主动避让的机器人到达安全点后，就应该不动，等待让行的机器人通过关键路口
+    if(this->avoid_robot!= nullptr){
+        if(p->coordinate == this->safe_point->coordinate){
+            return nullptr;
+        }
+    }
+    // 2. 被让行的机器人经过关键路口后，要通知主动让行的那个机器人继续执行它的任务
+    if(this->avoided_robot != nullptr){
+        if(p->coordinate == this->road_point->coordinate){
+            this->avoided_robot->avoid_robot = nullptr;
+            this->avoided_robot->safe_point = nullptr;
+            this->avoided_robot = nullptr;
+            this->road_point = nullptr;
+            return nullptr;
+        }
+    }
+
+
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
     if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius*2){
