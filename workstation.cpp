@@ -128,7 +128,7 @@ int Workstation::getCycleTime(){
  */
 int Workstation::getWeight(){
     if(type == 8) return 1;
-    else if(type == 9) return MAX;
+    else if(type == 9) return 1024;
     if(type == 7){
         if(remaing_frames <= 500){
             int n = getMissingNum();

@@ -166,35 +166,11 @@ void Robot::BFS_avoid_robot(){
     // 2. 寻找一个可以成功避让的点
     // 3. 避让持续到避让对象顺利通过避让点为止
     // 4. BFS优先找最近的避让点 A*
-    // Point* tmp = new Point(1, 1, 0, nullptr);
-    // if(this->av_info.avoiding == true){
-    //     if(this->path->iter!=this->path->points.begin()) this->path->iter--;
-    //     this->av_info.avoiding = false;
-    // }
+    
 }
 // 判断是否会出现走独木桥需要避让的情况
 bool Robot::judge_need_avoid(Robot* r2){
-    // 需要避让的几个要素：
-    // 1. 方向几近相背
-    // 2. 走在同一个通道上
-    // 3. 两线段存在交点
-    // 4. 没带货物的优先避让带货物的
-    // 如果已经在避障了 就不需要计算了
-    // if(this->av_info.avoiding && this->av_info.robots_id.count(r2->id)>0) return false;
-    // if(r2->av_info.avoiding && this->av_info.robots_id.count(id)>0) return false;
-    // vec2_int r1_coor = this->coordinate.toIndex();
-    // vec2_int r2_coor = r2->coordinate.toIndex();
-    // if(this->path->points.size() == 0 || r2->path->points.size() == 0) return false;    // 为空则未分配路径 不需要避让
-    // vec2_int r1_nxt_point = (*(this->path->iter))->coordinate;
-    // vec2_int r2_nxt_point = (*(r2->path->iter))->coordinate;
-    // float dis = calcDistance(coordinate, r2->coordinate);
-    // float heading_r1 = calcHeading(r1_coor.toCenter(), r1_nxt_point.toCenter());
-    // float heading_r2 = calcHeading(r2_coor.toCenter(), r2_nxt_point.toCenter());
-    // float heading_diff = abs(heading_r1-heading_r2);
-    // // 判断
-    // if(heading_diff>M_PI/2&&judgeInterOrPara(r1_coor, r1_nxt_point, r2_coor, r2_nxt_point) || dis<=1){
-    //     return true;
-    // }
+    
     return false;
 }
 void Robot::addPathPoint(vector<Point*> result){
@@ -214,28 +190,7 @@ void Robot::avoidPointsAdd(Point *p){
         vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
         addPathPoint(result);
     }
-    // // 再判断是否存在机器人走独木桥的情况 维护避障信息
-    // for(Robot* o_r:this->other_robots){
-    //     if(o_r->ban) continue;
-    //     // 判断是否会出现走独木桥的情况
-    //     if(judge_need_avoid(o_r)){
-    //         // 会碰 且彼此没有避障的行为 设计避障
-    //         // 如果对方带了东西 则不管自己有没有带都是自己避障
-    //         if(o_r->item_carried>0 || item_carried == 0){
-    //             Point *cur_p = new Point(coordinate.toIndex().row, coordinate.toIndex().col, 0, nullptr);
-    //             // 当前机器人没带物品 避障
-    //             this->av_info.avoiding = true;
-    //             this->av_info.robots_id.insert(o_r->id);
-    //             // 记录当前路径节点 恢复路径时使用
-    //             this->path->iter = path->points.insert(path->iter, cur_p);
-    //             this->av_info.iter = this->path->iter;
-    //         }else{
-    //             // 对方没带东西给 自己带了东西 对方避 这里可以啥都不写 执行到对方的机器人后他会自动避让
-    //         }
-    //     }
-    // }
-    // // 生成避让点路径并添加到当前路径节点中去
-    // BFS_avoid_robot();
+    
 }
 
 /*
