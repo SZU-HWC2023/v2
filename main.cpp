@@ -92,14 +92,7 @@ void expandMap(){
         }
     }
 }
-void print_path(vector<Point*> &vec_paths){
-    for(Point* p:vec_paths){
-        // fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
-        vec2 pos = g_direction_map.to_pos(p->coordinate,true);
-        fprintf(stderr,"%.2f, %.2f | ",pos.x,pos.y);
-    }
-    fprintf(stderr,"\n");
-}
+
 int main(){
 //    sleep(10);
     init_items();
@@ -112,13 +105,13 @@ int main(){
     AStarTest* aStarTest = new AStarTest();
     int begin_workstation = 3;
     vec2_int begin_vec = g_direction_map.to_pos_idx(g_workstations[begin_workstation]->coordinate);
-    int end_workstation = 9;
+    int end_workstation = 4;
     vec2_int end_vec = g_direction_map.to_pos_idx(g_workstations[end_workstation]->coordinate);
     fprintf(stderr,"起始工作台: %d 类型：%d \n",g_workstations[begin_workstation]->id,g_workstations[begin_workstation]->type);
     fprintf(stderr,"终止工作台: %d 类型：%d \n",g_workstations[end_workstation]->id,g_workstations[end_workstation]->type);
     vector<Point*> result = aStarTest->planning(begin_vec,end_vec,false);
     fprintf(stderr,"==================================\n");
-    print_path(result);
+//    print_path(result);
     fprintf(stderr,"==================================\n");
     int map_type = check_map(g_workstations[0]);
 
