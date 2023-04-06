@@ -280,7 +280,6 @@ vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_p
 }
 void Robot::avoidPointsAdd(Point *p){
     // 先判断有没有撞墙
-    // 这段代码目前存在bug 图四会死
     bool carry = item_carried==0?false:true;
     if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
         vec2_int s = this->coordinate.toIndex();
@@ -380,8 +379,13 @@ Point* Robot::getNaviPoint(Workstation* w){
 vec2 Robot::judgeWallDirection(Point *point){
     vec2_int coor = point->coordinate;
     vec2 res = coor.toCenter();
+<<<<<<< Updated upstream
     float bias = crt_radius;
     // // 上边是墙
+=======
+    float bias = 0.5;
+    // 上边是墙
+>>>>>>> Stashed changes
     // if(g_map[point->coordinate.row+1][point->coordinate.col]){
     //     res.y -= bias;
     // }
