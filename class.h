@@ -154,6 +154,7 @@ struct Path{
 //机器人
 class Robot{
     Robot* avoid_robot = nullptr; //当前机器人主动避让的机器人
+    queue<Point*> avoid_path = queue<Point*>(); //当前机器人主动避让的避让路线，到达安全区域点后就不动，等别的机器人通过关键的岔路口
     Point* safe_point = nullptr; //安全的区域点
 
     Robot* avoided_robot = nullptr; //哪个机器人在避让当前机器人
