@@ -37,9 +37,9 @@ void DirectionMap::init(RawMap &raw_map){
                 if(b==0)    break;
             }
             this->map[row][col] = b;
-//            fprintf(stderr,"%ld ",b.to_ulong());
+        //    fprintf(stderr,"%ld ",b.to_ulong());
         }
-//        fprintf(stderr,"\n");
+    //    fprintf(stderr,"\n");
     }
 }
 
@@ -71,6 +71,17 @@ vec2_int DirectionMap::to_pos_idx(vec2 pos){
     return {(int)roundf(pos.y * 2), (int)roundf(pos.x * 2)};
 }
 
+vec2_int DirectionMap::find_passable_vertice(vec2 pos){
+    vec2_int pos_idx = {(int) pos.y*2, (int) pos.x*2};
+    for(int i=0; i<4;i++){
+        vec2_int d = {i>>0&1, i>>1&1};
+        if(this->operator[](pos_idx + d).count()){
+            return pos_idx + d;
+        }
+    }
+}
+
+
 vec2_int DirectionMap::to_DL_corner(vec2_int pos_idx){
     return pos_idx + vec2_int{-2,-2};
 }
@@ -79,7 +90,12 @@ vec2_int DirectionMap::to_DL_corner(vec2_int pos_idx){
 //是否携带物品时可通过
 bool DirectionMap::is_carry_passable(vec2_int pos_idx){
     bitset<8> b = this->operator[](pos_idx);
-    return (b[0] || b[4]) && (b[2] || b[6]);
+    bool res = (b[0] || b[4]) && (b[2] || b[6]);
+    if(!res){
+        vec2 pos = this->to_pos(pos_idx);
+//        fprintf(stderr,"%.2f, %.2f|", pos.x,pos.y);
+    }
+    return res;
 }
 
 //是否携带物品时可通过

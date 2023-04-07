@@ -202,7 +202,7 @@ class Robot{
 
     // 路径函数
     void allocate_path(Workstation* w);
-    void initPath(vector<Point*> path);
+    void initPath(vector<Point*> path,vec2 w);
     Point* getNaviPoint(Workstation* ws); 
     // ---避让算法
     void avoidPointsAdd(Point*p);   
@@ -285,6 +285,7 @@ class DirectionMap{
     bitset<8> operator[](vec2 pos);
     vec2 to_pos(vec2_int pos_idx, bool compenstate=false);
     vec2_int to_pos_idx(vec2 pos);
+    vec2_int find_passable_vertice(vec2 pos);
     vec2_int to_DL_corner(vec2_int pos_idx);
 
     bool is_carry_passable(vec2_int pos_idx);
@@ -299,6 +300,7 @@ class DirectionMap{
 
 typedef struct Point{
     vec2_int coordinate; // 坐标
+    vec2 map_coordinate; //在地图的实际坐标
     float cost; //记录从源节点到当前节点的代价
     float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
@@ -356,7 +358,7 @@ public:
     vector<Point*> planning(vec2_int src_point,vec2_int des_point,bool has_product);
     vector<Point*> calc_final_path(Point* goal_node);
     //判断下标是否合法
-    bool verify(Point * p,bool has_product);
+    bool verify(Point * p,Point* goal_node,bool has_product);
     float calc_heuristic(Point * a, Point *b);
 
 };

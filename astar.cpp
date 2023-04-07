@@ -350,7 +350,7 @@ vector<Point*> AStarTest::planning(vec2_int src_point,vec2_int des_point,bool ha
             Point* point = new Point(current->coordinate + v,current->cost+baseCost,current);
             int px = point->coordinate.row;
             int py = point->coordinate.col;
-            if(!verify(point,has_product))continue;
+            if(!verify(point,goal_node,has_product))continue;
             if(vis[px][py])continue;
             if(closed_map[px][py]!= nullptr)continue;
             point->current_to_goal_cost = this->calc_heuristic(point,goal_node);
@@ -388,12 +388,18 @@ vector<Point*> AStarTest::calc_final_path(Point* goal_node){
 
 }
 //判断下标是否合法
-bool AStarTest::verify(Point * p,bool has_product){
+bool AStarTest::verify(Point * p,Point *goal_node,bool has_product){
     //下标超出地图
     if(p->coordinate.col <= 0 || p->coordinate.row <= 0 ||
-        p->coordinate.col>=MAP_TRUE_SIZE || p->coordinate.row >= MAP_TRUE_SIZE ||
-            ((!g_direction_map.is_carry_passable(p->coordinate)) && has_product)
+        p->coordinate.col>=MAP_TRUE_SIZE || p->coordinate.row >= MAP_TRUE_SIZE
+
         )return false;
+    if(has_product){
+        if(!g_direction_map.is_carry_passable(p->coordinate)){
+            if(p->coordinate == goal_node->coordinate)return true;
+            return false;
+        }
+    }
 
     return true;
 
