@@ -109,7 +109,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             Workstation* nxt_w = g_workstations[get<2>(tmp_pq.top())];
             double dis01 = calcDistance(r->coordinate, cur_w->coordinate);
             double dis02 = calcDistance(nxt_w->coordinate, cur_w->coordinate);
-
+            
             if(MAX_FRAME-frame_id < 1000 && cur_w->type == 7) break;
             // 送到后取优先级提高(如456送到后可以顺手取了7)
             if(cur_w->type == 7){
