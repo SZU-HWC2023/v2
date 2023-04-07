@@ -32,7 +32,10 @@ class AStar;
 class AStarTest;
 class DoubleDirectionAstar;
 
-
+struct VW;
+struct DW;
+struct DWA_state;
+class DWA;
 
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
 extern map<tuple<int,int,int,int>,vector<Point*>> g_astar_product_path; //存储平台之间的关键路径，sx,sy,gx,gy 起点到终点的坐标
@@ -185,6 +188,9 @@ class Robot{
 
     vector<Robot*> other_robots;    //其他机器人列表
 
+    vector<DWA_state> trajectory;   //轨迹
+    DWA* dwa;                       //DWA指针
+
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
     void initOtherRobot();
@@ -278,7 +284,7 @@ class DirectionMap{
     public:
     array<array<bitset<8>, MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> map; //地图底层数组
     vec2_int directions[8] = {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
-    vec2 compenstation[8] = {{-0.25,0},{0,0},{0,-0.25},{0,0},{0.25,0},{0,0},{0,0.25},{0,0}};
+    vec2 compenstation[8] = {{-0.3,0},{0,0},{0,-0.3},{0,0},{0.3,0},{0,0},{0,0.3},{0,0}};
 
     DirectionMap();
     void init(RawMap &raw_map);
@@ -403,3 +409,95 @@ void test_astar(vector<Point*> &result);
 //读地图和读帧的相关函数
 bool read_map();
 bool readUntilOK();
+
+//线速度-角速度对
+struct VW{
+    float v;   
+    float w;
+};
+
+struct DW{
+    float v_min;
+    float v_max;
+    float ang_v_min;
+    float ang_v_max;
+
+    float v_step(int v_samples){
+        return (v_max - v_min) / v_samples;
+    }
+
+    float ang_v_step(int ang_v_samples){
+        return (ang_v_max - ang_v_min) / ang_v_samples;
+    }
+};
+
+struct DWA_state{
+    vec2 pos; //位置 m [0,1]
+    float heading; //航向角 rad [2]
+    vec2 linSpd; //线速度 m/s .len()->[3]
+    float angSpd; //角速度 rad/s [4]
+    Robot* robot;   //指向机器人
+
+    DWA_state(Robot* robot){
+        this->pos = robot->coordinate;
+        this->heading = robot->heading;
+        this->linSpd = robot->linear_speed;
+        this->angSpd = robot->angular_speed;
+        this->robot = robot;
+    };
+
+    DW calcDW(float dt = FRAME_INTERVAL){
+        DW vs = {0, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
+        float linAcc = this->robot->crt_lin_acc, angAcc = this->robot->crt_ang_acc;
+        DW vd = {this->linSpd.len() - linAcc * dt,
+                 this->linSpd.len() + linAcc * dt,
+                 this->angSpd - angAcc * dt,
+                 this->angSpd + angAcc * dt};
+
+        return {max(vs.v_min, vd.v_min), min(vs.v_max, vd.v_max),
+                max(vs.ang_v_min, vd.ang_v_min), min(vs.ang_v_max, vd.ang_v_max)};
+    }
+
+    void move_dt(VW vw, float dt){
+        this->heading += vw.w * dt;
+        this->heading = clampHDG(this->heading);
+        vec2 delta_pos = {cos(this->heading) * vw.v * dt, sin(this->heading) * vw.v * dt};
+        this->pos += delta_pos;
+        this->linSpd = {vw.v * cos(this->heading), vw.v * sin(this->heading)};
+        this->angSpd = vw.w;
+    }
+
+    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL){
+        vector<DWA_state> trajectory;
+        trajectory.push_back(*this);
+        for(float t = dt; t < pred_t; t += dt){
+            this->move_dt(vw,dt);
+            trajectory.push_back(*this);
+        }
+        return trajectory;
+    }
+};
+
+class DWA{
+    public:
+    Robot* robot;
+    
+    static constexpr float alpha = 1;
+    static constexpr float beta = 10;
+    static constexpr float gamma = 0;
+    static constexpr float pred_t = PRED_T;
+    // static constexpr float ang_spd_intv = 0.05;
+    // static constexpr float lin_spd_intv = 0.1;
+    static constexpr float v_samples = 5;
+    static constexpr float ang_v_samples = 30;
+
+    DWA(Robot* robot);
+
+    float tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos);
+    float obs_cost(vector<DWA_state> trajectory);
+    float vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos);
+
+    float calc_cost(VW vw, vec2 tgt_pos, bool log=false);
+
+    VW find_vw(vec2 tgt_pos);
+};

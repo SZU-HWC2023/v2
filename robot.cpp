@@ -15,6 +15,8 @@ Robot::Robot(int robotID, float x, float y){
     // 初始化机器人列表
     this->initOtherRobot();
     this->ban = false;
+    this->trajectory.clear();
+    this->dwa = new DWA(this);
 }
 /*
 更新机器人帧状态
@@ -33,7 +35,11 @@ void Robot::update(robot_frame f){
     this->crt_mass = M_PI * powf(this->crt_radius,2) * ROBOT_DENSITY;
 
     this->crt_lin_acc = MAX_TRACTION / this->crt_mass;
-    this->crt_lin_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+    this->crt_ang_acc =  2*MAX_TORQUE/this->crt_mass/powf(this->crt_radius,2);
+
+
+    DWA_state s(this);
+    this->trajectory = s.calcTrajectory({this->linear_speed.len(), this->angular_speed},PRED_T);
 }
 
 //初始化其他机器人列表
@@ -472,6 +478,10 @@ void Robot::move2ws(Workstation* ws){
 //    vec2 v = judgeWallDirection(p);
     vec2 v = p->map_coordinate;
     vec2 tgt_pos = v;  //目标位置
+    VW vw = this->dwa->find_vw(tgt_pos);
+    this->forward(vw.v);
+    this->rotate(vw.w);
+    return;
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
