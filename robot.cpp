@@ -195,17 +195,21 @@ bool Robot::judge_need_avoid(Robot* r2){
     // 2. 走在同一个通道上
     // 3. 两线段存在交点
     // 4. 没带货物的优先避让带货物的
-    vec2_int r1_coor = this->coordinate.toIndex();
-    vec2_int r2_coor = r2->coordinate.toIndex();
+//    vec2_int r1_coor = this->coordinate.toIndex();
+    vec2_int r1_coor = g_direction_map.to_pos_idx(this->coordinate);
+//    vec2_int r2_coor = r2->coordinate.toIndex();
+    vec2_int r2_coor = g_direction_map.to_pos_idx(r2->coordinate);
     if(this->path->points.size() == 0 || r2->path->points.size() == 0) return false;    // 为空则未分配路径 不需要避让
     vec2_int r1_nxt_point = (*(this->path->iter))->coordinate;
     vec2_int r2_nxt_point = (*(r2->path->iter))->coordinate;
     float dis = calcDistance(coordinate, r2->coordinate);
-    float heading_r1 = calcHeading(r1_coor.toCenter(), r1_nxt_point.toCenter());
-    float heading_r2 = calcHeading(r2_coor.toCenter(), r2_nxt_point.toCenter());
+//    float heading_r1 = calcHeading(r1_coor.toCenter(), r1_nxt_point.toCenter());
+    float heading_r1 = calcHeading(g_direction_map.to_pos(r1_coor,true), g_direction_map.to_pos(r1_nxt_point,true));
+//    float heading_r2 = calcHeading(r2_coor.toCenter(), r2_nxt_point.toCenter());
+    float heading_r2 = calcHeading(g_direction_map.to_pos(r2_coor,true), g_direction_map.to_pos(r2_nxt_point,true));
     float heading_diff = abs(heading_r1-heading_r2);
     // 判断
-    if(heading_diff>3*M_PI/4&&judgeInterOrPara(r1_coor, r1_nxt_point, r2_coor, r2_nxt_point)){
+    if(heading_r1 * heading_r2 < 0 && dis<1.0f){
         return true;
     }
     return false;
@@ -221,7 +225,20 @@ vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_p
     vector<Point*> result;
     auto iter_cur = robot->path->iter;
     auto iter_end = robot->path->points.end();
+    set<vec2_int> s;
+    vector<vector<int>> motion = {{-1,0},{1,0},{0,-1},{0,1},{-1,-1},{-1,1},{1,-1},{1,1}};
+    for(auto iter = robot->path->iter;iter!=iter_end;iter++){
+        Point* p = *iter;
+        s.insert(p->coordinate);
+        for(vector<int> v :motion){
+            int dr = v[0];
+            int dc = v[1];
+            s.insert({p->coordinate.row + dr, p->coordinate.col+dc});
+        }
 
+
+    }
+    int NUM = 4;
     while(iter_cur!=iter_end){
         Point *point = *iter_cur;
         int cur_x = point->coordinate.row;
@@ -229,6 +246,7 @@ vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_p
         result.emplace_back(*iter_cur);
         auto iter_next = iter_cur;
         iter_next++;
+        iter_cur++;
         if(iter_next == iter_end)continue;
         Point* next_point = *iter_next;
         int next_x = next_point->coordinate.row;
@@ -239,12 +257,18 @@ vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_p
             //1. 水平方向往左看看有没有安全的
             int num = 0;
             for(int dy = -1;dy+cur_y>=0;dy--){
-                if(g_map[cur_x][cur_y+dy]=='#')break;
+                vec2_int v = {cur_x,cur_y+dy};
+                if(s.count(v)==1)break;
+                int cnt = g_direction_map.direction_num(v);
+                if(cnt==0)break;
                 num++;
             }
-            if(num>=8){
+            if(num>=NUM){
                 for(int dy = -1;dy+cur_y>=0;dy--){
-                    if(g_map[cur_x][cur_y+dy]=='#')break;
+                    vec2_int v = {cur_x,cur_y+dy};
+                    if(s.count(v)==1)break;
+                    int cnt = g_direction_map.direction_num(v);
+                    if(cnt == 0)break;
                     Point* p = new Point(cur_x,dy+cur_y,1.0f, nullptr);
                     result.emplace_back(p);
                 }
@@ -253,91 +277,121 @@ vector<Point *> get_remain_points(Robot* robot,Point* &road_point,Point* &safe_p
             }
             num = 0;
             //2. 水平方向往右看看有没有安全的
-            for(int dy = 1;dy+cur_y<MAP_TRUE_SIZE;dy++){
-                if(g_map[cur_x][cur_y+dy]=='#')break;
+            for(int dy = 1;dy+cur_y<=MAP_TRUE_SIZE;dy++){
+                vec2_int v = {cur_x,cur_y+dy};
+                if(s.count(v)==1)break;
+                int cnt = g_direction_map.direction_num(v);
+                if(cnt==0)break;
                 num++;
             }
-            if(num>=8){
-                for(int dy = 1;dy+cur_y<MAP_TRUE_SIZE;dy++){
-                    if(g_map[cur_x][cur_y+dy]=='#')break;
+            if(num>=NUM){
+                for(int dy = 1;dy+cur_y<=MAP_TRUE_SIZE;dy++){
+                    vec2_int v = {cur_x,cur_y+dy};
+                    if(s.count(v)==1)break;
+                    int cnt = g_direction_map.direction_num(v);
+                    if(cnt==0)break;
                     Point* p = new Point(cur_x,dy+cur_y,1.0f, nullptr);
                     result.emplace_back(p);
                 }
                 road_point = point;
                 break;
             }
-        }else if(cur_y == next_y){
+
+        }else if(cur_y == next_y ){
             //水平方向走
             //1. 垂直向上走看看有没有安全的
             int num = 0;
             for(int dx = -1;cur_x+dx>=0;dx--){
-                if(g_map[cur_x+dx][cur_y]=='#')break;
+                vec2_int v = {cur_x+dx,cur_y};
+                if(s.count(v)==1)break;
+                int cnt = g_direction_map.direction_num(v);
+                if(cnt==0)break;
                 num++;
             }
-            if(num>=8){
+            if(num>=NUM){
                 for(int dx = -1;cur_x+dx>=0;dx--){
-                    if(g_map[cur_x+dx][cur_y]=='#')break;
+                    vec2_int v = {cur_x+dx,cur_y};
+                    if(s.count(v)==1)break;
+                    int cnt = g_direction_map.direction_num(v);
+                    if(cnt==0)break;
                     Point* p = new Point(cur_x+dx,cur_y,1.0f, nullptr);
                     result.emplace_back(p);
                 }
                 road_point = point;
                 break;
             }
+            num=0;
             //2. 垂直向下走看看有没有安全的
-            for(int dx = 1;cur_x+dx<MAP_TRUE_SIZE;dx++){
-                if(g_map[cur_x+dx][cur_y]=='#')break;
+            for(int dx = 1;cur_x+dx<=MAP_TRUE_SIZE;dx++){
+                vec2_int v = {cur_x+dx,cur_y};
+                if(s.count(v)==1)break;
+                int cnt = g_direction_map.direction_num(v);
+                if(cnt==0)break;
                 num++;
             }
-            if(num>=8){
-                for(int dx = 1;cur_x+dx<MAP_TRUE_SIZE;dx++){
-                    if(g_map[cur_x+dx][cur_y]=='#')break;
+            if(num>=NUM){
+                for(int dx = 1;cur_x+dx<=MAP_TRUE_SIZE;dx++){
+                    vec2_int v = {cur_x+dx,cur_y};
+                    if(s.count(v)==1)break;
+                    int cnt = g_direction_map.direction_num(v);
+                    if(cnt==0)break;
                     Point* p = new Point(cur_x+dx,cur_y,1.0f, nullptr);
                     result.emplace_back(p);
                 }
                 road_point = point;
                 break;
             }
+
         }
 
-        iter_cur++;
+
     }
+//    fprintf(stderr,"找到避让路径1:%d\n",result.size());
     safe_point = result.back();
+    if(road_point == nullptr)road_point=result.back();
     return result;
 }
 void Robot::avoidPointsAdd(Point *p){
     // 先判断有没有撞墙
-    bool carry = item_carried==0?false:true;
-    if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
-        vec2_int s = this->coordinate.toIndex();
-        vec2_int g = p->coordinate;
-        vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
-        addPathPoint(result);
-    }
+//    bool carry = item_carried==0?false:true;
+//    if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
+//        vec2_int s = this->coordinate.toIndex();
+//        vec2_int g = p->coordinate;
+//        vector<Point*> result = g_astar->planning(int(s.row),int(s.col),int(g.row),int(g.col), this->item_carried!=0);
+//        addPathPoint(result);
+//    }
     // 再判断是否存在机器人走独木桥的情况
 
-//     for(Robot* o_r:this->other_robots){
-//         if(o_r->ban) continue;
-//         // 判断是否会出现走独木桥的情况
-//         if(judge_need_avoid(o_r)){
-//             // fprintf(stderr,"走独木桥");
-//             if( this->avoid_robot== nullptr){
-//                 Point* road_point = nullptr; //关键的岔路口点
-//                 Point* safe_point = nullptr;
-//                 vector<Point*> result = get_remain_points(o_r,road_point,safe_point);
-// //                Point * point = new Point(result.back()->coordinate.row,result.back()->coordinate.col+4,1.0, nullptr);
-// //                result.push_back(point);
-//                 for(int i=0;i<result.size();i++){
-// //                    this->path->iter = this->path->points.insert(this->path->iter,result[i]);
-//                     this->avoid_path.push(result[i]);
-//                 }
-//                 this->avoid_robot = o_r; //当前机器人在主动避让
-//                 this->safe_point = safe_point;
-//                 o_r->avoided_robot = this;
-//                 o_r->road_point = road_point;
+     for(Robot* o_r:this->other_robots){
+         if(o_r->ban) continue;
+         // 判断是否会出现走独木桥的情况
+         if(judge_need_avoid(o_r)){
+              fprintf(stderr,"走独木桥");
+             if( this->avoid_robot== nullptr){
+                 Point* road_point = nullptr; //关键的岔路口点
+                 Point* safe_point = nullptr;
+                 vector<Point*> result = get_remain_points(o_r,road_point,safe_point);
+                 if(result.size()==0)continue;
+                 for(int i=0;i<result.size();i++){
+                    result[i]->map_coordinate = g_direction_map.to_pos(result[i]->coordinate,true);
+                     this->avoid_path.push(result[i]);
+                 }
+                 this->avoid_robot = o_r; //当前机器人在主动避让
+                 this->safe_point = safe_point;
 
-//             }
-//         }
-//     }
+                 o_r->avoided_robot = this;
+                 o_r->road_point = road_point;
+//                 fprintf(stderr,"找到避让路径:%d\n",result.size());
+                 print_path(result);
+                 vec2 road = g_direction_map.to_pos( road_point->coordinate,true);
+//                 fprintf(stderr,"路口:%d\n",result.size());
+//                 fprintf(stderr,"%.2f, %.2f\n",road.x,road.y);
+
+                 break;
+
+             }
+         }
+     }
 }
 
 void print_path(list<Point*> path){
@@ -352,6 +406,7 @@ void print_path(list<Point*> path){
 @ws 目标工作站
  */
 Point* Robot::getNaviPoint(Workstation* w){
+//    if(this->id == 1)return nullptr;
 //    vec2_int g = w->coordinate.toIndex();
     vec2_int g = g_direction_map.find_passable_vertice(w->coordinate);
     //路径为空，为机器人规划一条前往工作台ws的路径
@@ -385,40 +440,51 @@ Point* Robot::getNaviPoint(Workstation* w){
         // print_path(this->path->points);
     }
     // 1.主动避让的机器人到达安全点后，就应该不动，等待让行的机器人通过关键路口
-//    if(this->avoid_robot!= nullptr){
-//        Point* p = this->avoid_path.front();
-//        if(p->coordinate == this->safe_point->coordinate){
-//            return nullptr;
-//        }else{
+    if(this->avoid_robot!= nullptr){
+//        fprintf(stderr,"问题：\n");
+        Point* p = this->avoid_path.front();
+        if(p->coordinate == this->safe_point->coordinate){
+            this->forward(0);
+            this->rotate(0);
+            return nullptr;
+        }else{
 //            vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
-//            if(calcDistance(des,this->coordinate) < crt_radius*2){
-//                this->avoid_path.pop();
-//            }
-//            return this->avoid_path.front();
-//        }
-//    }
+            vec2 des = p->map_coordinate;
+            if(calcDistance(des,this->coordinate) < crt_radius){
+                this->avoid_path.pop();
+            }
+            return this->avoid_path.front();
+        }
+    }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     auto &iter = this->path->iter;
     if(this->path->points.empty())return nullptr;
     list<Point*> &points = this->path->points;
     Point* p = *iter;                 // 导航点
+    if(p== nullptr)fprintf(stderr,"ABC\n");
 //    vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
 //    vec2 des = g_direction_map.to_pos(p->coordinate);
     vec2 des = p->map_coordinate;
     // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
-//    avoidPointsAdd(p);
+    avoidPointsAdd(p);
 
-    // 2. 被让行的机器人经过关键路口后，要通知主动让行的那个机器人继续执行它的任务
-//    if(this->avoided_robot != nullptr){
-//        if(p->coordinate == this->road_point->coordinate){
-//            this->avoided_robot->avoid_robot = nullptr;
-//            this->avoided_robot->safe_point = nullptr;
-//            this->avoided_robot->avoid_path = queue<Point*>();
-//            this->avoided_robot = nullptr;
-//            this->road_point = nullptr;
-//            return nullptr;
-//        }
-//    }
+
+//     2. 被让行的机器人经过关键路口后，要通知主动让行的那个机器人继续执行它的任务
+    if(this->avoided_robot != nullptr){
+//        fprintf(stderr,"ABCD\n");
+//        fprintf(stderr,"%d %d\n",p== nullptr,this->road_point == nullptr);
+        if(p->coordinate == this->road_point->coordinate){
+//            fprintf(stderr,"ABCDEF\n");
+            this->avoided_robot->avoid_robot = nullptr;
+            this->avoided_robot->safe_point = nullptr;
+            this->avoided_robot->avoid_path = queue<Point*>();
+            this->avoided_robot->path->points.clear();
+            this->avoided_robot = nullptr;
+            this->road_point = nullptr;
+//            fprintf(stderr,"ABCDE\n");
+            return nullptr;
+        }
+    }
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
     if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius+0.1){
@@ -474,14 +540,14 @@ vec2 Robot::judgeWallDirection(Point *point){
 
 void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
-    if(p== nullptr)return;  //这行别删了
+    if(p == nullptr)return;  //这行别删了
 //    vec2 v = judgeWallDirection(p);
     vec2 v = p->map_coordinate;
     vec2 tgt_pos = v;  //目标位置
-    VW vw = this->dwa->find_vw(tgt_pos);
-    this->forward(vw.v);
-    this->rotate(vw.w);
-    return;
+//    VW vw = this->dwa->find_vw(tgt_pos);
+//    this->forward(vw.v);
+//    this->rotate(vw.w);
+//    return;
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 
     float dist2ws = calcDistance(this->coordinate, tgt_pos);    //距离工作台距离
@@ -516,6 +582,9 @@ void Robot::move2ws(Workstation* ws){
 //    tgt_lin_spd = 1;
 //    tgt_ang_spd = 0;
 
+    if(this->avoided_robot!= nullptr){
+        tgt_lin_spd = tgt_lin_spd*0.5;
+    }
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
 
