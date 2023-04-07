@@ -146,6 +146,8 @@ void Robot::initPath(vector<Point*> points){
 //        this->path->points.push_back(iter);
 //    }
     for(int i=1;i<points.size();i++){
+        points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate,i == (points.size()-1));
+
         this->path->points.push_back(points[i]);
     }
 //    fprintf(stderr,"==================================\n");
@@ -392,7 +394,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 //    }
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius+0.1){
         iter++;
         p = *iter;
     }
@@ -447,7 +449,7 @@ void Robot::move2ws(Workstation* ws){
     Point* p = getNaviPoint(ws);        // 获取当前路径的导航点
     if(p== nullptr)return;  //这行别删了
 //    vec2 v = judgeWallDirection(p);
-    vec2 v = g_direction_map.to_pos(p->coordinate, true);
+    vec2 v = p->map_coordinate;
     vec2 tgt_pos = v;  //目标位置
     float tgt_lin_spd = this->linear_speed.len(), tgt_ang_spd = this->angular_speed;    //线速度和角速度
 

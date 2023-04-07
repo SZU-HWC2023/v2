@@ -299,6 +299,7 @@ class DirectionMap{
 
 typedef struct Point{
     vec2_int coordinate; // 坐标
+    vec2 map_coordinate; //在地图的实际坐标
     float cost; //记录从源节点到当前节点的代价
     float current_to_goal_cost;  //记录当前节点到目标节点的代价
     struct Point *parent_node;
