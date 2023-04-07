@@ -41,6 +41,7 @@ tuple<double, int> getTimePriceForBuy02(Robot* r, Workstation *w, int frame_id){
     int nxt_worker_id = -1;
     for(auto iter=g_item_to_ws.equal_range(w->production_item.type); iter.first != iter.second; ++iter.first){
         Workstation* nxt_w = iter.first->second;
+        if(nxt_w->type == 9) continue;
         if(g_map[nxt_w->coordinate.toIndex()] == '$' || w->ban) continue;
         if(g_connected_areas_uc[w->coordinate]!=g_connected_areas_uc[nxt_w->coordinate] || nxt_w->ban) {continue;}
         if(nxt_w->can_production_recycle(w->production_item.type)){
@@ -95,7 +96,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             }
             int nxt_worker_id = get<1>(tup);   // 取完后可以送的下一个工作台id
             double time_price = get<0>(tup);   // 平均利润(性价比)
-            if(nxt_worker_id >= 0 && g_workstations[nxt_worker_id]->type == 9) time_price *= 50;
+            if(nxt_worker_id >= 0 && g_workstations[nxt_worker_id]->type == 9) time_price = MAX;
             if(nxt_worker_id >= 0) pq.push({time_price*weight, w->id, nxt_worker_id});
         }
     }
@@ -175,7 +176,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
                 double tmp = 1.0;
                 double weight = 1.0;
                 // 加入历史平衡的决策
-                if(MAX_FRAME-frame_id>1500) weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 2);   // 根据历史购买记录平衡去买哪个货物
+                if(MAX_FRAME-frame_id>1500) weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 6);   // 根据历史购买记录平衡去买哪个货物
                 if(tmp*weight < time){
                     time = tmp*weight;
                     min_dis_worker_id = w->id;
