@@ -28,8 +28,8 @@ void init_points(){
             if(g_workstations[j]->type <= 3 && g_workstations[j]->type <= 3) continue;
             Workstation* src_workstation = g_workstations[i];
             Workstation* des_workstation = g_workstations[j];
-            vec2_int src = g_direction_map.to_pos_idx(src_workstation->coordinate);
-            vec2_int des = g_direction_map.to_pos_idx(des_workstation->coordinate);
+            vec2_int src = g_direction_map.find_passable_vertice(src_workstation->coordinate);
+            vec2_int des = g_direction_map.find_passable_vertice(des_workstation->coordinate);
              // 不带物品都不在同一连通域中 无需找路径
             if(g_connected_areas_uc.map[src.row][src.col] != g_connected_areas_uc.map[des.row][des.col]){
                 continue;
