@@ -100,15 +100,12 @@ float RawMap::dist2Obstacle(vec2 pos){
 return true 连线有障碍物
 return false 连线没有障碍物
  */
-bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist) { 
-    //两个点如果邻近，说明没有障碍物
-    if(src_point.chebyshevDist(des_point) == 1)return false;
-
+bool RawMap::obstacle_in_line(vec2 src,vec2 des,bool has_product, float max_dist){
     //遍历步长
     float step = 0.5;
 
     //方向向量
-    vec2 direction = des_point.toCenter() - src_point.toCenter();
+    vec2 direction = des - src;
     //长度
     float len = max_dist<0?direction.len():max_dist;
     //单位化
@@ -120,7 +117,7 @@ bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_pro
     //机器人半径
     float radius = has_product?ROBOT_CARRY_RADIUS:ROBOT_NORM_RADIUS;
     //起点中心点
-    vec2 src_center = src_point.toCenter();
+    vec2 src_center = src;
     //起点左侧偏移机器人半径点
     vec2 src_left = src_center + normal * radius;
     //起点右侧偏移机器人半径点
@@ -141,6 +138,14 @@ bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_pro
     }
 
     return false;
+}
+
+
+bool RawMap::obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist) { 
+    //两个点如果邻近，说明没有障碍物
+    if(src_point.chebyshevDist(des_point) == 1)return false;
+
+    return this->obstacle_in_line(src_point.toCenter(),des_point.toCenter(),has_product,max_dist);
 }
 
 bool RawMap::obstacle_in_line(Point* src_point,Point* des_point,bool has_product){

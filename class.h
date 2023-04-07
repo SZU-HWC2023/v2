@@ -261,6 +261,7 @@ class RawMap:public Map<char>{
     bool isObstacle(vec2 pos);
     bool isObstacle(vec2_int pos);
     float dist2Obstacle(vec2 pos);
+    bool obstacle_in_line(vec2 src,vec2 des,bool has_product, float max_dist=-1);    
     bool obstacle_in_line(vec2_int src_point,vec2_int des_point,bool has_product, float max_dist=-1);
     bool obstacle_in_line(Point* src_point,Point* des_point,bool has_product);
 };
