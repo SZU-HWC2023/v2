@@ -166,23 +166,23 @@ void Robot::allocate_path(Workstation* w){
 }
 
 
-void Robot::addPathPoint(vector<Point*> result){
-    path->points.erase(path->iter++);
-    for(int i = result.size()-1; i>=0; i--){
-        path->iter = path->points.insert(path->iter, result[i]);
-    }
-}
+// void Robot::addPathPoint(vector<Point*> result){
+//     path->points.erase(path->iter++);
+//     for(int i = result.size()-1; i>=0; i--){
+//         path->iter = path->points.insert(path->iter, result[i]);
+//     }
+// }
 
-void Robot::avoidPointsAdd(Point *p){
-    // 先判断有没有撞墙
-    bool carry = item_carried==0?false:true;
-    if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
-        vec2_int s = this->coordinate.toIndex();
-        vec2_int g = p->coordinate;
-        vector<Point*> result = g_astartest->planning(s, g, this->item_carried!=0);
-        addPathPoint(result);
-    }
-}
+// void Robot::avoidPointsAdd(Point *p){
+//     // 先判断有没有撞墙
+//     bool carry = item_carried==0?false:true;
+//     if(g_map.obstacle_in_line(coordinate.toIndex(), p->coordinate, carry)){
+//         vec2_int s = this->coordinate.toIndex();
+//         vec2_int g = p->coordinate;
+//         vector<Point*> result = g_astartest->planning(s, g, this->item_carried!=0);
+//         addPathPoint(result);
+//     }
+// }
 
 /*
 获得机器人行动的导航点

@@ -108,8 +108,9 @@ vector<Point*> AStarTest::planning(vec2_int src_point,vec2_int des_point,bool ha
         vector<vec2_int> directions =  g_direction_map.get_directions(current->coordinate);
 
         for(vec2_int v: directions){
+            vec2_int new_coor = current->coordinate + v;
             float baseCost = abs(v.row) + abs(v.col);
-            Point* point = new Point(current->coordinate + v,current->cost+baseCost,current);
+            Point* point = new Point(new_coor ,current->cost+baseCost,current);
             int px = point->coordinate.row;
             int py = point->coordinate.col;
             if(!verify(point,goal_node,has_product))continue;
