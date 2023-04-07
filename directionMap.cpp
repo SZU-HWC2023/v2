@@ -93,7 +93,7 @@ bool DirectionMap::is_carry_passable(vec2_int pos_idx){
     bool res = (b[0] || b[4]) && (b[2] || b[6]);
     if(!res){
         vec2 pos = this->to_pos(pos_idx);
-//        fprintf(stderr,"%.2f, %.2f|", pos.x,pos.y);
+        // fprintf(stderr,"%.2f, %.2f|", pos.x,pos.y);
     }
     return res;
 }
