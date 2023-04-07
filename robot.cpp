@@ -203,7 +203,6 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }else{ //携带产品
-            carry = true;
             if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
                 initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}],w->coordinate);
             }else{
