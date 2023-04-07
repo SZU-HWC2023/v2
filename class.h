@@ -202,7 +202,7 @@ class Robot{
 
     // 路径函数
     void allocate_path(Workstation* w);
-    void initPath(vector<Point*> path);
+    void initPath(vector<Point*> path,vec2 w);
     Point* getNaviPoint(Workstation* ws); 
     // ---避让算法
     void avoidPointsAdd(Point*p);   

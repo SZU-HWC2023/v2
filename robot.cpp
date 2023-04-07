@@ -141,15 +141,21 @@ void print_path(vector<Point*> &vec_paths){
 @path 路径 Vector
 @size 
  */
-void Robot::initPath(vector<Point*> points){
+void Robot::initPath(vector<Point*> points,vec2 w){
 //    for(auto iter:points){
 //        this->path->points.push_back(iter);
 //    }
+
     for(int i=1;i<points.size();i++){
-        points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate,i == (points.size()-1));
+        if(i == points.size()-1){
+            points.back()->map_coordinate = w;
+        }else{
+            points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate);
+        }
 
         this->path->points.push_back(points[i]);
     }
+
 //    fprintf(stderr,"==================================\n");
 //    print_path(points);
 //    fprintf(stderr,"==================================\n");
@@ -166,7 +172,7 @@ void Robot::allocate_path(Workstation* w){
     vec2_int g = g_direction_map.to_pos_idx(w->coordinate);
     vector<Point*> result = g_astartest->planning(s,g ,this->item_carried!=0);
     // 初始化路径
-    initPath(result);
+    initPath(result,w->coordinate);
 }
 void Robot::BFS_avoid_robot(){
     // 避让成功点的几个要素
@@ -343,17 +349,17 @@ Point* Robot::getNaviPoint(Workstation* w){
         if(workshop_located != -1) s = g_direction_map.to_pos_idx(g_workstations[this->workshop_located]->coordinate);
         if(this->item_carried == 0){ //未携带产品
             if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
-                initPath(g_astar_path[{s.row, s.col, g.row, g.col}]);
+                initPath(g_astar_path[{s.row, s.col, g.row, g.col}],w->coordinate);
             }else{
                 // 数据结构中没有路径 规划路径
                 this->allocate_path(w);
             }
         }else{ //携带产品
             if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
-                initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}]);
+                initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}],w->coordinate);
             }else{
                 // 数据结构中没有路径 规划路径
-                // if(id == 0 && item_carried == 1) cerr<< g_workstations[get<0>(action)]->id <<endl;
+                 if(id == 0 && item_carried == 1) cerr<< g_workstations[get<0>(action)]->id <<endl;
                 this->allocate_path(w);
             }
         }
@@ -377,7 +383,8 @@ Point* Robot::getNaviPoint(Workstation* w){
     list<Point*> &points = this->path->points;
     Point* p = *iter;                 // 导航点
 //    vec2 des = p->coordinate.toCenter();           // 坐标对应的地图中的位置(浮点)
-    vec2 des = g_direction_map.to_pos(p->coordinate);
+//    vec2 des = g_direction_map.to_pos(p->coordinate);
+    vec2 des = p->map_coordinate;
     // 判断是否会相撞 撞墙 机器人独木桥 并向list中加入避让算法
 //    avoidPointsAdd(p);
 
