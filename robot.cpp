@@ -146,7 +146,7 @@ void Robot::initPath(vector<Point*> points,vec2 w){
         if(i == points.size()-1){
             points.back()->map_coordinate = w;
         }else{
-            points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate);
+            points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate,true);
         }
 
         this->path->points.push_back(points[i]);
@@ -203,6 +203,7 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }else{ //携带产品
+            carry = true;
             if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
                 initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}],w->coordinate);
             }else{
@@ -210,6 +211,11 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }
+        // if(carry)
+        //     fprintf(stderr,"carry path: ");
+        // else
+        //     fprintf(stderr,"no carry path: ");
+        // print_path(this->path->points);
     }
     vec2 w_coor = w->coordinate;       // 目标工作台的坐标
     auto &iter = this->path->iter;
