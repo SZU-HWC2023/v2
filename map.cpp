@@ -8,12 +8,10 @@ RawMap::RawMap(){
 }
 
 char RawMap::find(vec2_int pos){
-    try{
-        return this->map[pos.row][pos.col];
-    }
-    catch (out_of_range const &exc){
+    if(pos.row < 0 || pos.row >= MAP_TRUE_SIZE+1 || pos.col < 0 || pos.col >= MAP_TRUE_SIZE+1)
         return '#';
-    }
+    return this->map[pos.row][pos.col];
+
 }
 
 /*
