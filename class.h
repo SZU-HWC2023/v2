@@ -276,7 +276,7 @@ class RawMap:public Map<char>{
 class DirectionMap{
     public:
     array<array<bitset<8>, MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> map; //地图底层数组
-    vec2_int directions[8] = {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+    vec2_int directions[8] = {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
     vec2 compenstation[8] = {{-0.25,0},{0,0},{0,-0.25},{0,0},{0.25,0},{0,0},{0,0.25},{0,0}};
 
     DirectionMap();

@@ -150,7 +150,7 @@ void Robot::initPath(vector<Point*> points,vec2 w){
         if(i == points.size()-1){
             points.back()->map_coordinate = w;
         }else{
-            points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate);
+            points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate,true);
         }
 
         this->path->points.push_back(points[i]);
@@ -166,10 +166,10 @@ void Robot::initPath(vector<Point*> points,vec2 w){
 @w 目标工作站
  */
 void Robot::allocate_path(Workstation* w){
-    vec2_int s = g_direction_map.to_pos_idx(this->coordinate);
+    vec2_int s = g_direction_map.find_passable_vertice(this->coordinate);
 //    vec2_int s = this->coordinate.toIndex();
 //    vec2_int g = w->coordinate.toIndex();
-    vec2_int g = g_direction_map.to_pos_idx(w->coordinate);
+    vec2_int g = g_direction_map.find_passable_vertice(w->coordinate);
     vector<Point*> result = g_astartest->planning(s,g ,this->item_carried!=0);
     // 初始化路径
     initPath(result,w->coordinate);
@@ -334,19 +334,27 @@ void Robot::avoidPointsAdd(Point *p){
 //     }
 }
 
+void print_path(list<Point*> path){
+    for(Point* p:path){
+        fprintf(stderr,"%.2f,%.2f |",p->map_coordinate.x,p->map_coordinate.y);
+    }
+    fprintf(stderr,"\n");
+}
+
 /*
 获得机器人行动的导航点
 @ws 目标工作站
  */
 Point* Robot::getNaviPoint(Workstation* w){
 //    vec2_int g = w->coordinate.toIndex();
-    vec2_int g = g_direction_map.to_pos_idx(w->coordinate);
+    vec2_int g = g_direction_map.find_passable_vertice(w->coordinate);
     //路径为空，为机器人规划一条前往工作台ws的路径
     if(this->path->points.empty()){
         // 判断数据结构中有没有 没有再取
         vec2_int s = {-1, -1};
 //        if(workshop_located != -1) s = g_workstations[this->workshop_located]->coordinate.toIndex();
-        if(workshop_located != -1) s = g_direction_map.to_pos_idx(g_workstations[this->workshop_located]->coordinate);
+        bool carry = false;
+        if(workshop_located != -1) s = g_direction_map.find_passable_vertice(g_workstations[this->workshop_located]->coordinate);
         if(this->item_carried == 0){ //未携带产品
             if(s.row !=-1 && g_astar_path.count({s.row, s.col, g.row, g.col})>0){
                 initPath(g_astar_path[{s.row, s.col, g.row, g.col}],w->coordinate);
@@ -355,6 +363,7 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }else{ //携带产品
+            carry = true;
             if(s.row !=-1 && g_astar_product_path.count({s.row, s.col, g.row, g.col})>0){
                 initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}],w->coordinate);
             }else{
@@ -363,6 +372,11 @@ Point* Robot::getNaviPoint(Workstation* w){
                 this->allocate_path(w);
             }
         }
+        // if(carry)
+        //     fprintf(stderr,"carry path: ");
+        // else
+        //     fprintf(stderr,"no carry path: ");
+        // print_path(this->path->points);
     }
     // 1.主动避让的机器人到达安全点后，就应该不动，等待让行的机器人通过关键路口
 //    if(this->avoid_robot!= nullptr){
