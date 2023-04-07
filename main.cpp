@@ -103,14 +103,15 @@ int main(){
     expandMap();
     init_points();
     AStarTest* aStarTest = new AStarTest();
-    int begin_workstation = 3;
+    int begin_workstation = 14;
     vec2_int begin_vec = g_direction_map.to_pos_idx(g_workstations[begin_workstation]->coordinate);
-    int end_workstation = 4;
+    int end_workstation = 18;
     vec2_int end_vec = g_direction_map.to_pos_idx(g_workstations[end_workstation]->coordinate);
     fprintf(stderr,"起始工作台: %d 类型：%d \n",g_workstations[begin_workstation]->id,g_workstations[begin_workstation]->type);
     fprintf(stderr,"终止工作台: %d 类型：%d \n",g_workstations[end_workstation]->id,g_workstations[end_workstation]->type);
-    vector<Point*> result = aStarTest->planning(begin_vec,end_vec,false);
+    vector<Point*> result = aStarTest->planning(begin_vec,end_vec,true);
     fprintf(stderr,"==================================\n");
+    fprintf(stderr,"result.size:%d\n",result.size());
 //    print_path(result);
     fprintf(stderr,"==================================\n");
     int map_type = check_map(g_workstations[0]);

@@ -356,7 +356,7 @@ public:
     vector<Point*> planning(vec2_int src_point,vec2_int des_point,bool has_product);
     vector<Point*> calc_final_path(Point* goal_node);
     //判断下标是否合法
-    bool verify(Point * p,bool has_product);
+    bool verify(Point * p,Point* goal_node,bool has_product);
     float calc_heuristic(Point * a, Point *b);
 
 };
