@@ -129,7 +129,7 @@ void Manager::assignTask(int frame_id, Robot* r, queue<int> robot_ids){
 void Manager::handleFps(int frame_id){
     queue<int> robot_ids;  // 4个机器人下标记录哪个机器人没有被分配任务 被抢占的机器人要被压入队列中重新分配任务
     for(int i = 0; i < ROBOT_NUM; i++){
-        if(!g_robots[i]->ban && i == 1) robot_ids.push(g_robots[i]->id);
+        if(!g_robots[i]->ban) robot_ids.push(g_robots[i]->id);
     }
     // 循环每个机器人分配任务   只有当前空闲状态或者上一帧的任务被抢走的工作台才会执行assignTasks   已有任务的机器人执行handleTasks
     while(!robot_ids.empty()){

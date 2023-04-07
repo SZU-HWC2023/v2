@@ -86,7 +86,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
                 continue;
             }
             tuple<double, int> tup;
-            double weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 2);
+            double weight = pow(historyGetMap[w->type]-getMinimumFromMap(historyGetMap), 4);
             // 没有continue说明要么工作台没有被锁 要么当前的机器人距离代价比上一个锁住工作台的机器人代价更小 压入pq优先队列中
             if(r->workshop_located == -1){
                 tup = getTimePriceForBuy01(r, w, frame_id);
@@ -134,11 +134,11 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
                     tmp_pq.pop();
                     continue;
                 }
-                // 4567只有送过去才会去取 不会大老远跑过去取
-                if(cur_w->type >= 4 && MAX_FRAME-frame_id > 2000 && cur_w->getMissingNum()!=0){
-                    tmp_pq.pop();
-                    continue;
-                }
+                // // 4567只有送过去才会去取 不会大老远跑过去取
+                // if(cur_w->type >= 4 && MAX_FRAME-frame_id > 2000 && cur_w->getMissingNum()!=0){
+                //     tmp_pq.pop();
+                //     continue;
+                // }
                 break;
             }
         }
@@ -221,15 +221,15 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 pq.push({timePrice, w->id});
             }else if(item >= 4){
                 // 456号物品 考虑距离 和 接受它的站台缺失物品数量
-                double weight = w->getWeight();
+                double weight = pow(w->getWeight(), 2);
                 if(left_frame < 1500) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }else{
                 // 123号物品 考虑距离 和 历史填充数量 和 缺失物品数量
-                double weight = w->getWeight();
+                double weight = pow(w->getWeight(), 2);
                 tuple<int, int> fill = {w->type, item};
                 int fill_count = historyFillMap.count(fill)>0?historyFillMap[fill]:50;
-                weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 2);
+                weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 4);
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});
             }

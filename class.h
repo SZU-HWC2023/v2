@@ -321,30 +321,6 @@ typedef struct Point{
 
 //计算路径的长度
 float calc_distance_path(vector<Point*> &vec_paths);
-class AStar{
-public:
-    vector<tuple<int,int,float>> motion;
-    array<array<bool,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> vis;
-    array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> open_map; // 存储待检测节点
-    array<array<Point*,MAP_TRUE_SIZE>, MAP_TRUE_SIZE> closed_map; // 存储已经检测过的节点
-
-    AStar(){
-        this->motion = this->get_motion_model();
-    }
-    vector<Point*> planning(int srow,int scol,int grow,int gcol,bool has_product);
-    vector<Point*> calc_final_path(Point* goal_node,bool has_product);
-    vector<Point *> simplify_path(vector<Point*> &vec_points,bool has_product);
-    //判断下标是否合法
-    bool verify(Point * from,Point* p,bool has_product);
-    tuple<int,int> getIndex(Point* p);
-    float calc_heuristic(Point* a, Point *b);
-    vector<tuple<int,int, float >> get_motion_model();
-    void divide_conquer(vector<Point*> &result,int left,int right,vector<Point*> &vec_points,bool has_product);
-
-};
-
-
-
 class AStarTest{
 public:
 
@@ -352,34 +328,17 @@ public:
     array<array<Point*,MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> open_map; // 存储待检测节点
     array<array<Point*,MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> closed_map; // 存储已经检测过的节点
 
-    AStarTest(){
+    AStarTest(){}
 
-    }
+    vector<Point *> simplify_path(vector<Point*> &vec_points,bool has_product);
     vector<Point*> planning(vec2_int src_point,vec2_int des_point,bool has_product);
-    vector<Point*> calc_final_path(Point* goal_node);
+    vector<Point*> calc_final_path(Point* goal_node, bool has_product);
     //判断下标是否合法
     bool verify(Point * p,Point* goal_node,bool has_product);
     float calc_heuristic(Point * a, Point *b);
 
 };
-// class DoubleDirectionAstar{
-// public:
-//     vector<tuple<int,int, float >> motion;
-//     DoubleDirectionAstar(){
-//         this->motion = this->get_motion_model();
-//     }
-//     vector<Point*> planning(int sx,int sy,int gx,int gy,bool has_product);
-//     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
-//     vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
-//     vector<Point *> simplify_path(vector<Point*> &vec_points);
-//     //判断下标是否合法
-//     bool verify(Point * from,Point* p, bool has_product);
-//     tuple<int,int> getIndex(Point* p);
-//     float calc_heuristic(Point* a, Point *b);
-//     float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
-//     vector<tuple<int,int, float >> get_motion_model();
-//
-// };
+
 bool judgeAroundObstacle(int row, int col);
 vector<Point*> double_planning(int sx,int sy,int gx,int gy,bool has_product);
 /*
