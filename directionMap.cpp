@@ -97,6 +97,11 @@ bool DirectionMap::is_carry_passable(vec2_int pos_idx){
     }
     return res;
 }
+//连通方向
+int DirectionMap::direction_num(vec2_int v){
+    bitset<8> b = this->operator[](v);
+    return b.count();
+}
 
 //是否携带物品时可通过
 bool DirectionMap::is_carry_passable(vec2 pos){

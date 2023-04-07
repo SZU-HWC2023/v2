@@ -290,6 +290,7 @@ class DirectionMap{
 
     bool is_carry_passable(vec2_int pos_idx);
     bool is_carry_passable(vec2 pos);
+    int direction_num(vec2_int v);
 
     vector<vec2_int> get_directions(vec2_int pos_idx);
 };

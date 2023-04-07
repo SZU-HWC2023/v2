@@ -108,7 +108,16 @@ vector<Point*> AStarTest::planning(vec2_int src_point,vec2_int des_point,bool ha
         vector<vec2_int> directions =  g_direction_map.get_directions(current->coordinate);
 
         for(vec2_int v: directions){
+            //计算点的连通性
+            int cnt = g_direction_map.direction_num(current->coordinate + v);
             float baseCost = abs(v.row) + abs(v.col);
+            if(cnt == 8){
+                baseCost = 1.0f; //说明8个方向都能走
+            }else{
+                baseCost = baseCost*15;
+                baseCost = baseCost/cnt; //越多方向能走，代价越少
+            }
+
             Point* point = new Point(current->coordinate + v,current->cost+baseCost,current);
             int px = point->coordinate.row;
             int py = point->coordinate.col;
