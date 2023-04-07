@@ -250,7 +250,7 @@ void Robot::move2ws(Workstation* ws){
         if (abs(delta_hdg)>M_PI/6) {
             // 角度太大，全速扭转
             // 速度控制小一点，避免靠近不了工作台
-            tgt_lin_spd = -2;
+            tgt_lin_spd = -1;
             tgt_ang_spd = maxRotateSpeed;
         } else {
             tgt_lin_spd = MAX_FORWARD_SPD * pow(cos(abs(delta_hdg)), 1); // 前进速度随角度变小而变大
@@ -264,17 +264,17 @@ void Robot::move2ws(Workstation* ws){
     auto iter_end = this->path->points.end();
     if(this->path->iter == (--iter_end)){
         float dis = calcDistance(this->coordinate, ws->coordinate);
-        float dis_stop = pow(linear_speed.len(), 2)/(2*crt_lin_acc)+crt_radius+0.3;
+        float dis_stop = pow(linear_speed.len(), 2)/(2*crt_lin_acc)+crt_radius+0.35;
         if(dis < dis_stop) tgt_lin_spd = 1.0;
     }
     // 和其他机器人距离小减速
     for(Robot* r:other_robots){
-        if(calcDistance(coordinate, r->coordinate) < (crt_radius+r->crt_radius+0.1)){
+        if(calcDistance(coordinate, r->coordinate) < (crt_radius+r->crt_radius+0.5)){
+            // 不带物品的优先减速 都带物品或都不带物品 id 小的减速
             tgt_lin_spd = -2;
         }
     }
-    // 撞墙需要减速
-    if(linear_speed.len() < 0.1) tgt_lin_spd = -2;
+ 
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
 

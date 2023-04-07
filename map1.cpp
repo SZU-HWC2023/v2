@@ -95,6 +95,7 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             }
             int nxt_worker_id = get<1>(tup);   // 取完后可以送的下一个工作台id
             double time_price = get<0>(tup);   // 平均利润(性价比)
+            if(nxt_worker_id >= 0 && g_workstations[nxt_worker_id]->type == 9) time_price *= 50;
             if(nxt_worker_id >= 0) pq.push({time_price*weight, w->id, nxt_worker_id});
         }
     }
@@ -228,7 +229,7 @@ void Map1::assignSetTask(int frame_id, Robot* r){
                 // 123号物品 考虑距离 和 历史填充数量 和 缺失物品数量
                 double weight = pow(w->getWeight(), 2);
                 tuple<int, int> fill = {w->type, item};
-                int fill_count = historyFillMap.count(fill)>0?historyFillMap[fill]:50;
+                int fill_count = historyFillMap.count(fill)>0?historyFillMap[fill]:100;
                 weight *= pow(fill_count - getMinimumFromMap(historyFillMap), 4);
                 if(left_frame < 1000) weight = 1.0;
                 pq.push({timePrice*weight, w->id});

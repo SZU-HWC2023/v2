@@ -51,7 +51,7 @@ bool hinderByCorner(int row, int col){
 void robotPassMap(){
     for(int r=MAP_TRUE_SIZE-1; r>=0; r--){
         for(int c=0; c<MAP_TRUE_SIZE; c++){
-            if(g_map.map[r][c] == '.' || (g_map.map[r][c] >= '4' && g_map.map[r][c] <= '9')){
+            if(g_map.map[r][c] == '.' || (g_map.map[r][c] >= '1' && g_map.map[r][c] <= '9')){
                 if(hinderByCorner(r, c)) g_map.map[r][c] = '$';
                 else if(g_map.map[r][c] == '.'){
                     if(hinderWithoutPro(r, c))  g_map.map[r][c] = '!';
