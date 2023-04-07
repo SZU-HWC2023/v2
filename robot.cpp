@@ -351,7 +351,6 @@ Point* Robot::getNaviPoint(Workstation* w){
                 initPath(g_astar_product_path[{s.row, s.col, g.row, g.col}]);
             }else{
                 // 数据结构中没有路径 规划路径
-                // if(id == 0 && item_carried == 1) cerr<< g_workstations[get<0>(action)]->id <<endl;
                 this->allocate_path(w);
             }
         }
@@ -392,7 +391,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 //    }
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius+0.1){
         iter++;
         p = *iter;
     }
@@ -420,26 +419,26 @@ vec2 Robot::judgeWallDirection(Point *point){
     // if(g_map[point->coordinate.row][point->coordinate.col+1]){
     //     res -= bias;
     // }
-    // 左上是墙
-    if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
-        res.y -= bias;
-        res.x += bias;
-    }
-    // 右上是墙
-    if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
-        res.y -= bias;
-        res.x -= bias;
-    }
-    // 左下是墙
-    if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
-        res.y += bias;
-        res.x += bias;
-    }
-    // 右下是墙
-    if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
-        res.y += bias;
-        res.x -= bias;
-    }
+    // // 左上是墙
+    // if(g_map[point->coordinate.row+1][point->coordinate.col-1]){
+    //     res.y -= bias;
+    //     res.x += bias;
+    // }
+    // // 右上是墙
+    // if(g_map[point->coordinate.row+1][point->coordinate.col+1]){
+    //     res.y -= bias;
+    //     res.x -= bias;
+    // }
+    // // 左下是墙
+    // if(g_map[point->coordinate.row-1][point->coordinate.col-1]){
+    //     res.y += bias;
+    //     res.x += bias;
+    // }
+    // // 右下是墙
+    // if(g_map[point->coordinate.row-1][point->coordinate.col+1]){
+    //     res.y += bias;
+    //     res.x -= bias;
+    // }
     return res;
 }
 
@@ -464,7 +463,7 @@ void Robot::move2ws(Workstation* ws){
         if (abs(delta_hdg)>M_PI/2) {
             // 角度太大，全速扭转
             // 速度控制小一点，避免靠近不了工作台
-            tgt_lin_spd = 1;
+            tgt_lin_spd = MAX_FORWARD_SPD/4;
             tgt_ang_spd = maxRotateSpeed;
         } else {
             tgt_lin_spd = MAX_FORWARD_SPD * pow(cos(abs(delta_hdg)), 2); // 前进速度随角度变小而变大

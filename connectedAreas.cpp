@@ -58,9 +58,9 @@ void robotPassMap(){
                     else if(hinderWithPro(r, c))  g_map.map[r][c] = '@';
                 }
             }
-            // fprintf(stderr,"%c", g_map[r][c]);
+            fprintf(stderr,"%c", g_map[r][c]);
         }
-        // fprintf(stderr,"\n");
+        fprintf(stderr,"\n");
     }
 }
 // 是不是障碍物，是障碍物返回true  不带物品

@@ -9,7 +9,7 @@ tuple<double, int> getTimePriceForBuy01(Robot* r, Workstation *w, int frame_id){
     int nxt_worker_id = -1;
     for(auto iter=g_item_to_ws.equal_range(w->production_item.type); iter.first != iter.second; ++iter.first){
         Workstation* nxt_w = iter.first->second;
-        if(g_map[nxt_w->coordinate.toIndex()] == '$') continue;
+        if(g_map[nxt_w->coordinate.toIndex()] == '$' || w->ban) continue;
         if(nxt_w->can_production_recycle(w->production_item.type)){
             double distance = calcDistance(w->coordinate, nxt_w->coordinate);
             double tmp = distance/MAX_FORWARD_SPD;
@@ -41,7 +41,7 @@ tuple<double, int> getTimePriceForBuy02(Robot* r, Workstation *w, int frame_id){
     int nxt_worker_id = -1;
     for(auto iter=g_item_to_ws.equal_range(w->production_item.type); iter.first != iter.second; ++iter.first){
         Workstation* nxt_w = iter.first->second;
-        if(g_map[nxt_w->coordinate.toIndex()] == '$') continue;
+        if(g_map[nxt_w->coordinate.toIndex()] == '$' || w->ban) continue;
         if(g_connected_areas_uc[w->coordinate]!=g_connected_areas_uc[nxt_w->coordinate] || nxt_w->ban) {continue;}
         if(nxt_w->can_production_recycle(w->production_item.type)){
             vec2_int nxt_w_i = nxt_w->coordinate.toIndex();
@@ -197,14 +197,13 @@ void Map1::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
 void Map1::assignSetTask(int frame_id, Robot* r){
     priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> pq; // 总代价(时间表示 帧) 目标工作台
     int item = r->item_carried;
-    // if(r->id == 0 && r->item_carried == 1) cerr<<111<<endl;
     // 有物品 需要去某个站台出售该物品 这就很简单 朝向理论时间最短的去站台去。
     // 情况1：选中的物品可能会没有工作站台接收他  ： 在时间代价里计算是否有空闲机器
     // 优先送差这一个就能接收的站台
     for(auto iter=g_item_to_ws.equal_range(item); iter.first != iter.second; ++iter.first){
         Workstation *w = iter.first->second;
-        if(g_map[w->coordinate.toIndex()] == '$'){
-            if(r->id == 0 && r->item_carried == 1) cerr<<111<<endl;
+        // 角角不能送
+        if(g_map[w->coordinate.toIndex()] == '$' || w->ban){
             continue;
         }
         if(g_connected_areas_c[w->coordinate]!=g_connected_areas_c[r->coordinate] || w->ban) continue;
@@ -238,7 +237,6 @@ void Map1::assignSetTask(int frame_id, Robot* r){
     }
     // 下达指令 朝向最小的工作站台
     if(pq.size()>0){
-        // if(r->id == 0 && r->item_carried == 1) cerr<<222<<endl;
         // while循环可以类比取货物  看看能否加一些东西？？？？
         priority_queue<tuple<double, int>, vector<tuple<double, int>>, greater<tuple<double, int>>> tmp_pq = pq;
         tuple<double, int> minTimePriceWorker = tmp_pq.size()>0?tmp_pq.top():pq.top();

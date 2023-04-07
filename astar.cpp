@@ -47,10 +47,10 @@ void init_points(){
     g_astartest = new AStarTest();
 //     g_directionAstar = new DoubleDirectionAstar();
     for(int i=0;i<g_workstations.size();i++){
-        if(g_connected_areas_c[g_workstations[i]->coordinate] <= 0 || g_workstations[i]->ban) {
+        if(g_connected_areas_uc[g_workstations[i]->coordinate] <= 0 || g_workstations[i]->ban) {
             continue;}
         for(int j = i+1; j < g_workstations.size();j++){
-            if(g_connected_areas_c[g_workstations[j]->coordinate] <= 0 || g_workstations[i]->ban) {
+            if(g_connected_areas_uc[g_workstations[j]->coordinate] <= 0 || g_workstations[i]->ban) {
                 continue;}
             if(g_workstations[j]->type <= 3 && g_workstations[j]->type <= 3) continue;
             Workstation* src_workstation = g_workstations[i];
@@ -358,7 +358,7 @@ vector<Point*> AStarTest::planning(vec2_int src_point,vec2_int des_point,bool ha
             if(open_map[px][py] == nullptr){
                 open_map[px][py] = point;
                 que.push(point);
-                open_map_size ++;
+                open_map_size++;
             }else{
                 if(open_map[px][py]->cost > point->cost){
                     open_map[px][py] = point;
@@ -390,9 +390,9 @@ vector<Point*> AStarTest::calc_final_path(Point* goal_node){
 //判断下标是否合法
 bool AStarTest::verify(Point * p,bool has_product){
     //下标超出地图
-    if(p->coordinate.col < 0 || p->coordinate.row < 0 ||
-        p->coordinate.col>=MAP_TRUE_SIZE+1 || p->coordinate.row >= MAP_TRUE_SIZE+1 ||
-            (!g_direction_map.is_carry_passable(p->coordinate)) && has_product
+    if(p->coordinate.col <= 0 || p->coordinate.row <= 0 ||
+        p->coordinate.col>=MAP_TRUE_SIZE || p->coordinate.row >= MAP_TRUE_SIZE ||
+            ((!g_direction_map.is_carry_passable(p->coordinate)) && has_product)
         )return false;
 
     return true;

@@ -67,6 +67,10 @@ void deleteRed(){
     }
     for (auto iter = g_workstations.begin(); iter < g_workstations.end(); iter++) {
         if(robot_exit_area.count(g_connected_areas_c[(*iter)->coordinate]) <= 0) (*iter)->ban = true;
+        // 只有大于等于4的工作台才会被置为'$'
+        if(g_map[(*iter)->coordinate] == '$') {
+            (*iter)->ban = true;
+        }
     }
 }
 bool judgeWOrR(int row, int col){
