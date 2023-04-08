@@ -421,7 +421,7 @@ Point* Robot::getNaviPoint(Workstation* w){
 //    }
     // 没到工作台且到了导航点附近 iter++
     auto iter_end = points.end();
-    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < crt_radius+0.1){
+    if(iter!=(--iter_end)&&calcDistance(des,this->coordinate) < 0.6){
         iter++;
         p = *iter;
     }

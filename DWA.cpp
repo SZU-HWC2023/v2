@@ -9,7 +9,7 @@ DWA::DWA(Robot *robot_){
 }
 
 float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
-    float min_dist = 2, pass_reward = 0;
+    float min_dist = 2, pass_reward = 1;
     for(auto p:trajectory){
         float dist = calcDistance(p.pos, tgt_pos);
         if(dist < 0.2){
@@ -18,13 +18,13 @@ float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
             auto iter = this->robot->path->iter;
             auto iter_end = this->robot->path->points.end();
             if(iter != (--iter_end)){
-                pass_reward -= 1;
+                pass_reward += 1;
                 iter++;
                 tgt_pos = (*iter)->map_coordinate;
             }
             else{
                 if(dist<0.05)
-                    pass_reward -= 1;
+                    pass_reward += 1;
                     return pass_reward;
             }
         }
@@ -33,7 +33,7 @@ float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     }
     float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
     float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
-    return (abs(atan2(sinf(deltaHDG), cosf(deltaHDG))) + min_dist)/(M_PI+2.0f) + pass_reward;
+    return (abs(atan2(sinf(deltaHDG), cosf(deltaHDG))) + min_dist)/(M_PI+2.0f) + 1/pass_reward;
 }
 
 float wall_dist(vec2 pos){
@@ -50,8 +50,7 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
     
     for(int i=0; i<trajectory.size(); i++){
         min_wall_dist = min(min_wall_dist, wall_dist(trajectory[i].pos));
-        if(g_direction_map[trajectory[i].pos].count()<2)
-            return 1e6f;
+        //TODO: check obstacle
 
         for(auto r:this->robot->other_robots){
             float dist = calcDistance(trajectory[i].pos, r->trajectory[i].pos);
