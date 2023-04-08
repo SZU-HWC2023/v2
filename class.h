@@ -6,7 +6,7 @@
 #include <map>
 #include <cmath>
 #include <algorithm>
-
+#include <stack>
 #ifndef UTILS_H
 #include "utils.h"
 #endif
@@ -299,6 +299,8 @@ class DirectionMap{
     bool is_carry_passable(vec2 pos);
 
     vector<vec2_int> get_directions(vec2_int pos_idx);
+
+    int direction_num(vec2_int v); //获得可达方向的数量
 };
 
 
