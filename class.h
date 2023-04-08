@@ -371,7 +371,24 @@ public:
     float calc_heuristic(Point * a, Point *b);
 
 };
-
+// class DoubleDirectionAstar{
+// public:
+//     vector<tuple<int,int, float >> motion;
+//     DoubleDirectionAstar(){
+//         this->motion = this->get_motion_model();
+//     }
+//     vector<Point*> planning(int sx,int sy,int gx,int gy,bool has_product);
+//     vector<Point*> calc_final_path(Point* goal_node,map<tuple<int,int>,Point*> &closed_map);
+//     vector<Point*> calc_final_doubledirectional_path(Point* meetA, Point* meetB,map<tuple<int,int>,Point*> &cloaes_map_A,map<tuple<int,int>,Point*> &cloaes_map_B);
+//     vector<Point *> simplify_path(vector<Point*> &vec_points);
+//     //判断下标是否合法
+//     bool verify(Point * from,Point* p, bool has_product);
+//     tuple<int,int> getIndex(Point* p);
+//     float calc_heuristic(Point* a, Point *b);
+//     float calc_total_cost(map<tuple<int,int>,Point*> &open_set,Point* a,Point* current);
+//     vector<tuple<int,int, float >> get_motion_model();
+//
+// };
 bool judgeAroundObstacle(int row, int col);
 vector<Point*> double_planning(int sx,int sy,int gx,int gy,bool has_product);
 /*
