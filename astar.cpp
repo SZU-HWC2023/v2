@@ -153,8 +153,8 @@ vector<Point*> AStarTest::calc_final_path(Point* goal_node, bool has_product){
     }
     reverse(result.begin(),result.end());
     vector<Point*> simplify_result = simplify_path(result, has_product);
-    return simplify_result;
-    // return result;
+    // return simplify_result;
+    return result;
 }
 
 /*

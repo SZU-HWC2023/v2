@@ -61,7 +61,7 @@ void frameOperation(int map_type){
     }
     if(map_type == 4){
         Map4 map4;
-        g_robots[0]->ban=true;
+        // g_robots[0]->ban=true;
         // g_robots[1]->ban=true;
         // g_robots[2]->ban=true;
         g_robots[3]->ban=true;
