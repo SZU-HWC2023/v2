@@ -28,6 +28,10 @@ struct vec2_int{
         return *this;
     }
 
+    vec2_int operator-(const vec2_int& v){
+        return {row-v.row, col-v.col};
+    }
+
     bool operator<(const vec2_int& v) const{
         return row < v.row || (row == v.row && col < v.col);
     }

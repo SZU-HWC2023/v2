@@ -284,7 +284,7 @@ class DirectionMap{
     public:
     array<array<bitset<8>, MAP_TRUE_SIZE+1>, MAP_TRUE_SIZE+1> map; //地图底层数组
     vec2_int directions[8] = {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
-    vec2 compenstation[8] = {{-0.3,0},{-0.2,-0.2},{0,-0.3},{0.2,-0.2},{0.3,0},{0.2,0.2},{0,0.3},{-0.2,0.2}};
+    vec2 compenstation[8] = {{-0.2,0},{-0.15,-0.15},{0,-0.2},{0.15,-0.15},{0.2,0},{0.15,0.15},{0,0.2},{-0.15,0.15}};
 
     DirectionMap();
     void init(RawMap &raw_map);
@@ -448,7 +448,7 @@ struct DWA_state{
         this->robot = robot;
     };
 
-    DW calcDW(float dt = FRAME_INTERVAL*5){
+    DW calcDW(float dt = FRAME_INTERVAL){
         DW vs = {0, MAX_FORWARD_SPD, -MAX_ANGULAR_SPD, MAX_ANGULAR_SPD};
         float linAcc = this->robot->crt_lin_acc, angAcc = this->robot->crt_ang_acc;
         DW vd = {this->linSpd.len() - linAcc * dt,
@@ -469,7 +469,7 @@ struct DWA_state{
         this->angSpd = vw.w;
     }
 
-    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL*5){
+    vector<DWA_state> calcTrajectory(VW vw, float pred_t, float dt = FRAME_INTERVAL){
         vector<DWA_state> trajectory;
         trajectory.push_back(*this);
         for(float t = dt; t < pred_t; t += dt){
@@ -484,9 +484,9 @@ class DWA{
     public:
     Robot* robot;
     
-    static constexpr float alpha = 3;
-    static constexpr float beta = 3;
-    static constexpr float gamma = 0.1;
+    static constexpr float alpha = 1;
+    static constexpr float beta = 1;
+    static constexpr float gamma = 0.3;
     static constexpr float pred_t = PRED_T;
     // static constexpr float ang_spd_intv = 0.05;
     // static constexpr float lin_spd_intv = 0.1;

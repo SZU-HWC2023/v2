@@ -102,7 +102,7 @@ return false 连线没有障碍物
  */
 bool RawMap::obstacle_in_line(vec2 src,vec2 des,bool has_product, float max_dist){
     //遍历步长
-    float step = 0.5;
+    float step = 0.1;
 
     //方向向量
     vec2 direction = des - src;

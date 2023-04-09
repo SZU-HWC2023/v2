@@ -134,6 +134,16 @@ inline vec2 getXY(int i, int j){
 inline vec2 GetPoint(float x, float y){
     return {2*(49.75f - y),2*(x-0.25f)};
 }
+
+void print_path(list<Point*> &vec_paths){
+    for(Point* p:vec_paths){
+        // fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
+        vec2 pos = g_direction_map.to_pos(p->coordinate,true);
+        fprintf(stderr,"%.2f, %.2f | ",pos.x,pos.y);
+    }
+    fprintf(stderr,"\n");
+}
+
 void print_path(vector<Point*> &vec_paths){
     for(Point* p:vec_paths){
         // fprintf(stderr,"%d,%d | ",p->coordinate.row,p->coordinate.col);
@@ -142,6 +152,8 @@ void print_path(vector<Point*> &vec_paths){
     }
     fprintf(stderr,"\n");
 }
+
+
 /*
 初始化机器人路径导航
 @path 路径 Vector
@@ -151,21 +163,38 @@ void Robot::initPath(vector<Point*> points,vec2 w){
 //    for(auto iter:points){
 //        this->path->points.push_back(iter);
 //    }
-
+    if(points.size() == 0){
+        this->path->points.clear();
+        return;
+    }
+    Point* last_point = points[0];
+    points[0]->map_coordinate = g_direction_map.to_pos(points[0]->coordinate,true);
+    vec2_int last_dir = {0,0};
     for(int i=1;i<points.size();i++){
         if(i == points.size()-1){
             points.back()->map_coordinate = w;
         }else{
             points[i]->map_coordinate = g_direction_map.to_pos(points[i]->coordinate,true);
+
         }
 
-        this->path->points.push_back(points[i]);
-    }
+        vec2_int dir = points[i]->coordinate - last_point->coordinate;
 
+        if(dir == last_dir ){
+        }else{
+            this->path->points.push_back(last_point);
+        }
+
+            last_dir = dir;
+            last_point = points[i];          
+    }
+    this->path->points.push_back(points.back());
 //    fprintf(stderr,"==================================\n");
 //    print_path(points);
 //    fprintf(stderr,"==================================\n");
     this->path->iter=this->path->points.begin();
+
+    print_path(this->path->points);
 }
 /*
 没有路时开辟一条道路

@@ -18,9 +18,9 @@ float DWA::tgt_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
             auto iter = this->robot->path->iter;
             auto iter_end = this->robot->path->points.end();
             if(iter != (--iter_end)){
-                pass_reward += 1;
-                iter++;
-                tgt_pos = (*iter)->map_coordinate;
+                // pass_reward += 1;
+                // iter++;
+                // tgt_pos = (*iter)->map_coordinate;
             }
             else{
                 if(dist<0.05)
@@ -43,15 +43,33 @@ float wall_dist(vec2 pos){
     );
 }
 
-#define MAX_OBS_COST 1/(2*ROBOT_NORM_RADIUS) + 2/ROBOT_NORM_RADIUS
+float find_nearby_obs(Robot* r){
+
+    vec2 heading_vec = fromPolar(1, r->heading);
+    vec2 normal = heading_vec.normal();
+    vec2 left_side = r->coordinate + normal * (r->crt_radius);
+    vec2 right_side = r->coordinate - normal * (r->crt_radius);
+    float min_dist = 1;
+    for(float i=0;i<min_dist;i+=0.1){
+        if(g_map.isObstacle(left_side + heading_vec * i))
+            return i + r->crt_radius;
+        if(g_map.isObstacle(right_side + heading_vec * i))
+            return i  + r->crt_radius;
+        if(g_map.isObstacle(r->coordinate + r->crt_radius + heading_vec * i))
+            return i  + r->crt_radius;
+    }
+    return 3;
+}
+
+#define MAX_OBS_COST 1/(2*ROBOT_NORM_RADIUS) + 1/ROBOT_NORM_RADIUS
 
 float DWA::obs_cost(vector<DWA_state> trajectory){
-    float min_robot_dist = 10, min_wall_dist = 2;
+    float min_robot_dist = 10, min_wall_dist = 3;
     
     for(int i=0; i<trajectory.size(); i++){
         min_wall_dist = min(min_wall_dist, wall_dist(trajectory[i].pos));
         //TODO: check obstacle
-
+        min_wall_dist = min(min_wall_dist, find_nearby_obs(this->robot));
         for(auto r:this->robot->other_robots){
             float dist = calcDistance(trajectory[i].pos, r->trajectory[i].pos);
             if(dist < min_robot_dist)
@@ -66,12 +84,15 @@ float DWA::obs_cost(vector<DWA_state> trajectory){
     else if(min_wall_dist>1)
         min_wall_dist = 2;
         
-    return (1.0/min_robot_dist + 2.0/min_wall_dist)/MAX_OBS_COST;
+    return (1.0/min_robot_dist + 1.0/min_wall_dist)/MAX_OBS_COST;
 }
 
 float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
-    float v_desire = MAX_FORWARD_SPD;
-    v_desire = min(v_desire, calcDistance(trajectory.back().pos, tgt_pos)/pred_t);
+    
+    // v_desire = min(v_desire, calcDistance(trajectory.back().pos, tgt_pos)/pred_t);
+    float turning = abs(clampHDG(trajectory.back().heading - trajectory[0].heading));
+    if(turning < 0.15) turning = 0;
+    float v_desire = MAX_FORWARD_SPD * (M_PI*PRED_T +0.05 - turning)/(M_PI*PRED_T);
     float vel = trajectory.back().linSpd.len();
     // float tgt_hdg = calcHeading(trajectory.back().pos, tgt_pos);
     // float deltaHDG = abs(clampHDG(tgt_hdg - trajectory.back().heading));
@@ -80,7 +101,7 @@ float DWA::vel_cost(vector<DWA_state> trajectory, vec2 tgt_pos){
     // float dist = calcDistance(trajectory.back().pos, tgt_pos);
     // if(dist > s_v) s0 = MAX_FORWARD_SPD;
     
-    return (abs(MAX_FORWARD_SPD - vel))/MAX_FORWARD_SPD;
+    return (abs(v_desire - vel))/MAX_FORWARD_SPD;
 }
 
 float DWA::calc_cost(VW vw, vec2 tgt_pos, bool log){
