@@ -7,7 +7,7 @@ int check_map(Workstation *w){
         return 1;
     if(w->type == 8)
         return 2;
-    if(w->type == 6)
+    if(w->type == 1)
         return 3;
     if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
         return 4;
