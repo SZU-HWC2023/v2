@@ -5,14 +5,14 @@
 int check_map(Workstation *w){
     if(w->type == 2)
         return 1;
-    if((int)w->coordinate.x == 25 && (int)w->coordinate.y == 37)
+    if(w->type == 8)
         return 2;
-    if((int)w->coordinate.x == 21 && (int)w->coordinate.y == 30)
+    if(w->type == 6)
         return 3;
     if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
         return 4;
 
-    return 2;
+    return 4;
 }
 
 
@@ -47,6 +47,8 @@ void frameOperation(int map_type){
     }
     if(map_type == 4){
         Map4 map4;
+        // g_robots[0]->ban=true;
+        g_robots[1]->ban=true;
         process(map4);
     }
 }
