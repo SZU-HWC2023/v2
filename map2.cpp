@@ -96,7 +96,7 @@ void Map2::assignGetTask(int frame_id, Robot* r, queue<int> robot_ids){
             // }
             int nxt_worker_id = get<1>(tup);   // 取完后可以送的下一个工作台id
             double time_price = get<0>(tup);   // 平均利润(性价比)
-            if(g_workstations[nxt_worker_id]->ban) continue;
+            if(nxt_worker_id>=0 && g_workstations[nxt_worker_id]->ban) continue;
             // if(nxt_worker_id >= 0 && g_workstations[nxt_worker_id]->type == 9) time_price *= 50;
             if(nxt_worker_id >= 0) pq.push({time_price*weight, w->id, nxt_worker_id});
         }
