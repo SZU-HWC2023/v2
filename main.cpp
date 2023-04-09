@@ -12,7 +12,7 @@ int check_map(Workstation *w){
     if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
         return 4;
 
-    return 0;
+    return 1;
 }
 
 
