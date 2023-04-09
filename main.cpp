@@ -11,7 +11,6 @@ int check_map(Workstation *w){
         return 3;
     if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
         return 4;
-
     return 4;
 }
 
@@ -39,6 +38,21 @@ void frameOperation(int map_type){
     }
     if(map_type == 2){
         Map2 map2;
+        // g_robots[0]->ban=true;
+        g_robots[1]->ban=true;
+        g_robots[2]->ban=true;
+        g_robots[3]->ban=true;
+        g_workstations[16]->ban=true;
+        g_workstations[19]->ban=true;
+        g_workstations[17]->ban=true;
+        g_workstations[24]->ban=true;
+        g_workstations[25]->ban=true;
+        g_workstations[2]->ban=true;
+        g_workstations[3]->ban=true;
+        g_workstations[5]->ban=true;
+        g_workstations[6]->ban=true;
+        g_workstations[0]->ban=true;
+        g_workstations[4]->ban=true;
         process(map2);
     }
     if(map_type == 3){
