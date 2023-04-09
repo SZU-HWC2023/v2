@@ -195,7 +195,7 @@ void Robot::allocate_path(Workstation* w){
 //         path->iter = path->points.insert(path->iter, result[i]);
 //     }
 // }
-}
+
 // 判断是否会出现走独木桥需要避让的情况
 bool Robot::judge_need_avoid(Robot* r2){
     // 需要避让的几个要素：

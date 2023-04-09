@@ -85,11 +85,7 @@ vec2_int DirectionMap::find_passable_vertice(vec2 pos){
 vec2_int DirectionMap::to_DL_corner(vec2_int pos_idx){
     return pos_idx + vec2_int{-2,-2};
 }
-int DirectionMap::direction_num(vec2_int v) { //获得可达方向的数量
-    bitset<8> b = this->operator[](v);
-    return b.count();
 
-}
 
 //是否携带物品时可通过
 bool DirectionMap::is_carry_passable(vec2_int pos_idx){
