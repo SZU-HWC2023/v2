@@ -191,8 +191,12 @@ class Robot{
     vector<DWA_state> trajectory;   //轨迹
     DWA* dwa;                       //DWA指针
 
+    robot_frame last_frame;         //上一帧信息
+    int still_frames;               //静止帧数
+
     Robot(int robotID, float x, float y);
     void update(robot_frame f);
+    void check_still(robot_frame l);
     void initOtherRobot();
 
     // 指令函数

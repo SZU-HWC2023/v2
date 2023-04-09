@@ -17,7 +17,21 @@ Robot::Robot(int robotID, float x, float y){
     this->ban = false;
     this->trajectory.clear();
     this->dwa = new DWA(this);
+    this->last_frame.x = x;
+    this->last_frame.y = y;
 }
+
+void Robot::check_still(robot_frame l){
+    vec2 last_pos = {l.x, l.y};
+    vec2 diff = this->coordinate - last_pos;
+    if(diff.len() < 0.1){
+        this->still_frames++;
+    }
+    else{
+        this->still_frames = 0;
+    }
+}
+
 /*
 更新机器人帧状态
 @param f 机器人帧信息
@@ -40,6 +54,9 @@ void Robot::update(robot_frame f){
 
     DWA_state s(this);
     this->trajectory = s.calcTrajectory({this->linear_speed.len(), this->angular_speed},PRED_T);
+
+    this->check_still(last_frame);
+    robot_frame last_frame;
 }
 
 //初始化其他机器人列表
@@ -393,7 +410,7 @@ void print_path(list<Point*> path){
 Point* Robot::getNaviPoint(Workstation* w){
     vec2_int g = g_direction_map.find_passable_vertice(w->coordinate);
     //路径为空，为机器人规划一条前往工作台ws的路径
-    if(this->path->points.empty()){
+    if(this->path->points.empty() || still_frames >=5){
         // 判断数据结构中有没有 没有再取
         vec2_int s = {-1, -1};
         bool carry = false;
