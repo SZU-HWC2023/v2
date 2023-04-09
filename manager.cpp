@@ -1,5 +1,73 @@
 #include "manager.h"
 
+
+
+// 这个应该是去读取
+
+// 买货物（取货物）的代价
+tuple<double, int> Manager::getTimePriceForBuy01(Robot* r, Workstation *w, int frame_id){
+    // 判断是否有工作站接收
+    double time02 = MAX;
+    int nxt_worker_id = -1;
+    for(auto iter=g_item_to_ws.equal_range(w->production_item.type); iter.first != iter.second; ++iter.first){
+        Workstation* nxt_w = iter.first->second;
+        if(g_map[nxt_w->coordinate.toIndex()] == '$' || w->ban) continue;
+        if(nxt_w->can_production_recycle(w->production_item.type)){
+            double distance = calcDistance(w->coordinate, nxt_w->coordinate);
+            double tmp = distance/MAX_FORWARD_SPD;
+            if(tmp < time02){
+                time02 = tmp;
+                nxt_worker_id = nxt_w->id;
+            }
+        }
+    }
+    // 剩余时间双倍代价   取货时
+    double res = w->product_status==1?0:w->getLeftTime()*0.02;
+    // 计算到达工作站台取货物的时间。  max(剩余时间， 距离耗时+转向耗时)
+    double dis = calcDistance(r->coordinate, w->coordinate);
+    double time01 = max(res, dis/MAX_FORWARD_SPD);
+    // 返回值为-1说明不可取
+    if(time01 == res) return {-1, -1};
+    int lat_time_free = w->type<=3?200:100;
+    if(time02/0.02 > (MAX_FRAME-frame_id-time01/0.02-lat_time_free)) return {-1, -1};
+    return {(time01+0.5*time02), nxt_worker_id};
+}
+
+// w1代表当前机器人所属的工作台  w2代表目标工作台
+tuple<double, int> Manager::getTimePriceForBuy02(Robot* r, Workstation *w, int frame_id){
+    Workstation* r_w = g_workstations[r->workshop_located];
+    vec2_int w_i = w->coordinate.toIndex();
+    vec2_int r_w_i = r_w->coordinate.toIndex();
+    // 判断是否有工作站接收
+    double time02 = MAX;
+    int nxt_worker_id = -1;
+    for(auto iter=g_item_to_ws.equal_range(w->production_item.type); iter.first != iter.second; ++iter.first){
+        Workstation* nxt_w = iter.first->second;
+        if(g_map[nxt_w->coordinate.toIndex()] == '$' || w->ban) continue;
+        if(g_connected_areas_uc[w->coordinate]!=g_connected_areas_uc[nxt_w->coordinate] || nxt_w->ban) {continue;}
+        if(nxt_w->can_production_recycle(w->production_item.type)){
+            vec2_int nxt_w_i = nxt_w->coordinate.toIndex();
+            double distance = g_astar_path_distance[{w_i.row, w_i.col, nxt_w_i.row, nxt_w_i.col}];
+            double tmp = distance/MAX_FORWARD_SPD;
+            if(tmp < time02){
+                time02 = tmp;
+                nxt_worker_id = nxt_w->id;
+            }
+        }
+    }
+    // 剩余时间双倍代价   取货时  4s损失代价
+    double res = w->product_status==1?0:w->getLeftTime()*0.02;
+    // 计算到达工作站台取货物的时间。  max(剩余时间， 距离耗时+转向耗时)
+    double dis = g_astar_path_distance[{r_w_i.row, r_w_i.col, w_i.row, w_i.col}];
+    double time01 = max(res, dis/MAX_FORWARD_SPD+1);
+    // 返回值为-1说明不可取
+    if(time01 == res && time01 != 0) return {-1, -1};
+    int lat_time_free = w->type<=3?250:150;
+    if(time02/0.02 > (MAX_FRAME-frame_id-time01/0.02-lat_time_free)) return {-1, -1};
+    return {(time01+0.5*time02), nxt_worker_id};
+}
+
+
 Manager::Manager(){
     // 初始化get
     historyGetMap[1] = 0;

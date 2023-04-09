@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 int check_map(Workstation *w){
-    if((int)w->coordinate.x == 23 && (int)w->coordinate.y == 47)
+    if(w->type == 2)
         return 1;
     if((int)w->coordinate.x == 25 && (int)w->coordinate.y == 37)
         return 2;
@@ -12,7 +12,7 @@ int check_map(Workstation *w){
     if((int)w->coordinate.x == 1 && (int)w->coordinate.y == 48)
         return 4;
 
-    return 1;
+    return 2;
 }
 
 
@@ -38,15 +38,15 @@ void frameOperation(int map_type){
         process(map1);
     }
     if(map_type == 2){
-        Map1 map2;
+        Map2 map2;
         process(map2);
     }
     if(map_type == 3){
-        Map1 map3;
+        Map3 map3;
         process(map3);
     }
     if(map_type == 4){
-        Map1 map4;
+        Map4 map4;
         process(map4);
     }
 }
