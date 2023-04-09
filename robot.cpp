@@ -24,7 +24,7 @@ Robot::Robot(int robotID, float x, float y){
 void Robot::check_still(robot_frame l){
     vec2 last_pos = {l.x, l.y};
     vec2 diff = this->coordinate - last_pos;
-    if(diff.len() < 0.1){
+    if(this->linear_speed.len() < 0.1){
         this->still_frames++;
     }
     else{
@@ -158,6 +158,14 @@ void print_path(vector<Point*> &vec_paths){
     }
     fprintf(stderr,"\n");
 }
+
+void print_path_list(list<Point*> &vec_paths){
+    for(Point* p:vec_paths){
+        vec2 pos = g_direction_map.to_pos(p->coordinate,true);
+        fprintf(stderr,"%.2f, %.2f | ",pos.x,pos.y);
+    }
+    fprintf(stderr,"\n");
+}
 /*
 初始化机器人路径导航
 @path 路径 Vector
@@ -175,6 +183,8 @@ void Robot::initPath(vector<Point*> points,vec2 w){
         this->path->points.push_back(points[i]);
     }
     this->path->iter=this->path->points.begin();
+    fprintf(stderr,"Robot %d: ",this->id);
+    print_path_list(this->path->points);
 }
 /*
 没有路时开辟一条道路
@@ -509,7 +519,9 @@ void Robot::move2ws(Workstation* ws){
         }
     }
 
-
+    if(still_frames>= 10){
+        tgt_lin_spd = -2;
+    }
     this->forward(tgt_lin_spd);
     this->rotate(tgt_ang_spd);
 

@@ -3,7 +3,8 @@
 # vary seed from 1 to 10
 seeds=(1 2 3 4 5 6 7 8 9 10)
 
-maps=("1.txt" "2.txt" "3.txt" "4.txt")
+# maps=("1.txt" "2.txt" "3.txt" "4.txt")
+maps=("5.txt" "6.txt")
 total_score=0
 cd ".."
 # for seed in "${seeds[@]}"; do

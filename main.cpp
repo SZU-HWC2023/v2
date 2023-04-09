@@ -33,9 +33,10 @@ void process(T &map){
 
 
 void frameOperation(int map_type){
-    if(map_type == 1){
+    if(true){
         Map1 map1;
         process(map1);
+        return;
     }
     if(map_type == 2){
         Map1 map2;
